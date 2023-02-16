@@ -12,7 +12,7 @@ triggerComponentDtorOriginal_t triggerComponentDtorOriginal;
 using enterTriggerOriginal_t = char(__fastcall*)(uint64_t* x, uint64_t* y, uint64_t z);
 enterTriggerOriginal_t enterTriggerOriginal;
 
-using getWorldSpaceAABBOriginal_t = uint64_t* (__fastcall*)(uint64_t x, uint64_t* y);
+using getWorldSpaceAABBOriginal_t = uint64_t * (__fastcall*)(uint64_t x, uint64_t* y);
 getWorldSpaceAABBOriginal_t getWorldSpaceAABBOriginal;
 
 using startUnloadingLevel_t = void(__fastcall*)(uint64_t* x);
@@ -24,7 +24,7 @@ startLoadingLevel_t startLoadingLevelOriginal;
 using notifyClientLevelLoadingComplete_t = void(__fastcall*)(uint64_t* x, const int64_t* y);
 notifyClientLevelLoadingComplete_t notifyClientLevelLoadingCompleteOriginal;
 
-using characterControllerCtor_t = uint64_t* (__fastcall*)(uint64_t* x, uint64_t* y, uint64_t* z, int a4);
+using characterControllerCtor_t = uint64_t * (__fastcall*)(uint64_t* x, uint64_t* y, uint64_t* z, int a4);
 characterControllerCtor_t characterControllerOriginal;
 
 using characterControllerMoveRelative_t = void(__fastcall*)(uint64_t* x, float* y, float z, float w);
@@ -79,7 +79,7 @@ void __stdcall setAsPlayerCharacter(uint64_t* pointer, char isPlayer) {
 		ptr* playerControllerState = reinterpret_cast<ptr*>(playerController + 0x20);
 		printf("playerControllerState was called: 0x%llx\n", playerControllerState);
 	}
-	
+
 	setAsPlayerOriginal(pointer, isPlayer);
 }
 
@@ -114,13 +114,7 @@ uint64_t* __fastcall characterControllerCtor(uint64_t* x, uint64_t* y, uint64_t*
 	printf("character controller constructor, 0x%llx, 0x%llx, 0x%llx, %d\n", x, y, z, a4);
 
 	if (a4 == 1)
-	{
 		playerCharacterController = x;
-		ptr* velocity = x + 8;
-		ptr* ground = x + 9;
-
-		printf("player velo ground, 0x%llx, 0x%llx\n", velocity, ground);
-	}
 
 	characterControllerOriginal(x, y, z, a4);
 	return x;
@@ -150,7 +144,7 @@ float ControlGameData::getPlayerPhysxSpeed()
 	float velocity = *(float*)(playerCharacterController + 8);
 	float ground = *(float*)(playerCharacterController + 9);
 	float speed = sqrtf(velocity * velocity + ground * ground);
-	
+
 	return speed;
 }
 
@@ -202,8 +196,7 @@ float ControlGameData::getPlayerPosSpeed()
 }
 #endif
 
-
-using baseTweakablesGetTweakable_t = uint64_t* (__stdcall*)(const char* name);
+using baseTweakablesGetTweakable_t = uint64_t * (__stdcall*)(const char* name);
 baseTweakablesGetTweakable_t baseTweakablesGetTweakable;
 
 struct Tweakable_t
@@ -216,28 +209,6 @@ struct Tweakable_t
 	uint32_t charAmount;
 	uint32_t d;
 };
-
-/*
-struct Tweakable
-{
-	ptr* vftable;
-	ptr** namePtr;
-	ptr** namePtr2;
-	uint32_t a;
-	uint32_t b;
-	uint32_t charAmount;
-	uint32_t d;
-
-	// TODO: constructor
-	byte* start;
-	char* name;
-	byte* valueType;
-	byte* valueModified;
-	byte* valueByte;
-	uint32_t* valueInt;
-	float* valueFloat;
-};
-*/
 
 struct Tweakable
 {
@@ -338,7 +309,7 @@ void ControlGameData::InitGameData()
 	// if it gets unallocated we set it back to null so we only need to have a small if statement inside the render code
 	// to check if a trigger ptr is null or not
 	// idk how else to not get fucked by multithreading lmao
-	
+
 	uint64_t processStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
 	uint64_t coregameDllAddr = reinterpret_cast<uint64_t>(GetModuleHandle(L"coregame_rmdwin7_f.dll"));
 	uint64_t physicsDllAddr = reinterpret_cast<uint64_t>(GetModuleHandle(L"physics_rmdwin7_f.dll"));
@@ -358,13 +329,13 @@ void ControlGameData::InitGameData()
 	ptr* characterControllerMoveCapsuleAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x7540);
 
 	baseTweakablesGetTweakable = (baseTweakablesGetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f8e60);
-	
+
 	Tweakable CoherentGTLiveViewsTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("CoherentGT:Force live views to update"));
 	CoherentGTLiveViewsTweakable.setTweakableByte(1);
-	
+
 	Tweakable VSyncTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("VSync:Enabled"));
 	VSyncTweakable.setTweakableByte(0);
-	
+
 	Tweakable SSAATweakable = Tweakable((ptr*)baseTweakablesGetTweakable("SSAA:Temporal Jitter Scale"));
 	SSAATweakable.setTweakableFloat(0.0f);
 
@@ -423,35 +394,36 @@ Vector3* ControlGameData::GetPlayerPos()
 	if (!playerController)
 		return nullptr;
 
-	memcpy(a, playerController + 0x12, sizeof(uint64_t));
-	memcpy(b, playerController + 0x13, sizeof(uint64_t));
+	if (!playerCharacterController)
+		return nullptr;
 
-	playerPos.x = a[0];
-	playerPos.y = a[1];
-	playerPos.z = b[0]; // b[1] is just padding
+	// *(ptr**)(playerCharacterController + 12) -> physx3characterkinematic
+	float* x = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 1;
+	float* y = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 3;
+	float* z = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 5;
+
+	playerPos.x = *x;
+	playerPos.y = *y;
+	playerPos.z = *z;
+
 	return &playerPos;
 }
 
 void ControlGameData::SetPlayerPos(Vector3 newPos)
-{ //NOT WORKING, POSITION GETS RESET AFTER 1 FRAME??//
+{
 	float a[2], b[2];
 
 	if (!playerController) {
 		return;
 	}
 
-	//ass
-	//copy current position so we have the padding and things right
-	memcpy(a, playerController + 0x12, sizeof(uint64_t));
-	memcpy(b, playerController + 0x13, sizeof(uint64_t));
+	float* x = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 1;
+	float* y = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 3;
+	float* z = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 5;
 
-	a[0] = newPos.x;
-	a[1] = newPos.y;
-	b[0] = newPos.z; // b[1] is just padding
-
-	//copy new position back
-	memcpy(playerController + 0x12, a, sizeof(uint64_t));
-	memcpy(playerController + 0x13, b, sizeof(uint64_t));
+	*x = newPos.x;
+	*y = newPos.y;
+	*z = newPos.z;
 }
 
 Matrix4* ControlGameData::GetViewMatrix()
@@ -471,11 +443,11 @@ std::vector<triggerPtr> ControlGameData::GetTriggers()
 		uint64_t* triggerPtr = triggerPtrs.at(i).trigger;
 		uint64_t* triggerEntityPtr = triggerPtrs.at(i).genericentity;
 		uint64_t triggerEntity = *triggerPtrs.at(i).genericentity;
-		
+
 		Point p;
 		float tmpFloats[6];
 		uint64_t* floatLoc = reinterpret_cast<uint64_t*>(&tmpFloats);
-		
+
 		if (gameobjectPtr != NULL) {
 			uint32_t* onEnterLoc = reinterpret_cast<uint32_t*>(networkstatePtr + 9);
 			float* posLocPtr = reinterpret_cast<float*>(gameobjectPtr + 2);
