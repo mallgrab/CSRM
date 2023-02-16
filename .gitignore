@@ -22,7 +22,11 @@ mono_crash.*
 [Rr]elease/
 [Rr]eleases/
 x64/
+Client/x64/
+Server/x64/
 x86/
+Client/x86/
+Server/x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
