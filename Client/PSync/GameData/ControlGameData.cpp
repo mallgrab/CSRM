@@ -114,7 +114,13 @@ uint64_t* __fastcall characterControllerCtor(uint64_t* x, uint64_t* y, uint64_t*
 	printf("character controller constructor, 0x%llx, 0x%llx, 0x%llx, %d\n", x, y, z, a4);
 
 	if (a4 == 1)
+	{
 		playerCharacterController = x;
+		ptr* velocity = x + 8;
+		ptr* ground = x + 9;
+
+		printf("player velo ground, 0x%llx, 0x%llx\n", velocity, ground);
+	}
 
 	characterControllerOriginal(x, y, z, a4);
 	return x;
@@ -196,6 +202,7 @@ float ControlGameData::getPlayerPosSpeed()
 }
 #endif
 
+
 using baseTweakablesGetTweakable_t = uint64_t* (__stdcall*)(const char* name);
 baseTweakablesGetTweakable_t baseTweakablesGetTweakable;
 
@@ -209,6 +216,28 @@ struct Tweakable_t
 	uint32_t charAmount;
 	uint32_t d;
 };
+
+/*
+struct Tweakable
+{
+	ptr* vftable;
+	ptr** namePtr;
+	ptr** namePtr2;
+	uint32_t a;
+	uint32_t b;
+	uint32_t charAmount;
+	uint32_t d;
+
+	// TODO: constructor
+	byte* start;
+	char* name;
+	byte* valueType;
+	byte* valueModified;
+	byte* valueByte;
+	uint32_t* valueInt;
+	float* valueFloat;
+};
+*/
 
 struct Tweakable
 {
@@ -394,36 +423,35 @@ Vector3* ControlGameData::GetPlayerPos()
 	if (!playerController)
 		return nullptr;
 
-	if (!playerCharacterController)
-		return nullptr;
+	memcpy(a, playerController + 0x12, sizeof(uint64_t));
+	memcpy(b, playerController + 0x13, sizeof(uint64_t));
 
-	// *(ptr**)(playerCharacterController + 12) -> physx3characterkinematic
-	float* x = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 1;
-	float* y = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 3;
-	float* z = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 5;
-
-	playerPos.x = *x;
-	playerPos.y = *y;
-	playerPos.z = *z;
-
+	playerPos.x = a[0];
+	playerPos.y = a[1];
+	playerPos.z = b[0]; // b[1] is just padding
 	return &playerPos;
 }
 
 void ControlGameData::SetPlayerPos(Vector3 newPos)
-{
+{ //NOT WORKING, POSITION GETS RESET AFTER 1 FRAME??//
 	float a[2], b[2];
 
 	if (!playerController) {
 		return;
 	}
 
-	float* x = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 1;
-	float* y = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 3;
-	float* z = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 5;
+	//ass
+	//copy current position so we have the padding and things right
+	memcpy(a, playerController + 0x12, sizeof(uint64_t));
+	memcpy(b, playerController + 0x13, sizeof(uint64_t));
 
-	*x = newPos.x;
-	*y = newPos.y;
-	*z = newPos.z;
+	a[0] = newPos.x;
+	a[1] = newPos.y;
+	b[0] = newPos.z; // b[1] is just padding
+
+	//copy new position back
+	memcpy(playerController + 0x12, a, sizeof(uint64_t));
+	memcpy(playerController + 0x13, b, sizeof(uint64_t));
 }
 
 Matrix4* ControlGameData::GetViewMatrix()
