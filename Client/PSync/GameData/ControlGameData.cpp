@@ -342,8 +342,13 @@ void ControlGameData::InitGameData()
 	Tweakable VectorBlurTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("VectorBlur:Shutter Speed"));
 	VectorBlurTweakable.setTweakableFloat(0.0f);
 
-	Tweakable AbilityLevitateTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("Ability Levitate: Disable"));
-	AbilityLevitateTweakable.setTweakableByte(1);
+	Tweakable IntroScreenTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("Intro Screen:Display time for section"));
+	IntroScreenTweakable.setTweakableFloat(0.0f);
+
+	/*
+		Tweakable AbilityLevitateTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("Ability Levitate: Disable"));
+		AbilityLevitateTweakable.setTweakableByte(1);
+	*/
 
 	if (MH_CreateHook(setPlayerFunctionAddr, &setAsPlayerCharacter, reinterpret_cast<LPVOID*>(&setAsPlayerOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(setPlayerFunctionAddr) != MH_OK) throw;
