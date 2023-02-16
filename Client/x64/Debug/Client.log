@@ -1,0 +1,18 @@
+﻿E:\community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(500,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+  ControlGameData.cpp
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(68,9): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint64_t *'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(68,9): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 2 has type 'uint64_t *'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(68,9): warning C4477: 'printf' : format string '%lu' requires an argument of type 'unsigned long', but variadic argument 3 has type 'uint64_t'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(68,9): message : consider using '%llu' in the format string
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(68,9): message : consider using '%Iu' in the format string
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(68,9): message : consider using '%I64u' in the format string
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(75,10): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint64_t *'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(80,10): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'ptr *'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(114,9): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint64_t *'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(114,9): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 2 has type 'uint64_t *'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(114,9): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 3 has type 'uint64_t *'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(122,10): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'ptr *'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(122,10): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 2 has type 'ptr *'
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(187,33): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(187,25): warning C4244: 'initializing': conversion from 'double' to 'const float', possible loss of data
+E:\PSync-main\Client\PSync\GameData\ControlGameData.cpp(495,23): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data

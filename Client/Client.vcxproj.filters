@@ -1,0 +1,260 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="PSync">
+      <UniqueIdentifier>{4fd2761e-03f3-4478-8378-cbd0aab20465}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ocular">
+      <UniqueIdentifier>{433b2e01-3a41-4353-8f0c-ee055f57c437}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ocular\kiero">
+      <UniqueIdentifier>{2176df87-cc22-446e-9563-48bc83e7e279}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ocular\kiero\minhook">
+      <UniqueIdentifier>{e43408ae-71b1-4c4e-bad2-e66bf58b3546}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ocular\kiero\minhook\src">
+      <UniqueIdentifier>{6a9a3eb3-0a5c-4176-aff5-608bbe7563a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ocular\kiero\minhook\src\hde">
+      <UniqueIdentifier>{1b6122a2-7603-4057-9ff7-99d1bcd282c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ocular\kiero\minhook\dll_resources">
+      <UniqueIdentifier>{11288626-2a88-4586-8d78-29d7f24c1da2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ocular\kiero\minhook\include">
+      <UniqueIdentifier>{fe288dda-27e0-4b82-a09f-27b1488fbc90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ocular\imgui">
+      <UniqueIdentifier>{88d31789-1f7f-4d2b-960a-bcd71185ef2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ocular\hooks">
+      <UniqueIdentifier>{27f93970-2274-4a09-a219-d34ce0cd0f41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PSync\Fonts">
+      <UniqueIdentifier>{b4cb52d8-7b7e-44b6-94ae-84042c116ea7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PSync\GameData">
+      <UniqueIdentifier>{caee6629-8bc0-4b2e-b92d-964c660c80a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PSync\UI">
+      <UniqueIdentifier>{721bd8e7-51b4-4e7c-b727-024d53aa96e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PSync\Client">
+      <UniqueIdentifier>{7b757ad7-119d-4272-8d7f-9dca6d2ac499}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PSync\Config">
+      <UniqueIdentifier>{0e91b51c-23b8-4940-bd27-88baaa936226}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Utils.h" />
+    <ClInclude Include="ocular\kiero\minhook\src\buffer.h">
+      <Filter>ocular\kiero\minhook\src</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\DLLProxy.h">
+      <Filter>ocular</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\kiero\minhook\src\hde\hde32.h">
+      <Filter>ocular\kiero\minhook\src\hde</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\kiero\minhook\src\hde\hde64.h">
+      <Filter>ocular\kiero\minhook\src\hde</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\kiero\minhook\include\MinHook.h">
+      <Filter>ocular\kiero\minhook\include</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\kiero\minhook\src\hde\pstdint.h">
+      <Filter>ocular\kiero\minhook\src\hde</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\kiero\minhook\src\hde\table32.h">
+      <Filter>ocular\kiero\minhook\src\hde</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\kiero\minhook\src\hde\table64.h">
+      <Filter>ocular\kiero\minhook\src\hde</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\kiero\minhook\src\trampoline.h">
+      <Filter>ocular\kiero\minhook\src</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\ocular.h">
+      <Filter>ocular</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\kiero\kiero.h">
+      <Filter>ocular\kiero</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\imgui\imconfig.h">
+      <Filter>ocular\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\imgui\imgui.h">
+      <Filter>ocular\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\imgui\imgui_impl_dx11.h">
+      <Filter>ocular\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\imgui\imgui_impl_win32.h">
+      <Filter>ocular\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\imgui\imgui_internal.h">
+      <Filter>ocular\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\imgui\imstb_rectpack.h">
+      <Filter>ocular\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\imgui\imstb_textedit.h">
+      <Filter>ocular\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\imgui\imstb_truetype.h">
+      <Filter>ocular\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\hooks\D3D11Hook.h">
+      <Filter>ocular\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\hooks\OcularHook.h">
+      <Filter>ocular\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\hooks\D3D9Hook.h">
+      <Filter>ocular\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="ocular\imgui\imgui_impl_dx9.h">
+      <Filter>ocular\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\UI\BaseUI.h">
+      <Filter>PSync\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\Config\BaseConfig.h">
+      <Filter>PSync\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\Client\BaseClient.h">
+      <Filter>PSync\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\Client\NieRAutomataClient.h">
+      <Filter>PSync\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\Config\NieRAutomataConfig.h">
+      <Filter>PSync\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\UI\NieRAutomataUI.h">
+      <Filter>PSync\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\GameData\BaseGameData.h">
+      <Filter>PSync\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\GameData\NieRAutomataGameData.h">
+      <Filter>PSync\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\Client\BaseUser.h">
+      <Filter>PSync\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\PSyncFactory.h" />
+    <ClInclude Include="PSync\GameData\DarkSouls3GameData.h">
+      <Filter>PSync\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\GameData\NieRReplicantGameData.h">
+      <Filter>PSync\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\GameData\DevilMayCry3SEGameData.h">
+      <Filter>PSync\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\UI\DevilMayCry3SEUI.h">
+      <Filter>PSync\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\Config\DevilMayCry3SEConfig.h">
+      <Filter>PSync\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\GameData\ControlGameData.h">
+      <Filter>PSync\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\UI\ControlUI.h">
+      <Filter>PSync\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\Client\ControlClient.h">
+      <Filter>PSync\Client</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ocular\kiero\minhook\src\buffer.c">
+      <Filter>ocular\kiero\minhook\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\kiero\minhook\src\hde\hde32.c">
+      <Filter>ocular\kiero\minhook\src\hde</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\kiero\minhook\src\hde\hde64.c">
+      <Filter>ocular\kiero\minhook\src\hde</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\kiero\minhook\src\hook.c">
+      <Filter>ocular\kiero\minhook\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\kiero\minhook\src\trampoline.c">
+      <Filter>ocular\kiero\minhook\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\imgui\imgui.cpp">
+      <Filter>ocular\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\imgui\imgui_demo.cpp">
+      <Filter>ocular\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\imgui\imgui_draw.cpp">
+      <Filter>ocular\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\imgui\imgui_impl_dx11.cpp">
+      <Filter>ocular\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\imgui\imgui_impl_win32.cpp">
+      <Filter>ocular\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\imgui\imgui_tables.cpp">
+      <Filter>ocular\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\imgui\imgui_widgets.cpp">
+      <Filter>ocular\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\ocular.cpp">
+      <Filter>ocular</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\hooks\D3D11Hook.cpp">
+      <Filter>ocular\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\hooks\OcularHook.cpp">
+      <Filter>ocular\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\kiero\kiero.cpp">
+      <Filter>ocular\kiero</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\hooks\D3D9Hook.cpp">
+      <Filter>ocular\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="ocular\imgui\imgui_impl_dx9.cpp">
+      <Filter>ocular\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\Fonts\RodinProM.cpp">
+      <Filter>PSync\Fonts</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\UI\BaseUI.cpp">
+      <Filter>PSync\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\Config\BaseConfig.cpp">
+      <Filter>PSync\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\Client\BaseClient.cpp">
+      <Filter>PSync\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\UI\NieRAutomataUI.cpp">
+      <Filter>PSync\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\UI\DevilMayCry3SEUI.cpp">
+      <Filter>PSync\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\UI\ControlUI.cpp">
+      <Filter>PSync\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\GameData\ControlGameData.cpp">
+      <Filter>PSync\GameData</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ocular\kiero\minhook\dll_resources\MinHook.def">
+      <Filter>ocular\kiero\minhook\dll_resources</Filter>
+    </None>
+  </ItemGroup>
+</Project>

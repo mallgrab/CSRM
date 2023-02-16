@@ -1,0 +1,430 @@
+#include "ControlUI.h"
+
+void ControlUI::RenderGUI() {
+	if (!init) return;
+
+	gHue++;
+	gHue = gHue % 360;
+
+	if (!data->uiToggle) {
+		return;
+	}
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	ImGui::SetNextWindowSizeConstraints(ImVec2(520.0f, 150.0f), io.DisplaySize);
+	if (!ImGui::Begin("Prac", &data->uiToggle, 0)) { ImGui::End(); return; }
+	
+	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+	if (ImGui::BeginTabBar("Tabs", tab_bar_flags))
+	{
+		DebugTab();
+		ConnectionTab();
+		CustomizationTab();
+		ConfigTab();
+		CreditsTab();
+		ImGui::EndTabBar();
+	}
+
+	ImGui::End();
+}
+
+void draw_speed(ImVec2 position, float speed) {
+	char health_text[25];
+	sprintf_s(health_text, 25, "%.2f", speed);
+	ImGui::GetForegroundDrawList()->AddText({(position.x - ImGui::CalcTextSize(health_text).x / 2.0f), 
+		(position.y - ImGui::CalcTextSize(health_text).y / 2.0f)}, ImGui::ColorConvertFloat4ToU32({ 1,1,1,1.0f }), health_text);
+}
+
+void ControlUI::DebugTab() {
+	if (ImGui::BeginTabItem("Debug"))
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+		Matrix4* myViewMatrix = data->GetViewMatrix();
+		Vector3* myPlayerPos = data->GetPlayerPos();
+
+		/*
+		ImGui::InputFloat("Countdown Time", &countdownTme);
+		if (ImGui::Button("Start Countdown")) {
+			drawCountdown = true;
+			countdownRemainingTime = countdownTme;
+			countdownGoTime = 2.0f;
+			countdownOpacityPerc = 1.0f;
+		}
+		*/
+
+		ImGui::Text("\nScreen Size:");
+		ImGui::Text("%f, %f", io.DisplaySize.x, io.DisplaySize.y);
+
+		if (((ControlGameData*)data)->getPlayerCapsuleSpeed() != nullptr)
+			ImGui::Text("speed capsule: %f %f %f %f", 
+				*((ControlGameData*)data)->getPlayerCapsuleSpeed(),
+				*(((ControlGameData*)data)->getPlayerCapsuleSpeed() + 1),
+				*(((ControlGameData*)data)->getPlayerCapsuleSpeed() + 2),
+				*(((ControlGameData*)data)->getPlayerCapsuleSpeed() + 3));
+
+		/*
+		ImGui::Checkbox("Override Resolution", &config->overrideResolution);
+		ImGui::InputFloat("Custom Width", &config->customWidth);
+		ImGui::InputFloat("Custom Height", &config->customHeight);
+		*/
+
+		ImGui::Text("\nTrigger Opacity:");
+		ImGui::SliderFloat("", &config->triggerOpacity, 0.0f, 1.0f, "%.3f");
+		ImGui::Checkbox("Enable Triggers", &config->drawTriggers);
+		ImGui::Checkbox("Enable Speedometer", &config->drawSpeedometer);
+		ImGui::InputFloat("", &config->speedometerX, 1.0f, 2.0f);
+		ImGui::InputFloat("", &config->speedometerY, 1.0f, 2.0f);
+
+		if (myPlayerPos != nullptr) {
+			ImGui::Text("\nPosX: %f", myPlayerPos->x);
+			ImGui::Text("PosY: %f", myPlayerPos->y);
+			ImGui::Text("PosZ: %f", myPlayerPos->z);
+		}
+
+		if (myViewMatrix != nullptr) {
+			ImGui::Text("\nViewMatrix:");
+			ImGui::Text("%f, %f, %f, %f", myViewMatrix->_00, myViewMatrix->_01, myViewMatrix->_02, myViewMatrix->_03);
+			ImGui::Text("%f, %f, %f, %f", myViewMatrix->_10, myViewMatrix->_11, myViewMatrix->_12, myViewMatrix->_13);
+			ImGui::Text("%f, %f, %f, %f", myViewMatrix->_20, myViewMatrix->_21, myViewMatrix->_22, myViewMatrix->_23);
+			ImGui::Text("%f, %f, %f, %f", myViewMatrix->_30, myViewMatrix->_31, myViewMatrix->_32, myViewMatrix->_33);
+
+			Matrix4 transposed = myViewMatrix->Transpose();
+			ImGui::Text("\nTransposed ViewMatrix:");
+			ImGui::Text("%f, %f, %f, %f", transposed._00, transposed._01, transposed._02, transposed._03);
+			ImGui::Text("%f, %f, %f, %f", transposed._10, transposed._11, transposed._12, transposed._13);
+			ImGui::Text("%f, %f, %f, %f", transposed._20, transposed._21, transposed._22, transposed._23);
+			ImGui::Text("%f, %f, %f, %f", transposed._30, transposed._31, transposed._32, transposed._33);
+
+			Vector3 worldPos;
+			worldPos.x = 0;
+			worldPos.y = 0;
+			worldPos.z = 0;
+
+			Vector2 scrnOutPos;
+
+			if (DXWorldToScreen(myViewMatrix, worldPos, io.DisplaySize.x, io.DisplaySize.y, scrnOutPos)) {
+				ImGui::Text("\nScreenPos:");
+				ImGui::Text("%f, %f", scrnOutPos.x, scrnOutPos.y);
+			}
+		}
+
+		/*
+		uint64_t* currentRegionAddress = nullptr;
+		
+		if (currentRegionAddress != nullptr) {
+			ImGui::Text((char*)currentRegionAddress);
+		}
+		*/
+
+		ImGui::Checkbox("Draw Own User", &config->drawSelf);
+
+		/*
+		ImGui::InputText("Chapter String", chapterString, sizeof(chapterString));
+		if (ImGui::Button("Set Chapter")) {
+			client->SendChapter(chapterString);
+		}
+
+		ImGui::Checkbox("DO NOT ENABLE UNLESS YOU SERIOUSLY KNOW WHAT YOU ARE DOING", &config->unknownBoolean);
+		*/
+
+		ImGui::EndTabItem();
+	}
+}
+
+void ControlUI::ConfigTab() {
+	if (ImGui::BeginTabItem("Configuration"))
+	{
+		if (ImGui::CollapsingHeader("Menu")) {
+			if (ImGui::ColorEdit3("Accent Colour", config->menuAccentColour)) SetupTheme();
+			ImGui::Checkbox("Draw ImGui Cursor", &config->drawImGuiCursor);
+		}
+
+		if (ImGui::CollapsingHeader("System"))
+			ImGui::Checkbox("Position Smoothing", &config->positionSmoothing);
+
+		if (ImGui::CollapsingHeader("Keybinds")) {
+			ImGuiIO io = ImGui::GetIO();
+
+			char keyName[64];
+			UINT scanCode = MapVirtualKey(config->menuKeybind, MAPVK_VK_TO_VSC);
+			switch (config->menuKeybind)
+			{
+			case VK_LEFT: case VK_UP: case VK_RIGHT: case VK_DOWN:
+			case VK_RCONTROL: case VK_RMENU:
+			case VK_LWIN: case VK_RWIN: case VK_APPS:
+			case VK_PRIOR: case VK_NEXT:
+			case VK_END: case VK_HOME:
+			case VK_INSERT: case VK_DELETE:
+			case VK_DIVIDE:
+			case VK_NUMLOCK:
+				scanCode |= KF_EXTENDED;
+			default:
+				GetKeyNameTextA(scanCode << 16, keyName, sizeof(keyName));
+			}
+
+			ImGui::Text("Menu Keybind:");
+			ImGui::Indent(ImGui::GetWindowSize().x / 4);
+			if (!rebindingKey) {
+				if (ImGui::Button(keyName, ImVec2(ImGui::GetWindowSize().x / 2, 24.0f))) {
+					rebindingKey = true;
+				}
+			}
+			else {
+				ImGui::Button("Press Any Key... (ESC To Cancel)", ImVec2(ImGui::GetWindowSize().x / 2, 24.0f));
+				for (int i = 0; i < IM_ARRAYSIZE(io.KeysDown); i++) {
+					if (io.KeysDownDuration[i] > 0.0f) {
+						if (i == VK_ESCAPE) {                           // Canceled
+							rebindingKey = false;
+							break;
+						}
+						else if (i == config->menuKeybind) {       // Pressed current menuKeybind
+							rebindingKey = false;
+							break;
+						}
+						else {                                          // Pressed new key
+							config->menuKeybind = i;
+							rebindingKey = false;
+							break;
+						}
+					}
+				}
+			}
+			ImGui::Unindent(ImGui::GetWindowSize().x / 4);
+		}
+		ImGui::Separator();
+		ImGui::Separator();
+		ImGui::Separator();
+		if (ImGui::Button("Save Config", ImVec2(ImGui::GetWindowSize().x / 2, 24.0f))) {
+			config->WriteConfig();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Load Config", ImVec2(ImGui::GetWindowSize().x / 2, 24.0f))) {
+			config->ReadConfig();
+		}
+
+		ImGui::EndTabItem();
+	}
+}
+
+bool firstTimeInitalization = false;
+void ControlUI::DrawPlayerObjects() {
+	ImDrawList* drawList = ImGui::GetForegroundDrawList();
+	ImGuiIO& io = ImGui::GetIO();
+	
+	if (!firstTimeInitalization)
+	{
+		config->speedometerX = io.DisplaySize.x / 2;
+		config->speedometerY = 75;
+		firstTimeInitalization = true;
+	}
+	
+	if (config->drawSpeedometer)
+		draw_speed({config->speedometerX, config->speedometerY}, ((ControlGameData*)data)->getPlayerPhysxSpeed());
+
+	if (!config->drawTriggers)
+		return;
+
+	Matrix4* myViewMatrix = data->GetViewMatrix();
+	if (myViewMatrix != nullptr) {
+		Vector3 worldPos;
+		ImVec2 nicknamePos;
+
+		if (!((ControlGameData*)data)->GetMapIsLoaded())
+			return;
+
+		if (((ControlGameData*)data)->GetTriggers().size() != 0) {
+			Vector3 playerPos = *data->GetPlayerPos();
+			
+			auto triggers = ((ControlGameData*)data)->GetTriggers();
+			for (int i = 0; i < triggers.size(); i++) {
+				ImColor triggerColor;
+
+				if (triggers.at(i).trigger == NULL || 
+					*triggers.at(i).genericentity == NULL ||
+					triggers.at(i).triggerobject.trigger == nullptr)
+					continue;
+
+				if (*triggers.at(i).triggerobject.onEnter == 1)
+					triggerColor = ImColor(1.0f, 1.0f, 1.0f, config->triggerOpacity * 0.9);
+				else if (*triggers.at(i).triggerobject.onEnter != 0)
+					triggerColor = ImColor(0.7f, 1.0f, 0.7f, config->triggerOpacity * 0.5);
+				else
+					triggerColor = ImColor(1.0f, 1.0f, 1.0f, config->triggerOpacity * 0.2);
+
+				Vector3 minA = triggers.at(i).triggerobject.minmax.a;
+				Vector3 maxB = triggers.at(i).triggerobject.minmax.b;
+
+				Vector3 minA_tmpA = minA; minA_tmpA.x = maxB.x;
+				Vector3 minA_tmpB = minA; minA_tmpB.y = maxB.y;
+				Vector3 minA_tmpC = minA; minA_tmpC.x = maxB.x; minA_tmpC.y = maxB.y;
+
+				Vector3 maxB_tmpA = maxB; maxB_tmpA.x = minA.x;
+				Vector3 maxB_tmpB = maxB; maxB_tmpB.y = minA.y;
+				Vector3 maxB_tmpC = maxB; maxB_tmpC.x = minA.x; maxB_tmpC.y = minA.y;
+
+				Vector2 vec2_minA;
+				Vector2 vec2_maxB;
+
+				Vector2 vec2_minA_tmpA;
+				Vector2 vec2_minA_tmpB;
+				Vector2 vec2_minA_tmpC;
+
+				Vector2 vec2_maxB_tmpA;
+				Vector2 vec2_maxB_tmpB;
+				Vector2 vec2_maxB_tmpC;
+
+				ImVec2 imvec_minA;
+				ImVec2 imvec_maxB;
+
+				ImVec2 imvec_minA_tmpA;
+				ImVec2 imvec_minA_tmpB;
+				ImVec2 imvec_minA_tmpC;
+
+				ImVec2 imvec_maxB_tmpA;
+				ImVec2 imvec_maxB_tmpB;
+				ImVec2 imvec_maxB_tmpC;
+
+				if (!DXWorldToScreen(myViewMatrix, minA, (int)screenWidth, (int)screenHeight, vec2_minA)) continue;
+				if (!DXWorldToScreen(myViewMatrix, maxB, (int)screenWidth, (int)screenHeight, vec2_maxB)) continue;
+
+				if (!DXWorldToScreen(myViewMatrix, minA_tmpA, (int)screenWidth, (int)screenHeight, vec2_minA_tmpA)) continue;
+				if (!DXWorldToScreen(myViewMatrix, minA_tmpB, (int)screenWidth, (int)screenHeight, vec2_minA_tmpB)) continue;
+				if (!DXWorldToScreen(myViewMatrix, minA_tmpC, (int)screenWidth, (int)screenHeight, vec2_minA_tmpC)) continue;
+
+				if (!DXWorldToScreen(myViewMatrix, maxB_tmpA, (int)screenWidth, (int)screenHeight, vec2_maxB_tmpA)) continue;
+				if (!DXWorldToScreen(myViewMatrix, maxB_tmpB, (int)screenWidth, (int)screenHeight, vec2_maxB_tmpB)) continue;
+				if (!DXWorldToScreen(myViewMatrix, maxB_tmpC, (int)screenWidth, (int)screenHeight, vec2_maxB_tmpC)) continue;
+
+				imvec_minA.x = vec2_minA.x; imvec_minA.y = vec2_minA.y;
+				imvec_maxB.x = vec2_maxB.x; imvec_maxB.y = vec2_maxB.y;
+
+				imvec_minA_tmpA.x = vec2_minA_tmpA.x; imvec_minA_tmpA.y = vec2_minA_tmpA.y;
+				imvec_minA_tmpB.x = vec2_minA_tmpB.x; imvec_minA_tmpB.y = vec2_minA_tmpB.y;
+				imvec_minA_tmpC.x = vec2_minA_tmpC.x; imvec_minA_tmpC.y = vec2_minA_tmpC.y;
+
+				imvec_maxB_tmpA.x = vec2_maxB_tmpA.x; imvec_maxB_tmpA.y = vec2_maxB_tmpA.y;
+				imvec_maxB_tmpB.x = vec2_maxB_tmpB.x; imvec_maxB_tmpB.y = vec2_maxB_tmpB.y;
+				imvec_maxB_tmpC.x = vec2_maxB_tmpC.x; imvec_maxB_tmpC.y = vec2_maxB_tmpC.y;
+				
+				drawList->AddLine(imvec_minA,		imvec_minA_tmpA, triggerColor, 1.0f);
+				drawList->AddLine(imvec_minA_tmpB,	imvec_minA_tmpC, triggerColor, 1.0f);
+				drawList->AddLine(imvec_minA,		imvec_minA_tmpB, triggerColor, 1.0f);
+				drawList->AddLine(imvec_minA_tmpC,	imvec_minA_tmpA, triggerColor, 1.0f);
+
+				drawList->AddLine(imvec_maxB,		imvec_maxB_tmpA, triggerColor, 1.0f);
+				drawList->AddLine(imvec_maxB_tmpB,	imvec_maxB_tmpC, triggerColor, 1.0f);
+				drawList->AddLine(imvec_maxB,		imvec_maxB_tmpB, triggerColor, 1.0f);
+				drawList->AddLine(imvec_maxB_tmpC,	imvec_maxB_tmpA, triggerColor, 1.0f);
+
+				drawList->AddLine(imvec_maxB,		imvec_minA_tmpC, triggerColor, 1.0f);
+				drawList->AddLine(imvec_maxB_tmpA,	imvec_minA_tmpB, triggerColor, 1.0f);
+
+				drawList->AddLine(imvec_minA,		imvec_maxB_tmpC, triggerColor, 1.0f);
+				drawList->AddLine(imvec_minA_tmpA,	imvec_maxB_tmpB, triggerColor, 1.0f);
+
+			}
+		}
+
+		for (const auto& client_it : client->GetUserList()) {
+			if (client_it.second == nullptr) continue;
+			if (client_it.second->nickname == "") continue;
+
+			if (!config->drawSelf && client_it.first == client->localID) continue;
+
+			// Position Smoothing
+			if (client_it.second->prevPos.size() > 3 && config->positionSmoothing) {
+				long long timeSincePrevPos = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - client_it.second->latestPosTime).count();
+				long long timeBetweenPositions = std::chrono::duration_cast<std::chrono::milliseconds>(client_it.second->latestPosTime - client_it.second->prevPosTime).count();
+				float perc = (float)timeSincePrevPos / timeBetweenPositions;
+
+				if (perc < 1.0f) {
+					Vector3 prevPos = client_it.second->prevPos.at(1);
+					worldPos = prevPos.LerpTo(Vector3(client_it.second->pos), perc);
+				}
+				else {
+					worldPos = client_it.second->pos;
+				}
+			}
+			else {
+				worldPos = client_it.second->pos;
+			}
+
+			worldPos.y += 1;
+
+			Vector2 screenPos;
+			if (!DXWorldToScreen(myViewMatrix, worldPos, (int)screenWidth, (int)screenHeight, screenPos)) continue;
+
+			// Colours
+			ImColor playerTrailColour = ImColor(Float3AToImColor(client_it.second->trailColour, config->playerTrailOpacity));
+			ImColor playerObjColour = ImColor(Float3AToImColor(client_it.second->colour, config->playerObjectOpacity));
+			ImColor playerNameColour = ImColor(Float3AToImColor(client_it.second->colour, 1.0f));
+
+			// Trails
+			if (config->playerTrailEnabled) {
+				if (client_it.second->prevPos.size() > 3) {
+					for (size_t i = 0; i < client_it.second->prevPos.size() - 3; i++) {
+						if (client_it.second->prevPos[i] == client_it.second->prevPos[i + 1]) continue;
+
+						Vector3 pos1;
+						pos1.x = std::get<0>(client_it.second->prevPos[i]);
+						pos1.y = std::get<1>(client_it.second->prevPos[i]) + 1.0f;
+						pos1.z = std::get<2>(client_it.second->prevPos[i]);
+						Vector3 pos2;
+						pos2.x = std::get<0>(client_it.second->prevPos[i + 1]);
+						pos2.y = std::get<1>(client_it.second->prevPos[i + 1]) + 1.0f;
+						pos2.z = std::get<2>(client_it.second->prevPos[i + 1]);
+
+						Vector2 point1;
+						Vector2 point2;
+						if (!DXWorldToScreen(myViewMatrix, pos1, (int)screenWidth, (int)screenHeight, point1)) continue;
+						if (!DXWorldToScreen(myViewMatrix, pos2, (int)screenWidth, (int)screenHeight, point2)) continue;
+
+						drawList->AddLine(ImVec2(point1.x, point1.y), ImVec2(point2.x, point2.y), playerTrailColour, config->playerTrailThickness);
+					}
+				}
+			}
+
+			// Object
+			nicknamePos = DrawOctahedron(drawList, ImVec2(screenWidth, screenHeight), myViewMatrix, &worldPos, config->playerObjectScale, playerObjColour, 2.0f);
+
+			// Check if centre of screen
+			if ((nicknamePos.x > screenWidth + 100 || nicknamePos.x < -100) && (nicknamePos.y > screenHeight + 100 || nicknamePos.y < -100)) continue;
+
+			// Distance (if looking at the name)
+			if (sqrt(pow(nicknamePos.x - screenWidth / 2, 2) + pow(nicknamePos.y - screenHeight / 2, 2)) < screenHeight / 4.5f) {
+				Vector3* myPlayerPos = data->GetPlayerPos();
+				float distance = -1.0f;
+
+				if (myPlayerPos != nullptr) {
+					distance = ((Vector3*)client_it.second->pos)->DistanceTo(*myPlayerPos);
+				}
+
+				char distStr[32] = "0.0m";
+				sprintf_s(distStr, sizeof(distStr), "%.2fm", distance);
+
+				ImVec2 distRectStart = ImVec2(nicknamePos.x - ImGui::CalcTextSize(distStr).x / 2.0f - 2.0f, nicknamePos.y + 6 - 2.0f);
+				ImVec2 distRectEnd = ImVec2(nicknamePos.x + ImGui::CalcTextSize(distStr).x / 2.0f + 2.0f, nicknamePos.y + 6 + ImGui::CalcTextSize(distStr).y + 2.0f);
+
+				if (distRectEnd.x - distRectStart.x > 8 && distRectEnd.y - distRectStart.y > 8)
+					drawList->AddRectFilled(distRectStart, distRectEnd, ImColor(Float4ToImColor(config->playerNicknamePlateColour)), 4.0f);
+
+				drawList->AddText(ImVec2(nicknamePos.x - ImGui::CalcTextSize(distStr).x / 2.0f, nicknamePos.y + 6), playerNameColour, distStr);
+			}
+
+			// Nickname
+			ImVec2 nameRectStart = ImVec2(nicknamePos.x - ImGui::CalcTextSize(client_it.second->nickname.c_str()).x / 2.0f - 2.0f, nicknamePos.y - 15 - 2.0f);
+			ImVec2 nameRectEnd = ImVec2(nicknamePos.x + ImGui::CalcTextSize(client_it.second->nickname.c_str()).x / 2.0f + 2.0f, nicknamePos.y - 15 + ImGui::CalcTextSize(client_it.second->nickname.c_str()).y + 2.0f);
+
+			if (nameRectEnd.x - nameRectStart.x > 8 && nameRectEnd.y - nameRectStart.y > 8)
+				drawList->AddRectFilled(nameRectStart, nameRectEnd, ImColor(Float4ToImColor(config->playerNicknamePlateColour)), 4.0f);
+
+			nicknamePos.x -= ImGui::CalcTextSize(client_it.second->nickname.c_str()).x / 2.0f;
+			nicknamePos.y -= 15;
+
+			drawList->AddText(nicknamePos, playerNameColour, client_it.second->nickname.c_str());
+		}
+	}
+}
