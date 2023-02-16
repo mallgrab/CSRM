@@ -394,18 +394,16 @@ void ControlGameData::InitGameData()
 
 Vector3* ControlGameData::GetPlayerPos()
 {
-	float a[2], b[2];
-
 	if (!playerController)
 		return nullptr;
 
 	if (!playerCharacterController)
 		return nullptr;
 
-	// *(ptr**)(playerCharacterController + 12) -> physx3characterkinematic
-	float* x = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 1;
-	float* y = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 3;
-	float* z = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 5;
+	ptr* physx3characterkinematic = *(ptr**)(playerCharacterController + 12);
+	float* x = (float*)(physx3characterkinematic + 63) + 1;
+	float* y = (float*)(physx3characterkinematic + 63) + 3;
+	float* z = (float*)(physx3characterkinematic + 63) + 5;
 
 	playerPos.x = *x;
 	playerPos.y = *y;
@@ -416,15 +414,14 @@ Vector3* ControlGameData::GetPlayerPos()
 
 void ControlGameData::SetPlayerPos(Vector3 newPos)
 {
-	float a[2], b[2];
-
 	if (!playerController) {
 		return;
 	}
 
-	float* x = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 1;
-	float* y = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 3;
-	float* z = (float*)(*(ptr**)(playerCharacterController + 12) + 63) + 5;
+	ptr* physx3characterkinematic = *(ptr**)(playerCharacterController + 12);
+	float* x = (float*)(physx3characterkinematic + 63) + 1;
+	float* y = (float*)(physx3characterkinematic + 63) + 3;
+	float* z = (float*)(physx3characterkinematic + 63) + 5;
 
 	*x = newPos.x;
 	*y = newPos.y;
