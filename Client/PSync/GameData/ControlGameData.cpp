@@ -166,19 +166,18 @@ float ControlGameData::getPlayerPosSpeed()
 #else
 float ControlGameData::getPlayerPosSpeed()
 {
-	static const int baseTime = clock();
-	static int lastUpdateTime = 0;
-	int curTime = clock() - baseTime;
-	const int delta = curTime - lastUpdateTime; //this shit HAS to be throttled I guess?
-
 	float newSpeed = 0;
 	static float speed = newSpeed;
 	Vector3 currentPos = *GetPlayerPos();
 	static Vector3 previousPos = currentPos;
 
-	if (delta >= 25)
-	{ //40hz
-		const float deltaTime = delta * 0.001;
+	static int lastUpdateTime = 0;
+	const int curTime = clock();
+	const int delta = curTime - lastUpdateTime; //this shit HAS to be throttled I guess?
+
+	if (delta >= 30)
+	{ //30hz
+		const float deltaTime = delta * 0.001f;
 		//Vector3 difference = currentPos - previousPos;
 		Vector3 difference = currentPos - previousPos;
 		difference.x /= deltaTime;
@@ -394,10 +393,7 @@ void ControlGameData::InitGameData()
 
 Vector3* ControlGameData::GetPlayerPos()
 {
-	if (!playerController)
-		return nullptr;
-
-	if (!playerCharacterController)
+	if (!playerController || !playerCharacterController)
 		return nullptr;
 
 	ptr* physx3characterkinematic = *(ptr**)(playerCharacterController + 12);
@@ -414,9 +410,8 @@ Vector3* ControlGameData::GetPlayerPos()
 
 void ControlGameData::SetPlayerPos(Vector3 newPos)
 {
-	if (!playerController) {
+	if (!playerController || !playerCharacterController)
 		return;
-	}
 
 	ptr* physx3characterkinematic = *(ptr**)(playerCharacterController + 12);
 	float* x = (float*)(physx3characterkinematic + 63) + 1;

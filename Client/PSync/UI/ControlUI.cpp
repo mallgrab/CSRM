@@ -44,7 +44,7 @@ static void ImGui_DrawStringWithDropShadow(const ImVec2 &pos, const ImVec4 &colo
 }
 
 #define GROUND_SPEED 6.00f //4.50f
-ImVec4 draw_speedColor(float speed, bool colorSpeed) { //color speed based on how fast > groundspeed
+ImVec4 CSRM_SpeedColor(float speed, bool colorSpeed) { //color speed based on how fast > groundspeed
 	ImVec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	if (colorSpeed && speed > 0.0f)
@@ -99,13 +99,38 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	if (config->speedometerSize < 1.0f || config->speedometerSize > 10.0f) //shuoldn't need this anymore 
 		config->speedometerSize = 1.0f;
 
+#if 0 //measure the rate at which position is updated..
+	//position is updated at 30hz apparently..?
+	if (1)
+	{
+		#define POSITION_FRAMES 240
+		static int deltas[POSITION_FRAMES] = { 0 };
+		static int deltaIndex = 0, lastUpdateTimee = 0;
+		int now = clock();
+
+		Vector3 currentPos = *gameData->GetPlayerPos();
+		static Vector3 previousPos = currentPos;
+
+		if (!(currentPos == previousPos)) {
+			int i, total = 0;
+			float average = 0;
+			const int positionDelta = now - lastUpdateTimee;
+
+			deltas[deltaIndex++ % POSITION_FRAMES] = positionDelta;
+
+			for (i = 0; i < POSITION_FRAMES; i++) total += deltas[i];
+			if (total < 1) total = 1;
+			average = 1000 * POSITION_FRAMES / (float)total;
+
+			printf("positionUpdate %02i avg rate %02f\n", positionDelta, average);
+			lastUpdateTimee = now;
+			previousPos = currentPos;
+		}
+		#undef POSITION_FRAMES 
+	}
+#endif
+
 	//track top speed
-	/*
-	if (speed <= 0) //reset when not moving
-		topSpeed = 0;
-	else if (speed > topSpeed)
-		topSpeed = speed;
-	*/
 	if (speed <= 0) //reset when not moving
 		topSpeed = 0;
 	else if (speed > topSpeed)
@@ -126,27 +151,18 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	len += sprintf_s(text+len, sizeof(text)-len,
 					config->speedometerType != 1 ? "%.0f" : "%.02f", drawSpeed);
 
-	/*
-	if (config->speedometerShowTopSpeed) {//append topspeed
-		len += sprintf_s(text+len, sizeof(text)-len,
-						 config->speedometerType != 1 ? " - %.0f" : " - %.02f", drawTopSpeed);
-	}
-	*/
-
-#if 1
 	if (config->speedometerGroundSpeed)
 	{ //this is shitty and temporary but we'll use the Y coordinate to guess when we jump
-		static int baseTime = timeGetTime();
 		static int lastUpdateTime = 0;
 		static int drawTime = 0;
-		int curTime = timeGetTime() - baseTime;
+		const int curTime = clock();
 		const int delta = curTime - lastUpdateTime; //this shit HAS to be throttled I guess?
 
 		static bool onGround = true;
 		static float jumpSpeed = 0;
 		static float jumpY = 0;
 
-		if (delta >= 25) //40hz..
+		if (delta >= 30) //30hz..
 		{
 			Vector3 pos = *gameData->GetPlayerPos();
 			//static Vector3 previousPos = pos;
@@ -192,68 +208,6 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 							 config->speedometerType != 1 ? "  %.0f" : "  %.02f", CSRM_SpeedometerSpeed(jumpSpeed, config->speedometerType));
 		}
 	}
-#elif 1
-	if (config->speedometerGroundSpeed)
-	{ //this is shitty and temporary but we'll use the Y coordinate to guess when we jump
-		static int baseTimee = timeGetTime();
-		static int lastUpdateTime = 0;
-		int curTime = timeGetTime() - baseTimee;
-
-		static bool onGround = true;
-		static float jumpSpeed = 0; //this being > 0 = we draw
-		static float jumpY = 0;
-
-		if (curTime - lastUpdateTime >= 50)
-		{
-			Vector3 pos = *gameData->GetPlayerPos();
-			static Vector3 previousPos = pos;
-			//static float previousHeight = pos.y;
-			const float heightDiff = pos.y - previousPos.y;
-			const float jumpHeightDiff = pos.y - jumpY;
-
-			if (heightDiff)
-			{
-				if (onGround) {
-					//if (pos.y > previousPos.y)
-					if (heightDiff > 0.1f)
-					{ //we're moving up so probably jump (stairs and shit are obviously gonna trigger this lol)
-						onGround = false;
-						jumpSpeed = speed;
-					}
-					else {
-						jumpSpeed = 0;
-					}
-					jumpY = pos.y;
-				}
-				//else if (heightDiff < 0.000001f && heightDiff > -0.00001f) {
-				else if (!heightDiff) {
-					onGround = true;
-					jumpSpeed = 0.0f;
-					jumpY = pos.y;
-				}
-			}
-			else if (pos.y <= jumpY) {
-				jumpY = pos.y;
-				onGround = true; //idfk anymore lol
-			}
-			//else if (onGround) { //this is sum terrible code i'm writing LOL
-			//	jumpY = pos.y;
-			//}
-
-			previousPos = pos;
-			lastUpdateTime = curTime;
-
-			if (heightDiff || jumpHeightDiff)
-				printf("%i heightDiff %f - jumpHeightDiff %f - jumpSpeed %f - onGround %s\n",
-					   curTime, heightDiff, jumpHeightDiff, jumpSpeed, onGround ? "true" : "false");
-		}
-
-		if (jumpSpeed > 0) {
-			len += sprintf_s(text+len, sizeof(text)-len,
-							 config->speedometerType != 1 ? " - %.0f" : " - %.02f", CSRM_SpeedometerSpeed(jumpSpeed, config->speedometerType));
-		}
-	}
-#endif
 
 	//ImGui::SetWindowFontScale(2.0f);
 	font = ImGui::GetFont();
@@ -263,8 +217,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 
 	textSize = ImGui::CalcTextSize(text);
 	pos = { (config->speedometerX - (textSize.x * 0.5f)), (config->speedometerY - (textSize.y * 0.5f)) };
-
-	color = draw_speedColor(speed, config->speedometerColorSpeed);
+	color = CSRM_SpeedColor(speed, config->speedometerColorSpeed);
 	ImGui_DrawStringWithDropShadow(pos, color, text);
 
 	//reset font scale
@@ -278,9 +231,9 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	{
 		static float prevSpeed = speed;
 		//static const int baseTime = timeGetTime();
-		static int baseTime = timeGetTime();
+		static int baseTime = clock();
 		static int lastUpdateTime = 0;
-		int curTime = timeGetTime() - baseTime;
+		int curTime = clock() - baseTime;
 
 		if (curTime - lastUpdateTime >= 16) //62hz
 		{
@@ -288,7 +241,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 
 			lastUpdateTime = curTime;
 			if (prevSpeed == speed && speed < 0.01f) {
-				baseTime = timeGetTime(); //reset timer when coming to a complete stop
+				baseTime = clock(); //reset timer when coming to a complete stop
 				lastUpdateTime = 0;
 				prevSpeed = speed;
 				return;
@@ -303,15 +256,9 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 				printf("XYVel - %.03f: %.0f\n", seconds, drawSpeed);
 			else
 				printf("XYVel - %.03f: %.02f\n", seconds, drawSpeed);
-
-			/*if (config->speedometerType != 1)
-				printf("XY - %i: %0.0f\n", curTime, drawSpeed);
-			else
-				printf("XY - %i: %0.02f\n", curTime, drawSpeed);*/
 		}
 	}
 }
-#define draw_speed(speed, config, io) CSRM_Speedometer(speed, config, io)
 #undef MAX_SPEED_LEN
 #undef GROUND_SPEED
 #endif
@@ -536,7 +483,7 @@ void ControlUI::DrawPlayerObjects() {
 		}
 
 		//draw_speed(((ControlGameData*)data)->getPlayerPhysxSpeed(), config, &io);
-		draw_speed(((ControlGameData*)data), config, &io);
+		CSRM_Speedometer((ControlGameData*)data, config, &io);
 		//((ControlGameData*)data)->getPlayerPosSpeed();
 	}
 	 
