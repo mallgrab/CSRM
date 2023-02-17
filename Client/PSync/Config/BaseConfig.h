@@ -39,7 +39,8 @@ public:
 	float triggerOpacity = 0.3f;
 
 	// Vars
-	int menuKeybind = 33;
+	//int menuKeybind = VK_PRIOR; //0x21; //pageup
+	int menuKeybind = VK_HOME; //0x24; //home
 	float menuAccentColour[3] = { 55 / 255.0f, 55 / 255.0f, 55 / 255.0f };
 	bool drawImGuiCursor = false;
 	bool positionSmoothing = true;
