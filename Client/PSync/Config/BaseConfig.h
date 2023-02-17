@@ -23,6 +23,13 @@ public:
 	void ReadConfig();
 	void WriteConfig();
 
+	// Trigger
+	bool drawTriggers = false;
+	float triggerOpacity = 0.3f;
+
+	// Save/Load position
+	bool saveLoadPosition = false;
+
 	// Speedometer
 	bool drawSpeedometer = false;
 	bool speedometerShowTopSpeed = false;
@@ -30,13 +37,7 @@ public:
 	bool speedometerColorSpeed = false;
 	bool speedometerConsolePrint = false;
 	int speedometerType = 0;
-	float speedometerX = -1.0f;
-	float speedometerY = -1.0f;
-	float speedometerSize = -1.0f;
-
-	// Trigger
-	bool drawTriggers = false;
-	float triggerOpacity = 0.3f;
+	float speedometerX = -1.0f, speedometerY = -1.0f, speedometerSize = -1.0f;
 
 	// Vars
 	//int menuKeybind = VK_PRIOR; //0x21; //pageup

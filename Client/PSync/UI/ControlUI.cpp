@@ -83,6 +83,9 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	if (!config || !io || !gameData)
 		return;
 
+	if (!gameData->GetMapIsLoaded())
+		return; //don't draw if map isn't loaded
+
 	const float speed = gameData->getPlayerPhysxSpeed();
 	//const float speed = gameData->getPlayerPosSpeed();
 	static float topSpeed = 0.0f, previousSpeed = speed;
@@ -92,9 +95,6 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	ImVec4 color;
 	ImVec2 pos, textSize;
 	ImFont *font;
-
-	if (!gameData->GetMapIsLoaded())
-		return; //don't draw if map isn't loaded
 
 	if (config->speedometerSize < 1.0f || config->speedometerSize > 10.0f) //shuoldn't need this anymore 
 		config->speedometerSize = 1.0f;
@@ -263,6 +263,102 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 #undef GROUND_SPEED
 #endif
 
+#define MAX_POSITION_SLOTS 10
+static Vector3 savedPositions[MAX_POSITION_SLOTS];
+static void CSRM_SavePosition(int slot, ControlGameData *gameData) {
+	if (!gameData || !gameData->GetMapIsLoaded())
+		return;
+
+	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
+		return;
+
+	printf("Saving position to slot %i..\n", slot);
+	savedPositions[slot] = *gameData->GetPlayerPos();
+}
+
+static void CSRM_LoadPosition(int slot, ControlGameData *gameData) {
+	Vector3 currentPos;
+
+	if (!gameData || !gameData->GetMapIsLoaded())
+		return;
+
+	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
+		return;
+
+	if (!savedPositions[slot].x && !savedPositions[slot].y && !savedPositions[slot].z)
+		return; //empty position slot i guess
+
+	if (gameData->getPlayerPhysxSpeed() > 0)
+		return; //for some reason, if we set our position if the player is moving, the new position doesn't stay
+
+	if (savedPositions[slot] == *gameData->GetPlayerPos()) //don't set it if we're already there
+		return; //(this is just so the print message doesn't pop up)
+
+	printf("Loading position from slot %i..\n", slot);
+	gameData->SetPlayerPos(savedPositions[slot]);
+}
+
+static int CSRM_SlotFromKey(WPARAM key)
+{ //maps keycode to position slot
+	switch (key)
+	{
+		case VK_F1:
+		case 0x31: //1
+			return 1;
+		case VK_F2:
+		case 0x32: //2
+			return 2;
+		case VK_F3:
+		case 0x33: //3
+			return 3;
+		case VK_F4:
+		case 0x34: //4
+			return 4;
+		case VK_F5:
+		case 0x35: //5
+			return 5;
+		case VK_F6:
+		case 0x36: //6
+			return 6;
+		case VK_F7:
+		case 0x37: //7
+			return 7;
+		case VK_F8:
+		case 0x38: //8
+			return 8;
+		case VK_F9:
+		case 0x39: //9
+			return 9;
+		case VK_F10:
+		case 0x30: //0
+			return 0;
+		default: break;
+	}
+
+	return 0;
+}
+#undef MAX_POSITION_SLOTS
+
+void ControlUI::KeyPress(WPARAM key) {
+	//printf("ControlUI::KeyPress %i\n", (int)key);
+	if (key == config->menuKeybind) {
+		data->uiToggle = !data->uiToggle;
+		return;
+	}
+
+	if (config->saveLoadPosition)
+	{
+		if (key >= VK_F1 && key <= VK_F9) {
+			CSRM_SavePosition(CSRM_SlotFromKey(key), (ControlGameData *)data);
+			return;
+		}
+		if (key >= 0x30 && key <= 0x39) {
+			CSRM_LoadPosition(CSRM_SlotFromKey(key), (ControlGameData *)data);
+			return;
+		}
+	}
+}
+
 void ControlUI::DebugTab() {
 	if (ImGui::BeginTabItem("Debug"))
 	{
@@ -298,21 +394,33 @@ void ControlUI::DebugTab() {
 		ImGui::InputFloat("Custom Height", &config->customHeight);
 		*/
 
+		ImGui::Checkbox("Save/Load position\n\n", &config->saveLoadPosition);
+
 		ImGui::Checkbox("Enable Triggers", &config->drawTriggers);
-		ImGui::Text("\nTrigger Opacity:");
+		ImGui::Text("Trigger Opacity:");
 		ImGui::SliderFloat("", &config->triggerOpacity, 0.0f, 1.0f, "%.3f");
 
 		ImGui::Text("\nSpeedometer:");
-		ImGui::Checkbox("Enable Speedometer", &config->drawSpeedometer);
-		ImGui::Checkbox("Show Ground Speed", &config->speedometerGroundSpeed);
+		ImGui::Checkbox("Draw Speedometer", &config->drawSpeedometer);
 		ImGui::Checkbox("Show Top Speed", &config->speedometerShowTopSpeed);
+		ImGui::SameLine();
+		ImGui::Checkbox("Show Ground Speed", &config->speedometerGroundSpeed);
 		ImGui::Checkbox("Speed Color", &config->speedometerColorSpeed);
 		ImGui::Checkbox("Print speed to console", &config->speedometerConsolePrint);
 
 		ImGui::Combo("Unit type:", &config->speedometerType, "Normal\0Raw\0Quake Units\0\0");
-		ImGui::InputFloat("X", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
-		ImGui::InputFloat("Y", &config->speedometerY, 1.0f, 2.0f);
-		ImGui::InputFloat("Size", &config->speedometerSize, 0.125f, 0.25f);
+
+		//ImGui::InputFloat("X", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
+		//ImGui::InputFloat("Y", &config->speedometerY, 1.0f, 2.0f);
+		ImGui::Text("X Pos:");
+		ImGui::SameLine();
+		ImGui::InputFloat("", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
+		ImGui::Text("Y Pos:");
+		ImGui::SameLine();
+		ImGui::InputFloat("", &config->speedometerY, 1.0f, 2.0f);
+		ImGui::Text("Size:");
+		ImGui::SameLine();
+		ImGui::InputFloat("", &config->speedometerSize, 0.125f, 0.25f);
 
 		//ImGui::Text("\n");
 		ImGui::Text("\nDebug:");
