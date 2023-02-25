@@ -397,6 +397,9 @@ Vector3* ControlGameData::GetPlayerPos()
 		return nullptr;
 
 	ptr* physx3characterkinematic = *(ptr**)(playerCharacterController + 12);
+	if (!physx3characterkinematic)
+		return nullptr;
+
 	float* x = (float*)(physx3characterkinematic + 63) + 1;
 	float* y = (float*)(physx3characterkinematic + 63) + 3;
 	float* z = (float*)(physx3characterkinematic + 63) + 5;
@@ -414,6 +417,9 @@ void ControlGameData::SetPlayerPos(Vector3 newPos)
 		return;
 
 	ptr* physx3characterkinematic = *(ptr**)(playerCharacterController + 12);
+	if (!physx3characterkinematic)
+		return;
+
 	float* x = (float*)(physx3characterkinematic + 63) + 1;
 	float* y = (float*)(physx3characterkinematic + 63) + 3;
 	float* z = (float*)(physx3characterkinematic + 63) + 5;
