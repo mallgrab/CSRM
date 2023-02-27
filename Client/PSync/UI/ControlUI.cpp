@@ -295,21 +295,40 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 
 #define MAX_POSITION_SLOTS 10
 static Vector3 savedPositions[MAX_POSITION_SLOTS];
-static void CSRM_SavePosition(int slot, ControlGameData *gameData) {
-	if (!gameData || !gameData->GetMapIsLoaded())
+static void CSRM_SavePosition(int slot, ControlGameData *gameData, ControlUI *ui)
+{
+	char buf[128];
+	Vector3 curPos;
+
+	if (!gameData || !ui)
+		return;
+
+	if (!gameData->GetMapIsLoaded())
 		return;
 
 	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
 		return;
 
-	printf("Saving position to slot %i..\n", slot);
-	savedPositions[slot] = *gameData->GetPlayerPos();
+	curPos = *gameData->GetPlayerPos_Real();
+#ifndef _DEBUG
+	sprintf_s(buf, "Saving position to slot %i..\n", slot);
+#else
+	sprintf_s(buf, "Saving position to slot %i (%f %f %f)..\n", slot, curPos.x, curPos.y, curPos.z);
+	printf(buf);
+#endif
+	ui->CreateNotification(buf); //, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 1.0f, 0.0f));
+
+	savedPositions[slot] = curPos;
 }
 
-static void CSRM_LoadPosition(int slot, ControlGameData *gameData) {
-	Vector3 currentPos;
+static void CSRM_LoadPosition(int slot, ControlGameData *gameData, ControlUI *ui)
+{
+	char buf[128];
 
-	if (!gameData || !gameData->GetMapIsLoaded())
+	if (!gameData || !ui)
+		return;
+
+	if (!gameData->GetMapIsLoaded())
 		return;
 
 	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
@@ -318,13 +337,20 @@ static void CSRM_LoadPosition(int slot, ControlGameData *gameData) {
 	if (!savedPositions[slot].x && !savedPositions[slot].y && !savedPositions[slot].z)
 		return; //empty position slot i guess
 
-	if (gameData->getPlayerPhysxSpeed() > 0)
-		return; //for some reason, if we set our position if the player is moving, the new position doesn't stay
+	//if (gameData->getPlayerPhysxSpeed() > 0) //for some reason, the new position doesn't stay if we set our position while moving
+	//	return;
 
-	if (savedPositions[slot] == *gameData->GetPlayerPos()) //don't set it if we're already there
+	if (savedPositions[slot] == *gameData->GetPlayerPos_Real()) //don't set it if we're already there
 		return; //(this is just so the print message doesn't pop up)
 
-	printf("Loading position from slot %i..\n", slot);
+#ifndef _DEBUG
+	sprintf_s(buf, "Loading position from slot %i..\n", slot);
+#else
+	sprintf_s(buf, "Loading position %i (%f %f %f)..\n", slot, savedPositions[slot].x, savedPositions[slot].x, savedPositions[slot].z);
+	printf(buf);
+#endif
+	ui->CreateNotification(buf); //, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 1.0f, 0.0f));
+
 	gameData->SetPlayerPos(savedPositions[slot]);
 }
 
@@ -379,11 +405,11 @@ void ControlUI::KeyPress(WPARAM key) {
 	if (config->saveLoadPosition)
 	{
 		if (key >= VK_F1 && key <= VK_F9) {
-			CSRM_SavePosition(CSRM_SlotFromKey(key), (ControlGameData *)data);
+			CSRM_SavePosition(CSRM_SlotFromKey(key), (ControlGameData *)data, this);
 			return;
 		}
 		if (key >= 0x30 && key <= 0x39) {
-			CSRM_LoadPosition(CSRM_SlotFromKey(key), (ControlGameData *)data);
+			CSRM_LoadPosition(CSRM_SlotFromKey(key), (ControlGameData *)data, this);
 			return;
 		}
 	}
