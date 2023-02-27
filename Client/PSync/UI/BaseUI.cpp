@@ -1,4 +1,4 @@
-﻿#include "BaseUI.h"
+#include "BaseUI.h"
 #include "../Fonts/RodinProM.cpp"
 
 #define NOTIF_PADDING 10
@@ -31,9 +31,7 @@ void BaseUI::KeyPress(WPARAM key) {
 void BaseUI::Init() {
 	ImGuiIO& io = ImGui::GetIO();
 
-	if (config->drawImGuiCursor && data->uiToggle) io.MouseDrawCursor = true;
-	else io.MouseDrawCursor = false;
-
+	io.MouseDrawCursor = (config->drawImGuiCursor && data->uiToggle);
 
 	if (init) return;
 	ImVector<ImWchar> ranges;

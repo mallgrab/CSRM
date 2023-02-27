@@ -749,45 +749,50 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, BaseConfig *conf
 	}
 }
 
-static bool firstTimeInitalization = true;
+void ControlUI::Init()
+{
+	// despite being called "Init" this function is deceivingly called every frame
+	// and returned out of early with the init check, so we'll check for resolution changes and such here
+	ImGuiIO io = ImGui::GetIO();
+	static ImVec2 lastDisplaySize = io.DisplaySize;
+
+	//printf("ControlUI::Init()\n");
+
+	if (config->speedometerSize == -1.0f || //config uninitialized
+		config->speedometerX < 0.0f || config->speedometerX > io.DisplaySize.x || //config values gone wrong
+		config->speedometerY < 0.0f || config->speedometerY > io.DisplaySize.y ||
+		lastDisplaySize.y != io.DisplaySize.y || lastDisplaySize.x != io.DisplaySize.x) //window size changed
+	{
+		float yscale = io.DisplaySize.y * (1.0f/720.0f); //scale from 720p, should probably factor in DisplayFramebufferScale as well
+
+		//printf("resolution changed or something\n");
+
+		if (yscale < 1.0f || yscale > 10.0f)
+			yscale = 1.0f;
+
+		config->speedometerX = io.DisplaySize.x * 0.5f;
+		config->speedometerY = 75 * yscale;
+
+		config->speedometerSize = yscale;
+
+		lastDisplaySize = io.DisplaySize;
+	}
+
+	if (init) return; //really don't need the ImGUI mousecursor at all with how input works
+	BaseUI::Init();
+	//config->ReadConfig();
+}
+
 void ControlUI::DrawPlayerObjects() {
-	ImDrawList* drawList = ImGui::GetForegroundDrawList();
-	ImGuiIO& io = ImGui::GetIO();
+	ImDrawList *drawList = ImGui::GetForegroundDrawList();
+	ImGuiIO io = ImGui::GetIO();
 
 	ControlGameData *controlData = (ControlGameData *)data;
 	if (!controlData) return; //don't rlly need this but...
 
 	if (config->drawSpeedometer) {
-		//should move a lot of this stuff out of here tbh lol
-		static ImVec2 lastDisplaySize = io.DisplaySize; //check if resolution/window size changed
-		if (lastDisplaySize.y != io.DisplaySize.y || lastDisplaySize.x != io.DisplaySize.x)
-			firstTimeInitalization = true;
-
-		if (config->speedometerSize == -1.0f ||
-			config->speedometerX < 0.0f || config->speedometerX > io.DisplaySize.x ||
-			config->speedometerY < 0.0f || config->speedometerY > io.DisplaySize.y)
-			firstTimeInitalization = true;
-
-		if (firstTimeInitalization)			
-		{
-			float yscale = io.DisplaySize.y * (1.0f/720.0f); //scale from 720p, should probably factor in DisplayFramebufferScale as well
-			if (yscale < 1.0f || yscale > 10.0f)
-				yscale = 1.0f;
-
-			config->speedometerX = io.DisplaySize.x * 0.5f;
-			config->speedometerY = 75 * yscale;
-
-			//if (config->speedometerSize == -1.0f)
-				config->speedometerSize = yscale;
-
-			lastDisplaySize = io.DisplaySize;
-
-			firstTimeInitalization = false;
-			//printf("resolution changed or something\n");
-		}
-
 		CSRM_Speedometer(controlData, config, &io);
-		//((ControlGameData*)data)->getPlayerPosSpeed();
+		//controlData->getPlayerPosSpeed();
 	}
 
 	if (config->drawTriggers) {

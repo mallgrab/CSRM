@@ -6,6 +6,7 @@
 class ControlUI : public virtual BaseUI {
 public:
 	void KeyPress(WPARAM key);
+	virtual void Init();
 	void RenderGUI();
 protected:
 	void ConfigTab();
