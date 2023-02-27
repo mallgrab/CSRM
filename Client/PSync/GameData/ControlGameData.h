@@ -36,4 +36,11 @@ public:
 	float getPlayerPosSpeed();
 	void SetPlayerPos(Vector3 newPos);
 	Vector3 *GetPlayerPos_Real();
+
+	//ass
+	void Tweakable_SetLevitateDisable(bool disableLevitation);
+	void Tweakable_SetTemporalSSAA(bool temporalSSAA);
+	void Tweakable_SetMotionBlur(bool motionBlur);
+
+	int getTriggerCount(void);
 };

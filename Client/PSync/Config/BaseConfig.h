@@ -23,21 +23,29 @@ public:
 	void ReadConfig();
 	void WriteConfig();
 
-	// Trigger
+	//CSRM - control specific variables - start (move all this later)
+	// Triggers
 	bool drawTriggers = false;
-	float triggerOpacity = 0.3f;
+	bool drawTriggersHotkey = true;
+	float triggerOpacity = 0.42f;
 
 	// Save/Load position
-	bool saveLoadPosition = false;
+	bool saveLoadPosition = true;
 
 	// Speedometer
 	bool drawSpeedometer = false;
 	bool speedometerShowTopSpeed = false;
-	bool speedometerGroundSpeed = false; //show speed on jumps?
-	bool speedometerColorSpeed = false;
+	bool speedometerGroundSpeed = true; //show speed on jumps?
+	bool speedometerColorSpeed = true;
 	bool speedometerConsolePrint = false;
 	int speedometerType = 0;
 	float speedometerX = -1.0f, speedometerY = -1.0f, speedometerSize = -1.0f;
+
+	// Tweakables..
+	bool motionBlur = true; //original game has this on
+	bool TemporalSSAA = false; //original game would have this enabled, but i hate it!!!
+	bool disableLevitation = false;
+	//CSRM - control specific variables - end
 
 	// Vars
 	//int menuKeybind = VK_PRIOR; //0x21; //pageup

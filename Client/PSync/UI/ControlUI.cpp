@@ -99,7 +99,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	if (config->speedometerSize < 1.0f || config->speedometerSize > 10.0f) //shuoldn't need this anymore 
 		config->speedometerSize = 1.0f;
 
-#if SAMPLE_POSITION_UPDATES //measure the rate at which position is updated..
+#if SAMPLE_POSITION_UPDATES == 1 //measure the rate at which position is updated..
 	//position is updated at 30hz apparently..?
 	//if (1)
 	{
@@ -130,7 +130,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	}
 #endif
 
-#if SAMPLE_POSITION_UPDATES //do same thing but for speed?
+#if SAMPLE_POSITION_UPDATES == 2 //do same thing but for speed?
 	//position is updated at 30hz apparently..?
 	//if (1)
 	{
@@ -402,6 +402,13 @@ void ControlUI::KeyPress(WPARAM key) {
 		return;
 	}
 
+	if (config->drawTriggersHotkey) {
+		if (key == 0x2D) {
+			config->drawTriggers = !config->drawTriggers;
+			return;
+		}
+	}
+
 	if (config->saveLoadPosition)
 	{
 		if (key >= VK_F1 && key <= VK_F9) {
@@ -437,15 +444,10 @@ void ControlUI::DebugTab() {
 		}
 		*/
 
-		ImGui::Text("\nScreen Size:");
-		ImGui::Text("%f, %f", io.DisplaySize.x, io.DisplaySize.y);
-
-		if (((ControlGameData*)data)->getPlayerCapsuleSpeed() != nullptr)
-			ImGui::Text("speed capsule: %f %f %f %f", 
-				*((ControlGameData*)data)->getPlayerCapsuleSpeed(),
-				*(((ControlGameData*)data)->getPlayerCapsuleSpeed() + 1),
-				*(((ControlGameData*)data)->getPlayerCapsuleSpeed() + 2),
-				*(((ControlGameData*)data)->getPlayerCapsuleSpeed() + 3));
+		ImGui::Text("%.01f FPS\n", io.Framerate);
+		ImGui::Text("Screen Size:");
+		ImGui::SameLine();
+		ImGui::Text("%.0f, %.0f", io.DisplaySize.x, io.DisplaySize.y);
 
 		/*
 		ImGui::Checkbox("Override Resolution", &config->overrideResolution);
@@ -453,40 +455,71 @@ void ControlUI::DebugTab() {
 		ImGui::InputFloat("Custom Height", &config->customHeight);
 		*/
 
-		ImGui::Checkbox("Save/Load position\n\n", &config->saveLoadPosition);
+		//ImGui::Text("\n");
+		if (ImGui::Checkbox("Motion blur", &config->motionBlur))
+			controlData->Tweakable_SetMotionBlur(config->motionBlur);
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Temporal SSAA", &config->TemporalSSAA))
+			controlData->Tweakable_SetTemporalSSAA(config->TemporalSSAA);
 
+		ImGui::Text("\n");
+		ImGui::Text("Game settings:");
+		ImGui::Checkbox("Save/Load position", &config->saveLoadPosition);
+		if (ImGui::Checkbox("Disable levitation", &config->disableLevitation))
+			controlData->Tweakable_SetLevitateDisable(config->disableLevitation);
+
+		ImGui::Text("\n");
+		ImGui::Text("Triggers (%i):\n", controlData->getTriggerCount());
 		ImGui::Checkbox("Enable Triggers", &config->drawTriggers);
-		ImGui::Text("Trigger Opacity:");
-		ImGui::SliderFloat("", &config->triggerOpacity, 0.0f, 1.0f, "%.3f");
+		ImGui::SameLine();
+		ImGui::Checkbox("Ins toggle", &config->drawTriggersHotkey);
+		if (config->drawTriggers) {
+			ImGui::Text("Trigger Opacity:");
+			ImGui::SliderFloat("", &config->triggerOpacity, 0.0f, 1.0f, "%.3f");
+		}
 
-		ImGui::Text("\nSpeedometer:");
+		ImGui::Text("\n");
+		ImGui::Text("Speedometer:");
 		ImGui::Checkbox("Draw Speedometer", &config->drawSpeedometer);
-		ImGui::Checkbox("Show Top Speed", &config->speedometerShowTopSpeed);
-		ImGui::SameLine();
-		ImGui::Checkbox("Show Ground Speed", &config->speedometerGroundSpeed);
-		ImGui::Checkbox("Speed Color", &config->speedometerColorSpeed);
-		ImGui::Checkbox("Print speed to console", &config->speedometerConsolePrint);
+		if (config->drawSpeedometer) {
+			ImGui::SameLine();
+			ImGui::Checkbox("Speed Color", &config->speedometerColorSpeed);
+			ImGui::Checkbox("Show Top Speed", &config->speedometerShowTopSpeed);
+			ImGui::SameLine();
+			ImGui::Checkbox("Show Ground Speed", &config->speedometerGroundSpeed);
 
-		ImGui::Combo("Unit type:", &config->speedometerType, "Normal\0Raw\0Quake Units\0\0");
+			ImGui::Combo("Unit type:", &config->speedometerType, "Normal\0Raw\0Quake Units\0\0");
 
-		//ImGui::InputFloat("X", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
-		//ImGui::InputFloat("Y", &config->speedometerY, 1.0f, 2.0f);
-		ImGui::Text("X Pos:");
-		ImGui::SameLine();
-		ImGui::InputFloat("", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
-		ImGui::Text("Y Pos:");
-		ImGui::SameLine();
-		ImGui::InputFloat("", &config->speedometerY, 1.0f, 2.0f);
-		ImGui::Text("Size:");
-		ImGui::SameLine();
-		ImGui::InputFloat("", &config->speedometerSize, 0.125f, 0.25f);
+			//ImGui::InputFloat("X", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
+			//ImGui::InputFloat("Y", &config->speedometerY, 1.0f, 2.0f);
+			ImGui::Text("X Pos:");
+			ImGui::SameLine();
+			ImGui::InputFloat("", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
+			ImGui::Text("Y Pos:");
+			ImGui::SameLine();
+			ImGui::InputFloat("", &config->speedometerY, 1.0f, 2.0f);
+			ImGui::Text("Size:");
+			ImGui::SameLine();
+			ImGui::InputFloat("", &config->speedometerSize, 0.125f, 0.25f);
+
+			ImGui::Checkbox("Print speed to console", &config->speedometerConsolePrint);
+		}
 
 		//ImGui::Text("\n");
 		ImGui::Text("\nDebug:");
 		if (myPlayerPos != nullptr) {
-			ImGui::Text("\nPosX: %f", myPlayerPos->x);
+			ImGui::Text("PosX: %f", myPlayerPos->x);
 			ImGui::Text("PosY: %f", myPlayerPos->y);
 			ImGui::Text("PosZ: %f", myPlayerPos->z);
+		}
+
+		float *playerSpeedCapsule = controlData->getPlayerCapsuleSpeed();
+		if (playerSpeedCapsule != nullptr) {
+			ImGui::Text("speed capsule: %f %f %f %f",
+						*playerSpeedCapsule,
+						*(playerSpeedCapsule + 1),
+						*(playerSpeedCapsule + 2),
+						*(playerSpeedCapsule + 3));
 		}
 
 		if (myViewMatrix != nullptr) {
@@ -509,7 +542,6 @@ void ControlUI::DebugTab() {
 			worldPos.z = 0;
 
 			Vector2 scrnOutPos;
-
 			if (DXWorldToScreen(myViewMatrix, worldPos, (int)io.DisplaySize.x, (int)io.DisplaySize.y, scrnOutPos)) {
 				ImGui::Text("\nScreenPos:");
 				ImGui::Text("%f, %f", scrnOutPos.x, scrnOutPos.y);

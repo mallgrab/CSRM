@@ -33,6 +33,7 @@ characterControllerMoveRelative_t characterControllerMoveCapsuleOriginal;
 ptr* playerController;
 std::vector<triggerPtr> triggerPtrs;
 bool mapIsLoaded;
+int triggerCount = 0;
 
 void* __fastcall triggerComponentCtor(uint64_t* pointer, uint64_t* pointer_b) {
 	triggerPtr tO = { pointer, (uint64_t**)(pointer + 4), (uint64_t**)(pointer + 1), (uint64_t*)(pointer + 29) };
@@ -67,6 +68,7 @@ void* __fastcall triggerComponentDtor(uint64_t* pointer) {
 char __fastcall enterTrigger(uint64_t* pointer, uint64_t* pointer_b, uint64_t a3) {
 	printf("trigger: 0x%llx gameobjectstate: 0x%llx a3: %lu\n", pointer, pointer_b, a3);
 
+	triggerCount++;
 	return enterTriggerOriginal(pointer, pointer_b, a3);
 }
 
@@ -87,6 +89,7 @@ void startUnloadingLevel(uint64_t* ptr) {
 	printf("start unloading level\n");
 
 	mapIsLoaded = false;
+	triggerCount = 0;
 	startUnloadingLevelOriginal(ptr);
 }
 
@@ -94,6 +97,7 @@ void startLoadingLevel(uint64_t x, uint64_t y, uint64_t z, int64_t a, char b, ui
 	printf("start loading level\n");
 
 	mapIsLoaded = false;
+	triggerCount = 0;
 	startLoadingLevelOriginal(x, y, z, a, b, c);
 }
 
@@ -189,6 +193,9 @@ float ControlGameData::getPlayerPosSpeed()
 
 		lastUpdateTime = curTime;
 		previousPos = currentPos;
+
+		if (speed > 0)
+			printf("getPlayerPosSpeed(): deltaTime %f speed %f\n", deltaTime, speed);
 	}
 
 	return speed;
@@ -209,6 +216,7 @@ struct Tweakable_t
 	uint32_t d;
 };
 
+//should move this to a class or somethin?
 struct Tweakable
 {
 	byte* start;
@@ -297,7 +305,27 @@ struct Tweakable
 	}
 };
 
-#define MAX_TRIGGERS 8192 //1024
+
+//this is stupid i'm sorry
+Tweakable *SSAATweakablePtr = nullptr;
+Tweakable *MotionBlurTweakablePtr = nullptr;
+Tweakable *AbilityLevitateTweakablePtr = nullptr;
+void ControlGameData::Tweakable_SetLevitateDisable(bool disableLevitation) {
+	if (!AbilityLevitateTweakablePtr) return; //should never happen
+	AbilityLevitateTweakablePtr->setTweakableByte((byte)disableLevitation);
+}
+
+void ControlGameData::Tweakable_SetTemporalSSAA(bool temporalSSAA) {
+	if (!SSAATweakablePtr) return; //should never happen
+	SSAATweakablePtr->setTweakableFloat(temporalSSAA ? 1.0f : 0.0f);
+}
+
+void ControlGameData::Tweakable_SetMotionBlur(bool motionBlur) {
+	if (!MotionBlurTweakablePtr) return; //should never happen
+	MotionBlurTweakablePtr->setTweakableFloat(motionBlur ? 0.4f : 0.0f);
+}
+
+#define MAX_TRIGGERS 4096 //1024 //8192
 void ControlGameData::InitGameData()
 {
 	triggerPtrs.reserve(MAX_TRIGGERS); // enough?
@@ -329,25 +357,32 @@ void ControlGameData::InitGameData()
 
 	baseTweakablesGetTweakable = (baseTweakablesGetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f8e60);
 
-	Tweakable CoherentGTLiveViewsTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("CoherentGT:Force live views to update"));
-	CoherentGTLiveViewsTweakable.setTweakableByte(1);
-
-	Tweakable VSyncTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("VSync:Enabled"));
-	VSyncTweakable.setTweakableByte(0);
-
-	Tweakable SSAATweakable = Tweakable((ptr*)baseTweakablesGetTweakable("SSAA:Temporal Jitter Scale"));
-	SSAATweakable.setTweakableFloat(0.0f);
-
-	Tweakable VectorBlurTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("VectorBlur:Shutter Speed"));
-	VectorBlurTweakable.setTweakableFloat(0.0f);
-
+	//skip the intro epilepsy & autosave warnings
 	Tweakable IntroScreenTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("Intro Screen:Display time for section"));
-	IntroScreenTweakable.setTweakableFloat(0.0f);
+	IntroScreenTweakable.setTweakableFloat(0.0f); //default 4.0f
 
+	//fix janky menu/loading screen background animation
+	Tweakable CoherentGTLiveViewsTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("CoherentGT:Force live views to update"));
+	CoherentGTLiveViewsTweakable.setTweakableByte(1); //default 0
 	/*
-		Tweakable AbilityLevitateTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("Ability Levitate: Disable"));
-		AbilityLevitateTweakable.setTweakableByte(1);
+	//force vsync off in menus - ok this actually doesn't do anything ??
+	Tweakable VSyncTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("VSync:Enabled"));
+	VSyncTweakable.setTweakableByte(0); //default 1
 	*/
+	//disable TAA
+	static Tweakable SSAATweakable = Tweakable((ptr*)baseTweakablesGetTweakable("SSAA:Temporal Jitter Scale"));
+	SSAATweakable.setTweakableFloat(0.0f); //default 1.0f
+	SSAATweakablePtr = &SSAATweakable;
+
+	//disable motionblur (should be optional?)
+	static Tweakable MotionBlurTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("VectorBlur:Shutter Speed"));
+	//MotionBlurTweakable.setTweakableFloat(0.0f); //default 0.4f
+	MotionBlurTweakablePtr = &MotionBlurTweakable;
+
+	//disables levitation, useful for practice
+	static Tweakable AbilityLevitateTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("Ability Levitate: Disable"));
+	//AbilityLevitateTweakable.setTweakableByte(1);
+	AbilityLevitateTweakablePtr = &AbilityLevitateTweakable;
 
 	if (MH_CreateHook(setPlayerFunctionAddr, &setAsPlayerCharacter, reinterpret_cast<LPVOID*>(&setAsPlayerOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(setPlayerFunctionAddr) != MH_OK) throw;
@@ -508,4 +543,9 @@ std::vector<triggerPtr> ControlGameData::GetTriggers()
 bool ControlGameData::GetMapIsLoaded()
 {
 	return mapIsLoaded;
+}
+
+int ControlGameData::getTriggerCount(void)
+{
+	return triggerCount;
 }
