@@ -614,6 +614,109 @@ void ControlUI::ConfigTab() {
 	}
 }
 
+static inline void CSRM_DrawTriggers(ControlGameData *gameData, BaseConfig *config, ImDrawList *drawList, int screenWidth, int screenHeight)
+{
+	Matrix4* myViewMatrix = gameData->GetViewMatrix();
+	Vector3 worldPos;
+	ImVec2 nicknamePos;
+
+	if (!myViewMatrix)
+		return;
+
+	if (!gameData->GetMapIsLoaded() || !gameData->GetTriggers().size())
+		return;
+
+	//Vector3 playerPos = *gameData->GetPlayerPos();
+	auto triggers = gameData->GetTriggers();
+	for (int i = 0; i < triggers.size(); i++)
+	{
+		ImColor triggerColor;
+
+		if (triggers.at(i).trigger == NULL ||
+			*triggers.at(i).genericentity == NULL ||
+			triggers.at(i).triggerobject.trigger == nullptr)
+			continue;
+
+		if (*triggers.at(i).triggerobject.onEnter == 1)
+			triggerColor = ImColor(1.0f, 1.0f, 1.0f, config->triggerOpacity * 0.9f);
+		else if (*triggers.at(i).triggerobject.onEnter != 0)
+			triggerColor = ImColor(0.7f, 1.0f, 0.7f, config->triggerOpacity * 0.5f);
+		else
+			triggerColor = ImColor(1.0f, 1.0f, 1.0f, config->triggerOpacity * 0.2f);
+
+		Vector3 minA = triggers.at(i).triggerobject.minmax.a;
+		Vector3 maxB = triggers.at(i).triggerobject.minmax.b;
+
+		Vector3 minA_tmpA = minA; minA_tmpA.x = maxB.x;
+		Vector3 minA_tmpB = minA; minA_tmpB.y = maxB.y;
+		Vector3 minA_tmpC = minA; minA_tmpC.x = maxB.x; minA_tmpC.y = maxB.y;
+
+		Vector3 maxB_tmpA = maxB; maxB_tmpA.x = minA.x;
+		Vector3 maxB_tmpB = maxB; maxB_tmpB.y = minA.y;
+		Vector3 maxB_tmpC = maxB; maxB_tmpC.x = minA.x; maxB_tmpC.y = minA.y;
+
+		Vector2 vec2_minA;
+		Vector2 vec2_maxB;
+
+		Vector2 vec2_minA_tmpA;
+		Vector2 vec2_minA_tmpB;
+		Vector2 vec2_minA_tmpC;
+
+		Vector2 vec2_maxB_tmpA;
+		Vector2 vec2_maxB_tmpB;
+		Vector2 vec2_maxB_tmpC;
+
+		ImVec2 imvec_minA;
+		ImVec2 imvec_maxB;
+
+		ImVec2 imvec_minA_tmpA;
+		ImVec2 imvec_minA_tmpB;
+		ImVec2 imvec_minA_tmpC;
+
+		ImVec2 imvec_maxB_tmpA;
+		ImVec2 imvec_maxB_tmpB;
+		ImVec2 imvec_maxB_tmpC;
+
+		if (!DXWorldToScreen(myViewMatrix, minA, screenWidth, screenHeight, vec2_minA)) continue;
+		if (!DXWorldToScreen(myViewMatrix, maxB, screenWidth, screenHeight, vec2_maxB)) continue;
+
+		if (!DXWorldToScreen(myViewMatrix, minA_tmpA, screenWidth, screenHeight, vec2_minA_tmpA)) continue;
+		if (!DXWorldToScreen(myViewMatrix, minA_tmpB, screenWidth, screenHeight, vec2_minA_tmpB)) continue;
+		if (!DXWorldToScreen(myViewMatrix, minA_tmpC, screenWidth, screenHeight, vec2_minA_tmpC)) continue;
+
+		if (!DXWorldToScreen(myViewMatrix, maxB_tmpA, screenWidth, screenHeight, vec2_maxB_tmpA)) continue;
+		if (!DXWorldToScreen(myViewMatrix, maxB_tmpB, screenWidth, screenHeight, vec2_maxB_tmpB)) continue;
+		if (!DXWorldToScreen(myViewMatrix, maxB_tmpC, screenWidth, screenHeight, vec2_maxB_tmpC)) continue;
+
+		imvec_minA.x = vec2_minA.x; imvec_minA.y = vec2_minA.y;
+		imvec_maxB.x = vec2_maxB.x; imvec_maxB.y = vec2_maxB.y;
+
+		imvec_minA_tmpA.x = vec2_minA_tmpA.x; imvec_minA_tmpA.y = vec2_minA_tmpA.y;
+		imvec_minA_tmpB.x = vec2_minA_tmpB.x; imvec_minA_tmpB.y = vec2_minA_tmpB.y;
+		imvec_minA_tmpC.x = vec2_minA_tmpC.x; imvec_minA_tmpC.y = vec2_minA_tmpC.y;
+
+		imvec_maxB_tmpA.x = vec2_maxB_tmpA.x; imvec_maxB_tmpA.y = vec2_maxB_tmpA.y;
+		imvec_maxB_tmpB.x = vec2_maxB_tmpB.x; imvec_maxB_tmpB.y = vec2_maxB_tmpB.y;
+		imvec_maxB_tmpC.x = vec2_maxB_tmpC.x; imvec_maxB_tmpC.y = vec2_maxB_tmpC.y;
+
+		drawList->AddLine(imvec_minA, imvec_minA_tmpA, triggerColor, 1.0f);
+		drawList->AddLine(imvec_minA_tmpB, imvec_minA_tmpC, triggerColor, 1.0f);
+		drawList->AddLine(imvec_minA, imvec_minA_tmpB, triggerColor, 1.0f);
+		drawList->AddLine(imvec_minA_tmpC, imvec_minA_tmpA, triggerColor, 1.0f);
+
+		drawList->AddLine(imvec_maxB, imvec_maxB_tmpA, triggerColor, 1.0f);
+		drawList->AddLine(imvec_maxB_tmpB, imvec_maxB_tmpC, triggerColor, 1.0f);
+		drawList->AddLine(imvec_maxB, imvec_maxB_tmpB, triggerColor, 1.0f);
+		drawList->AddLine(imvec_maxB_tmpC, imvec_maxB_tmpA, triggerColor, 1.0f);
+
+		drawList->AddLine(imvec_maxB, imvec_minA_tmpC, triggerColor, 1.0f);
+		drawList->AddLine(imvec_maxB_tmpA, imvec_minA_tmpB, triggerColor, 1.0f);
+
+		drawList->AddLine(imvec_minA, imvec_maxB_tmpC, triggerColor, 1.0f);
+		drawList->AddLine(imvec_minA_tmpA, imvec_maxB_tmpB, triggerColor, 1.0f);
+	}
+}
+
 static bool firstTimeInitalization = true;
 void ControlUI::DrawPlayerObjects() {
 	ImDrawList* drawList = ImGui::GetForegroundDrawList();
@@ -651,212 +754,15 @@ void ControlUI::DrawPlayerObjects() {
 			//printf("resolution changed or something\n");
 		}
 
-		//draw_speed(((ControlGameData*)data)->getPlayerPhysxSpeed(), config, &io);
 		CSRM_Speedometer(controlData, config, &io);
 		//((ControlGameData*)data)->getPlayerPosSpeed();
 	}
-	 
-	if (!config->drawTriggers)
-		return;
 
-	Matrix4* myViewMatrix = data->GetViewMatrix();
-	if (myViewMatrix != nullptr) {
-		Vector3 worldPos;
-		ImVec2 nicknamePos;
+	if (config->drawTriggers) {
+		CSRM_DrawTriggers(controlData, config, drawList, (int)screenWidth, (int)screenHeight);
+	}
 
-		if (!controlData->GetMapIsLoaded())
-			return;
-
-		if (controlData->GetTriggers().size() != 0) {
-			//Vector3 playerPos = *data->GetPlayerPos();
-			
-			auto triggers = controlData->GetTriggers();
-			for (int i = 0; i < triggers.size(); i++) {
-				ImColor triggerColor;
-
-				if (triggers.at(i).trigger == NULL || 
-					*triggers.at(i).genericentity == NULL ||
-					triggers.at(i).triggerobject.trigger == nullptr)
-					continue;
-
-				if (*triggers.at(i).triggerobject.onEnter == 1)
-					triggerColor = ImColor(1.0f, 1.0f, 1.0f, config->triggerOpacity * 0.9f);
-				else if (*triggers.at(i).triggerobject.onEnter != 0)
-					triggerColor = ImColor(0.7f, 1.0f, 0.7f, config->triggerOpacity * 0.5f);
-				else
-					triggerColor = ImColor(1.0f, 1.0f, 1.0f, config->triggerOpacity * 0.2f);
-
-				Vector3 minA = triggers.at(i).triggerobject.minmax.a;
-				Vector3 maxB = triggers.at(i).triggerobject.minmax.b;
-
-				Vector3 minA_tmpA = minA; minA_tmpA.x = maxB.x;
-				Vector3 minA_tmpB = minA; minA_tmpB.y = maxB.y;
-				Vector3 minA_tmpC = minA; minA_tmpC.x = maxB.x; minA_tmpC.y = maxB.y;
-
-				Vector3 maxB_tmpA = maxB; maxB_tmpA.x = minA.x;
-				Vector3 maxB_tmpB = maxB; maxB_tmpB.y = minA.y;
-				Vector3 maxB_tmpC = maxB; maxB_tmpC.x = minA.x; maxB_tmpC.y = minA.y;
-
-				Vector2 vec2_minA;
-				Vector2 vec2_maxB;
-
-				Vector2 vec2_minA_tmpA;
-				Vector2 vec2_minA_tmpB;
-				Vector2 vec2_minA_tmpC;
-
-				Vector2 vec2_maxB_tmpA;
-				Vector2 vec2_maxB_tmpB;
-				Vector2 vec2_maxB_tmpC;
-
-				ImVec2 imvec_minA;
-				ImVec2 imvec_maxB;
-
-				ImVec2 imvec_minA_tmpA;
-				ImVec2 imvec_minA_tmpB;
-				ImVec2 imvec_minA_tmpC;
-
-				ImVec2 imvec_maxB_tmpA;
-				ImVec2 imvec_maxB_tmpB;
-				ImVec2 imvec_maxB_tmpC;
-
-				if (!DXWorldToScreen(myViewMatrix, minA, (int)screenWidth, (int)screenHeight, vec2_minA)) continue;
-				if (!DXWorldToScreen(myViewMatrix, maxB, (int)screenWidth, (int)screenHeight, vec2_maxB)) continue;
-
-				if (!DXWorldToScreen(myViewMatrix, minA_tmpA, (int)screenWidth, (int)screenHeight, vec2_minA_tmpA)) continue;
-				if (!DXWorldToScreen(myViewMatrix, minA_tmpB, (int)screenWidth, (int)screenHeight, vec2_minA_tmpB)) continue;
-				if (!DXWorldToScreen(myViewMatrix, minA_tmpC, (int)screenWidth, (int)screenHeight, vec2_minA_tmpC)) continue;
-
-				if (!DXWorldToScreen(myViewMatrix, maxB_tmpA, (int)screenWidth, (int)screenHeight, vec2_maxB_tmpA)) continue;
-				if (!DXWorldToScreen(myViewMatrix, maxB_tmpB, (int)screenWidth, (int)screenHeight, vec2_maxB_tmpB)) continue;
-				if (!DXWorldToScreen(myViewMatrix, maxB_tmpC, (int)screenWidth, (int)screenHeight, vec2_maxB_tmpC)) continue;
-
-				imvec_minA.x = vec2_minA.x; imvec_minA.y = vec2_minA.y;
-				imvec_maxB.x = vec2_maxB.x; imvec_maxB.y = vec2_maxB.y;
-
-				imvec_minA_tmpA.x = vec2_minA_tmpA.x; imvec_minA_tmpA.y = vec2_minA_tmpA.y;
-				imvec_minA_tmpB.x = vec2_minA_tmpB.x; imvec_minA_tmpB.y = vec2_minA_tmpB.y;
-				imvec_minA_tmpC.x = vec2_minA_tmpC.x; imvec_minA_tmpC.y = vec2_minA_tmpC.y;
-
-				imvec_maxB_tmpA.x = vec2_maxB_tmpA.x; imvec_maxB_tmpA.y = vec2_maxB_tmpA.y;
-				imvec_maxB_tmpB.x = vec2_maxB_tmpB.x; imvec_maxB_tmpB.y = vec2_maxB_tmpB.y;
-				imvec_maxB_tmpC.x = vec2_maxB_tmpC.x; imvec_maxB_tmpC.y = vec2_maxB_tmpC.y;
-				
-				drawList->AddLine(imvec_minA,		imvec_minA_tmpA, triggerColor, 1.0f);
-				drawList->AddLine(imvec_minA_tmpB,	imvec_minA_tmpC, triggerColor, 1.0f);
-				drawList->AddLine(imvec_minA,		imvec_minA_tmpB, triggerColor, 1.0f);
-				drawList->AddLine(imvec_minA_tmpC,	imvec_minA_tmpA, triggerColor, 1.0f);
-
-				drawList->AddLine(imvec_maxB,		imvec_maxB_tmpA, triggerColor, 1.0f);
-				drawList->AddLine(imvec_maxB_tmpB,	imvec_maxB_tmpC, triggerColor, 1.0f);
-				drawList->AddLine(imvec_maxB,		imvec_maxB_tmpB, triggerColor, 1.0f);
-				drawList->AddLine(imvec_maxB_tmpC,	imvec_maxB_tmpA, triggerColor, 1.0f);
-
-				drawList->AddLine(imvec_maxB,		imvec_minA_tmpC, triggerColor, 1.0f);
-				drawList->AddLine(imvec_maxB_tmpA,	imvec_minA_tmpB, triggerColor, 1.0f);
-
-				drawList->AddLine(imvec_minA,		imvec_maxB_tmpC, triggerColor, 1.0f);
-				drawList->AddLine(imvec_minA_tmpA,	imvec_maxB_tmpB, triggerColor, 1.0f);
-
-			}
-		}
-
-		for (const auto& client_it : client->GetUserList()) {
-			if (client_it.second == nullptr) continue;
-			if (client_it.second->nickname == "") continue;
-
-			if (!config->drawSelf && client_it.first == client->localID) continue;
-
-			// Position Smoothing
-			if (client_it.second->prevPos.size() > 3 && config->positionSmoothing) {
-				long long timeSincePrevPos = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - client_it.second->latestPosTime).count();
-				long long timeBetweenPositions = std::chrono::duration_cast<std::chrono::milliseconds>(client_it.second->latestPosTime - client_it.second->prevPosTime).count();
-				float perc = (float)timeSincePrevPos / timeBetweenPositions;
-
-				if (perc < 1.0f) {
-					Vector3 prevPos = client_it.second->prevPos.at(1);
-					worldPos = prevPos.LerpTo(Vector3(client_it.second->pos), perc);
-				}
-				else {
-					worldPos = client_it.second->pos;
-				}
-			}
-			else {
-				worldPos = client_it.second->pos;
-			}
-
-			worldPos.y += 1;
-
-			Vector2 screenPos;
-			if (!DXWorldToScreen(myViewMatrix, worldPos, (int)screenWidth, (int)screenHeight, screenPos)) continue;
-
-			// Colours
-			ImColor playerTrailColour = ImColor(Float3AToImColor(client_it.second->trailColour, config->playerTrailOpacity));
-			ImColor playerObjColour = ImColor(Float3AToImColor(client_it.second->colour, config->playerObjectOpacity));
-			ImColor playerNameColour = ImColor(Float3AToImColor(client_it.second->colour, 1.0f));
-
-			// Trails
-			if (config->playerTrailEnabled) {
-				if (client_it.second->prevPos.size() > 3) {
-					for (size_t i = 0; i < client_it.second->prevPos.size() - 3; i++) {
-						if (client_it.second->prevPos[i] == client_it.second->prevPos[i + 1]) continue;
-
-						Vector3 pos1;
-						pos1.x = std::get<0>(client_it.second->prevPos[i]);
-						pos1.y = std::get<1>(client_it.second->prevPos[i]) + 1.0f;
-						pos1.z = std::get<2>(client_it.second->prevPos[i]);
-						Vector3 pos2;
-						pos2.x = std::get<0>(client_it.second->prevPos[i + 1]);
-						pos2.y = std::get<1>(client_it.second->prevPos[i + 1]) + 1.0f;
-						pos2.z = std::get<2>(client_it.second->prevPos[i + 1]);
-
-						Vector2 point1;
-						Vector2 point2;
-						if (!DXWorldToScreen(myViewMatrix, pos1, (int)screenWidth, (int)screenHeight, point1)) continue;
-						if (!DXWorldToScreen(myViewMatrix, pos2, (int)screenWidth, (int)screenHeight, point2)) continue;
-
-						drawList->AddLine(ImVec2(point1.x, point1.y), ImVec2(point2.x, point2.y), playerTrailColour, config->playerTrailThickness);
-					}
-				}
-			}
-
-			// Object
-			nicknamePos = DrawOctahedron(drawList, ImVec2(screenWidth, screenHeight), myViewMatrix, &worldPos, config->playerObjectScale, playerObjColour, 2.0f);
-
-			// Check if centre of screen
-			if ((nicknamePos.x > screenWidth + 100 || nicknamePos.x < -100) && (nicknamePos.y > screenHeight + 100 || nicknamePos.y < -100)) continue;
-
-			// Distance (if looking at the name)
-			if (sqrt(pow(nicknamePos.x - screenWidth / 2, 2) + pow(nicknamePos.y - screenHeight / 2, 2)) < screenHeight / 4.5f) {
-				Vector3* myPlayerPos = data->GetPlayerPos();
-				float distance = -1.0f;
-
-				if (myPlayerPos != nullptr) {
-					distance = ((Vector3*)client_it.second->pos)->DistanceTo(*myPlayerPos);
-				}
-
-				char distStr[32] = "0.0m";
-				sprintf_s(distStr, sizeof(distStr), "%.2fm", distance);
-
-				ImVec2 distRectStart = ImVec2(nicknamePos.x - ImGui::CalcTextSize(distStr).x / 2.0f - 2.0f, nicknamePos.y + 6 - 2.0f);
-				ImVec2 distRectEnd = ImVec2(nicknamePos.x + ImGui::CalcTextSize(distStr).x / 2.0f + 2.0f, nicknamePos.y + 6 + ImGui::CalcTextSize(distStr).y + 2.0f);
-
-				if (distRectEnd.x - distRectStart.x > 8 && distRectEnd.y - distRectStart.y > 8)
-					drawList->AddRectFilled(distRectStart, distRectEnd, ImColor(Float4ToImColor(config->playerNicknamePlateColour)), 4.0f);
-
-				drawList->AddText(ImVec2(nicknamePos.x - ImGui::CalcTextSize(distStr).x / 2.0f, nicknamePos.y + 6), playerNameColour, distStr);
-			}
-
-			// Nickname
-			ImVec2 nameRectStart = ImVec2(nicknamePos.x - ImGui::CalcTextSize(client_it.second->nickname.c_str()).x / 2.0f - 2.0f, nicknamePos.y - 15 - 2.0f);
-			ImVec2 nameRectEnd = ImVec2(nicknamePos.x + ImGui::CalcTextSize(client_it.second->nickname.c_str()).x / 2.0f + 2.0f, nicknamePos.y - 15 + ImGui::CalcTextSize(client_it.second->nickname.c_str()).y + 2.0f);
-
-			if (nameRectEnd.x - nameRectStart.x > 8 && nameRectEnd.y - nameRectStart.y > 8)
-				drawList->AddRectFilled(nameRectStart, nameRectEnd, ImColor(Float4ToImColor(config->playerNicknamePlateColour)), 4.0f);
-
-			nicknamePos.x -= ImGui::CalcTextSize(client_it.second->nickname.c_str()).x / 2.0f;
-			nicknamePos.y -= 15;
-
-			drawList->AddText(nicknamePos, playerNameColour, client_it.second->nickname.c_str());
-		}
+	if (client->status == "Connected") {
+		BaseUI::DrawPlayerObjects();
 	}
 }
