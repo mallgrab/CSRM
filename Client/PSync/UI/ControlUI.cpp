@@ -99,13 +99,13 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	if (config->speedometerSize < 1.0f || config->speedometerSize > 10.0f) //shuoldn't need this anymore 
 		config->speedometerSize = 1.0f;
 
-#if 0 //measure the rate at which position is updated..
+#if SAMPLE_POSITION_UPDATES //measure the rate at which position is updated..
 	//position is updated at 30hz apparently..?
-	if (1)
+	//if (1)
 	{
 		#define POSITION_FRAMES 240
 		static int deltas[POSITION_FRAMES] = { 0 };
-		static int deltaIndex = 0, lastUpdateTimee = 0;
+		static int deltaIndex = 0, lastPositionUpdate = 0;
 		int now = clock();
 
 		Vector3 currentPos = *gameData->GetPlayerPos();
@@ -114,7 +114,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 		if (!(currentPos == previousPos)) {
 			int i, total = 0;
 			float average = 0;
-			const int positionDelta = now - lastUpdateTimee;
+			const int positionDelta = now - lastPositionUpdate;
 
 			deltas[deltaIndex++ % POSITION_FRAMES] = positionDelta;
 
@@ -123,10 +123,40 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 			average = 1000 * POSITION_FRAMES / (float)total;
 
 			printf("positionUpdate %02i avg rate %02f\n", positionDelta, average);
-			lastUpdateTimee = now;
+			lastPositionUpdate = now;
 			previousPos = currentPos;
 		}
-		#undef POSITION_FRAMES 
+		#undef POSITION_FRAMES
+	}
+#endif
+
+#if SAMPLE_POSITION_UPDATES //do same thing but for speed?
+	//position is updated at 30hz apparently..?
+	//if (1)
+	{
+		#define SPEED_FRAMES 60
+		static int deltas[SPEED_FRAMES] = { 0 };
+		static int deltaIndex = 0, lastSpeedUpdate = 0;
+		int now = clock();
+
+		static float previousSpeed = speed;
+
+		if (!(speed == previousSpeed)) {
+			int i, total = 0;
+			float average = 0;
+			const int speedDelta = now - lastSpeedUpdate;
+
+			deltas[deltaIndex++ % SPEED_FRAMES] = speedDelta;
+
+			for (i = 0; i < SPEED_FRAMES; i++) total += deltas[i];
+			if (total < 1) total = 1;
+			average = 1000 * SPEED_FRAMES / (float)total;
+
+			printf("speedUpdate %02i avg rate %02f\n", speedDelta, average);
+			lastSpeedUpdate = now;
+			previousSpeed = speed;
+		}
+		#undef SPEED_FRAMES
 	}
 #endif
 
@@ -162,7 +192,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 		static float jumpSpeed = 0;
 		static float jumpY = 0;
 
-		if (delta >= 30) //30hz..
+		if (delta >= 33) //30hz..
 		{
 			Vector3 pos = *gameData->GetPlayerPos();
 			//static Vector3 previousPos = pos;
@@ -235,7 +265,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 		static int lastUpdateTime = 0;
 		int curTime = clock() - baseTime;
 
-		if (curTime - lastUpdateTime >= 16) //62hz
+		if (curTime - lastUpdateTime >= 33) //~30hz
 		{
 			float seconds = 0.0f;
 

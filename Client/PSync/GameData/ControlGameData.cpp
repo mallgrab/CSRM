@@ -175,7 +175,7 @@ float ControlGameData::getPlayerPosSpeed()
 	const int curTime = clock();
 	const int delta = curTime - lastUpdateTime; //this shit HAS to be throttled I guess?
 
-	if (delta >= 30)
+	if (delta >= 33)
 	{ //30hz
 		const float deltaTime = delta * 0.001f;
 		//Vector3 difference = currentPos - previousPos;
