@@ -368,6 +368,9 @@ void ControlUI::DebugTab() {
 		Matrix4* myViewMatrix = data->GetViewMatrix();
 		Vector3* myPlayerPos = data->GetPlayerPos();
 
+		ControlGameData *controlData = ((ControlGameData*)data);
+		if (!controlData) return; //don't rlly need this but...
+
 		/*
 		ImGui::InputFloat("Countdown Time", &countdownTme);
 		if (ImGui::Button("Start Countdown")) {
@@ -560,8 +563,10 @@ void ControlUI::DrawPlayerObjects() {
 	ImDrawList* drawList = ImGui::GetForegroundDrawList();
 	ImGuiIO& io = ImGui::GetIO();
 
-	if (config->drawSpeedometer)
-	{
+	ControlGameData *controlData = (ControlGameData *)data;
+	if (!controlData) return; //don't rlly need this but...
+
+	if (config->drawSpeedometer) {
 		//should move a lot of this stuff out of here tbh lol
 		static ImVec2 lastDisplaySize = io.DisplaySize; //check if resolution/window size changed
 		if (lastDisplaySize.y != io.DisplaySize.y || lastDisplaySize.x != io.DisplaySize.x)
@@ -591,7 +596,7 @@ void ControlUI::DrawPlayerObjects() {
 		}
 
 		//draw_speed(((ControlGameData*)data)->getPlayerPhysxSpeed(), config, &io);
-		CSRM_Speedometer((ControlGameData*)data, config, &io);
+		CSRM_Speedometer(controlData, config, &io);
 		//((ControlGameData*)data)->getPlayerPosSpeed();
 	}
 	 
@@ -603,13 +608,13 @@ void ControlUI::DrawPlayerObjects() {
 		Vector3 worldPos;
 		ImVec2 nicknamePos;
 
-		if (!((ControlGameData*)data)->GetMapIsLoaded())
+		if (!controlData->GetMapIsLoaded())
 			return;
 
-		if (((ControlGameData*)data)->GetTriggers().size() != 0) {
-			Vector3 playerPos = *data->GetPlayerPos();
+		if (controlData->GetTriggers().size() != 0) {
+			//Vector3 playerPos = *data->GetPlayerPos();
 			
-			auto triggers = ((ControlGameData*)data)->GetTriggers();
+			auto triggers = controlData->GetTriggers();
 			for (int i = 0; i < triggers.size(); i++) {
 				ImColor triggerColor;
 

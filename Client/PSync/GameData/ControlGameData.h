@@ -35,4 +35,5 @@ public:
 	float getPlayerPhysxSpeed();
 	float getPlayerPosSpeed();
 	void SetPlayerPos(Vector3 newPos);
+	Vector3 *GetPlayerPos_Real();
 };

@@ -391,9 +391,26 @@ void ControlGameData::InitGameData()
 	printf("characterControllerMoveCapsuleAddr: 0x%llx\n", (uint64_t)characterControllerMoveCapsuleAddr);
 }
 
-Vector3* ControlGameData::GetPlayerPos()
-{
-	if (!playerController || !playerCharacterController)
+Vector3 *ControlGameData::GetPlayerPos()
+{ //this is stupid and is only being used so the UI doesn't crash things while we're fast traveling within a map
+	float a[2], b[2];
+
+	if (!playerController || !playerCharacterController || !mapIsLoaded)
+		return nullptr;
+
+	memcpy(a, playerController + 0x12, sizeof(uint64_t));
+	memcpy(b, playerController + 0x13, sizeof(uint64_t));
+
+	playerPos.x = a[0];
+	playerPos.y = a[1];
+	playerPos.z = b[0]; // b[1] is just padding
+
+	return &playerPos;
+}
+
+Vector3* ControlGameData::GetPlayerPos_Real()
+{ //this is causing crashes during fast travel
+	if (!playerController || !playerCharacterController || !mapIsLoaded)
 		return nullptr;
 
 	ptr* physx3characterkinematic = *(ptr**)(playerCharacterController + 12);
@@ -413,7 +430,7 @@ Vector3* ControlGameData::GetPlayerPos()
 
 void ControlGameData::SetPlayerPos(Vector3 newPos)
 {
-	if (!playerController || !playerCharacterController)
+	if (!playerController || !playerCharacterController || !mapIsLoaded)
 		return;
 
 	ptr* physx3characterkinematic = *(ptr**)(playerCharacterController + 12);
