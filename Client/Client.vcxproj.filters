@@ -46,6 +46,9 @@
     <Filter Include="PSync\Config">
       <UniqueIdentifier>{0e91b51c-23b8-4940-bd27-88baaa936226}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PSync\GameData\Control">
+      <UniqueIdentifier>{790df0ba-7b0e-4238-b8d0-4ea24897255b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utils.h" />
@@ -161,14 +164,14 @@
     <ClInclude Include="PSync\Config\DevilMayCry3SEConfig.h">
       <Filter>PSync\Config</Filter>
     </ClInclude>
-    <ClInclude Include="PSync\GameData\ControlGameData.h">
-      <Filter>PSync\GameData</Filter>
-    </ClInclude>
     <ClInclude Include="PSync\UI\ControlUI.h">
       <Filter>PSync\UI</Filter>
     </ClInclude>
     <ClInclude Include="PSync\Client\ControlClient.h">
       <Filter>PSync\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="PSync\GameData\Control\GameData.h">
+      <Filter>PSync\GameData\Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -248,8 +251,8 @@
     <ClCompile Include="PSync\UI\ControlUI.cpp">
       <Filter>PSync\UI</Filter>
     </ClCompile>
-    <ClCompile Include="PSync\GameData\ControlGameData.cpp">
-      <Filter>PSync\GameData</Filter>
+    <ClCompile Include="PSync\GameData\Control\GameData.cpp">
+      <Filter>PSync\GameData\Control</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

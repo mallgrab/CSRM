@@ -1,6 +1,6 @@
 #pragma once
 #include "BaseUI.h"
-#include "../GameData/ControlGameData.h"
+#include "../GameData/Control/GameData.h"
 #include "../Config/BaseConfig.h"
 
 class ControlUI : public virtual BaseUI {

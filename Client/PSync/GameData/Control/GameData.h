@@ -1,6 +1,6 @@
 #pragma once
 #define _WINSOCKAPI_
-#include "BaseGameData.h"
+#include "../BaseGameData.h"
 #include "Windows.h"
 #include "../ocular/kiero/minhook/include/MinHook.h"
 
@@ -24,6 +24,12 @@ struct triggerPtr {
 	triggerObject triggerobject;
 };
 
+using baseTweakablesGetTweakable_t = uint64_t * (__stdcall*)(const char* name);
+extern baseTweakablesGetTweakable_t baseTweakablesGetTweakable;
+
+using baseTweakablesSetTweakable_t = int64_t(__fastcall*)(char* tweakableName, char* value, char isChanged);
+extern baseTweakablesSetTweakable_t baseTweakablesSetTweakable;
+
 class ControlGameData : public BaseGameData {
 public:
 	void InitGameData() override;
@@ -34,4 +40,13 @@ public:
 	float* getPlayerCapsuleSpeed();
 	float getPlayerPhysxSpeed();
 	float getPlayerPosSpeed();
+	void SetPlayerPos(Vector3 newPos);
+	Vector3 *GetPlayerPos_Real();
+
+	//ass
+	void Tweakable_SetLevitateDisable(bool disableLevitation);
+	void Tweakable_SetTemporalSSAA(bool temporalSSAA);
+	void Tweakable_SetMotionBlur(bool motionBlur);
+
+	int getTriggerCount(void);
 };

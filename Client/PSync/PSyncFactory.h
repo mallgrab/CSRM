@@ -33,7 +33,7 @@ typedef uint32_t ptr;
 #include "Config/DevilMayCry3SEConfig.h"
 
 // Control
-#include "GameData/ControlGameData.h"
+#include "GameData/Control/GameData.h"
 #include "UI/ControlUI.h"
 #include "Client/ControlClient.h"
 

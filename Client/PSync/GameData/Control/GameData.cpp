@@ -1,4 +1,4 @@
-#include "ControlGameData.h"
+#include "GameData.h"
 
 using setAsPlayerOriginal_t = void(__stdcall*)(uint64_t* x, char y);
 setAsPlayerOriginal_t setAsPlayerOriginal;
@@ -29,6 +29,9 @@ characterControllerCtor_t characterControllerOriginal;
 
 using characterControllerMoveRelative_t = void(__fastcall*)(uint64_t* x, float* y, float z, float w);
 characterControllerMoveRelative_t characterControllerMoveCapsuleOriginal;
+
+baseTweakablesGetTweakable_t baseTweakablesGetTweakable;
+baseTweakablesSetTweakable_t baseTweakablesSetTweakable;
 
 ptr* playerController;
 std::vector<triggerPtr> triggerPtrs;
@@ -202,9 +205,6 @@ float ControlGameData::getPlayerPosSpeed()
 }
 #endif
 
-using baseTweakablesGetTweakable_t = uint64_t * (__stdcall*)(const char* name);
-baseTweakablesGetTweakable_t baseTweakablesGetTweakable;
-
 struct Tweakable_t
 {
 	ptr* vftable;
@@ -356,10 +356,13 @@ void ControlGameData::InitGameData()
 	ptr* characterControllerMoveCapsuleAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x7540);
 
 	baseTweakablesGetTweakable = (baseTweakablesGetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f8e60);
+	baseTweakablesSetTweakable = (baseTweakablesSetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f9200);
 
 	//skip the intro epilepsy & autosave warnings
 	Tweakable IntroScreenTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("Intro Screen:Display time for section"));
 	IntroScreenTweakable.setTweakableFloat(0.0f); //default 4.0f
+
+	baseTweakablesSetTweakable((char*)"Intro Screen:Display time for section", (char*)"30.0", 1);
 
 	//fix janky menu/loading screen background animation
 	Tweakable CoherentGTLiveViewsTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("CoherentGT:Force live views to update"));
