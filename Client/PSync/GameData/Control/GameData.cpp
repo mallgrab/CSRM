@@ -30,9 +30,6 @@ characterControllerCtor_t characterControllerOriginal;
 using characterControllerMoveRelative_t = void(__fastcall*)(uint64_t* x, float* y, float z, float w);
 characterControllerMoveRelative_t characterControllerMoveCapsuleOriginal;
 
-baseTweakablesGetTweakable_t baseTweakablesGetTweakable;
-baseTweakablesSetTweakable_t baseTweakablesSetTweakable;
-
 ptr* playerController;
 std::vector<triggerPtr> triggerPtrs;
 bool mapIsLoaded;
@@ -205,108 +202,8 @@ float ControlGameData::getPlayerPosSpeed()
 }
 #endif
 
-struct Tweakable_t
-{
-	ptr* vftable;
-	ptr** namePtr;
-	ptr** namePtr2;
-	uint32_t a;
-	uint32_t b;
-	uint32_t charAmount;
-	uint32_t d;
-};
-
-//should move this to a class or somethin?
-struct Tweakable
-{
-	byte* start;
-	char* name;
-	byte* valueType;
-	byte* valueModified;
-	byte* valueByte;
-	uint32_t* valueInt;
-	float* valueFloat;
-
-	Tweakable(ptr* t)
-	{
-		Tweakable_t* p = (Tweakable_t*)t;
-
-		this->name = (char*)p->namePtr;
-		this->start = (byte*)t;
-
-		this->valueModified = (byte*)(this->start + 0xAC + 0x04);
-		this->valueByte = (byte*)(this->start + 0xAC + 0x04 + 0x01);
-		this->valueFloat = (float*)(this->start + 0xAC + 0x04);
-		this->valueInt = (uint32_t*)(this->start + 0xAC + 0x04);
-		this->valueType = (byte*)(this->start + 0xA8);
-	};
-
-	void setTweakableFloat(float value)
-	{
-		if (*this->valueType == 2)
-		{
-			*this->valueFloat = value;
-			*this->valueModified = 1;
-		}
-	}
-
-	void setTweakableInt(uint32_t value)
-	{
-		if (*this->valueType == 1)
-		{
-			*this->valueInt = value;
-			*this->valueModified = 1;
-		}
-	}
-
-	void setTweakableByte(byte value)
-	{
-		if (*this->valueType == 0)
-		{
-			*this->valueByte = value;
-			*this->valueModified = 1;
-		}
-	}
-
-	void setTweakableVec2(float value[2])
-	{
-		if (*this->valueType == 3)
-		{
-			this->valueFloat[0] = value[0];
-			this->valueFloat[1] = value[1];
-
-			*this->valueModified = 1;
-		}
-	}
-
-	void setTweakableVec3(float value[3])
-	{
-		if (*this->valueType == 4)
-		{
-			this->valueFloat[0] = value[0];
-			this->valueFloat[1] = value[1];
-			this->valueFloat[2] = value[2];
-
-			*this->valueModified = 1;
-		}
-	}
-
-	void setTweakableVec4(float value[4])
-	{
-		if (*this->valueType == 5)
-		{
-			this->valueFloat[0] = value[0];
-			this->valueFloat[1] = value[1];
-			this->valueFloat[2] = value[2];
-			this->valueFloat[3] = value[3];
-
-			*this->valueModified = 1;
-		}
-	}
-};
-
-
 //this is stupid i'm sorry
+/*
 Tweakable *SSAATweakablePtr = nullptr;
 Tweakable *MotionBlurTweakablePtr = nullptr;
 Tweakable *AbilityLevitateTweakablePtr = nullptr;
@@ -324,6 +221,7 @@ void ControlGameData::Tweakable_SetMotionBlur(bool motionBlur) {
 	if (!MotionBlurTweakablePtr) return; //should never happen
 	MotionBlurTweakablePtr->setTweakableFloat(motionBlur ? 0.4f : 0.0f);
 }
+*/
 
 #define MAX_TRIGGERS 4096 //1024 //8192
 void ControlGameData::InitGameData()
@@ -355,37 +253,8 @@ void ControlGameData::InitGameData()
 	ptr* characterControllerCtorAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x5d80);
 	ptr* characterControllerMoveCapsuleAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x7540);
 
-	baseTweakablesGetTweakable = (baseTweakablesGetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f8e60);
-	baseTweakablesSetTweakable = (baseTweakablesSetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f9200);
-
-	//skip the intro epilepsy & autosave warnings
-	Tweakable IntroScreenTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("Intro Screen:Display time for section"));
-	IntroScreenTweakable.setTweakableFloat(0.0f); //default 4.0f
-
-	baseTweakablesSetTweakable((char*)"Intro Screen:Display time for section", (char*)"30.0", 1);
-
-	//fix janky menu/loading screen background animation
-	Tweakable CoherentGTLiveViewsTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("CoherentGT:Force live views to update"));
-	CoherentGTLiveViewsTweakable.setTweakableByte(1); //default 0
-	/*
-	//force vsync off in menus - ok this actually doesn't do anything ??
-	Tweakable VSyncTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("VSync:Enabled"));
-	VSyncTweakable.setTweakableByte(0); //default 1
-	*/
-	//disable TAA
-	static Tweakable SSAATweakable = Tweakable((ptr*)baseTweakablesGetTweakable("SSAA:Temporal Jitter Scale"));
-	SSAATweakable.setTweakableFloat(0.0f); //default 1.0f
-	SSAATweakablePtr = &SSAATweakable;
-
-	//disable motionblur (should be optional?)
-	static Tweakable MotionBlurTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("VectorBlur:Shutter Speed"));
-	//MotionBlurTweakable.setTweakableFloat(0.0f); //default 0.4f
-	MotionBlurTweakablePtr = &MotionBlurTweakable;
-
-	//disables levitation, useful for practice
-	static Tweakable AbilityLevitateTweakable = Tweakable((ptr*)baseTweakablesGetTweakable("Ability Levitate: Disable"));
-	//AbilityLevitateTweakable.setTweakableByte(1);
-	AbilityLevitateTweakablePtr = &AbilityLevitateTweakable;
+	InstallHooks(rlDllAddr);
+	InitializeTweakables();
 
 	if (MH_CreateHook(setPlayerFunctionAddr, &setAsPlayerCharacter, reinterpret_cast<LPVOID*>(&setAsPlayerOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(setPlayerFunctionAddr) != MH_OK) throw;

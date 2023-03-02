@@ -173,6 +173,9 @@
     <ClInclude Include="PSync\GameData\Control\GameData.h">
       <Filter>PSync\GameData\Control</Filter>
     </ClInclude>
+    <ClInclude Include="PSync\GameData\Control\BaseTweakable.h">
+      <Filter>PSync\GameData\Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -252,6 +255,9 @@
       <Filter>PSync\UI</Filter>
     </ClCompile>
     <ClCompile Include="PSync\GameData\Control\GameData.cpp">
+      <Filter>PSync\GameData\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\GameData\Control\BaseTweakable.cpp">
       <Filter>PSync\GameData\Control</Filter>
     </ClCompile>
   </ItemGroup>

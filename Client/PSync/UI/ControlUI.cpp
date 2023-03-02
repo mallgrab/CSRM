@@ -457,16 +457,16 @@ void ControlUI::DebugTab() {
 
 		//ImGui::Text("\n");
 		if (ImGui::Checkbox("Motion blur", &config->motionBlur))
-			controlData->Tweakable_SetMotionBlur(config->motionBlur);
+			MotionBlurTweakable.SetTweakableStrValue(config->motionBlur ? "0.4f" : "0.0f");
 		ImGui::SameLine();
 		if (ImGui::Checkbox("Temporal SSAA", &config->TemporalSSAA))
-			controlData->Tweakable_SetTemporalSSAA(config->TemporalSSAA);
+			SSAATweakable.SetTweakableStrValue(config->TemporalSSAA ? "1.0f" : "0.0f");
 
 		ImGui::Text("\n");
 		ImGui::Text("Game settings:");
 		ImGui::Checkbox("Save/Load position", &config->saveLoadPosition);
 		if (ImGui::Checkbox("Disable levitation", &config->disableLevitation))
-			controlData->Tweakable_SetLevitateDisable(config->disableLevitation);
+			AbilityLevitateTweakable.SetTweakableStrValue(config->disableLevitation ? "1" : "0");
 
 		ImGui::Text("\n");
 		ImGui::Text("Triggers (%i):\n", controlData->getTriggerCount());
