@@ -202,27 +202,6 @@ float ControlGameData::getPlayerPosSpeed()
 }
 #endif
 
-//this is stupid i'm sorry
-/*
-Tweakable *SSAATweakablePtr = nullptr;
-Tweakable *MotionBlurTweakablePtr = nullptr;
-Tweakable *AbilityLevitateTweakablePtr = nullptr;
-void ControlGameData::Tweakable_SetLevitateDisable(bool disableLevitation) {
-	if (!AbilityLevitateTweakablePtr) return; //should never happen
-	AbilityLevitateTweakablePtr->setTweakableByte((byte)disableLevitation);
-}
-
-void ControlGameData::Tweakable_SetTemporalSSAA(bool temporalSSAA) {
-	if (!SSAATweakablePtr) return; //should never happen
-	SSAATweakablePtr->setTweakableFloat(temporalSSAA ? 1.0f : 0.0f);
-}
-
-void ControlGameData::Tweakable_SetMotionBlur(bool motionBlur) {
-	if (!MotionBlurTweakablePtr) return; //should never happen
-	MotionBlurTweakablePtr->setTweakableFloat(motionBlur ? 0.4f : 0.0f);
-}
-*/
-
 #define MAX_TRIGGERS 4096 //1024 //8192
 void ControlGameData::InitGameData()
 {
@@ -331,6 +310,14 @@ Vector3* ControlGameData::GetPlayerPos_Real()
 	playerPos.x = *x;
 	playerPos.y = *y;
 	playerPos.z = *z;
+
+	bool static printOnlyOnce = false;
+
+	if (!printOnlyOnce)
+	{
+		printf("playerPos: 0x%llx\n", (ptr*)&playerPos.x);
+		printOnlyOnce = true;
+	}
 
 	return &playerPos;
 }
