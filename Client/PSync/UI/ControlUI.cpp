@@ -475,7 +475,7 @@ void ControlUI::DebugTab() {
 		ImGui::Checkbox("Ins toggle", &config->drawTriggersHotkey);
 		if (config->drawTriggers) {
 			ImGui::Text("Trigger Opacity:");
-			ImGui::SliderFloat("", &config->triggerOpacity, 0.0f, 1.0f, "%.3f");
+			ImGui::SliderFloat("##TriggerOpacitySlider", &config->triggerOpacity, 0.0f, 1.0f, "%.3f");
 		}
 
 		ImGui::Text("\n");
