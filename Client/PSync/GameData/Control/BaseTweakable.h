@@ -47,15 +47,21 @@ struct BaseTweakable
 
 	char* GetTweakableStrValue()
 	{
-		GetTweakableStrValueFunc(tmp, (char*)strBuffer, 0);
+		if (this->name == nullptr)
+			return nullptr;
 
+		GetTweakableStrValueFunc(tmp, (char*)strBuffer, 0);
 		return *(char**)tmp;
 	}
 
+	// Changing the tweakable value does not update the tmp pointer.
+	// Putting GetTweakableStrValue after the SetTweakable Function call caused a race condition when freeing memory.
 	void SetTweakableStrValue(const char* value)
 	{
+		if (this->name == nullptr)
+			return;
+
 		SetTweakableFunc((char*)strBuffer, value, 1);
-		GetTweakableStrValueFunc(tmp, (char*)strBuffer, 0);
 	}
 };
 
