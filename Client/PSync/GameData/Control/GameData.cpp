@@ -232,8 +232,8 @@ void ControlGameData::InitGameData()
 	ptr* characterControllerCtorAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x5d80);
 	ptr* characterControllerMoveCapsuleAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x7540);
 
-	InstallHooks(rlDllAddr);
-	InitializeTweakables();
+	BaseTweakableInstallHooks(rlDllAddr);
+	BaseTweakableInitialize();
 
 	if (MH_CreateHook(setPlayerFunctionAddr, &setAsPlayerCharacter, reinterpret_cast<LPVOID*>(&setAsPlayerOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(setPlayerFunctionAddr) != MH_OK) throw;

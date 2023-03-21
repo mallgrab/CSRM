@@ -10,14 +10,14 @@ BaseTweakable SSAATweakable;
 BaseTweakable MotionBlurTweakable;
 BaseTweakable AbilityLevitateTweakable;
 
-void InstallHooks(uint64_t rlDllAddr)
+void BaseTweakableInstallHooks(uint64_t rlDllAddr)
 {
 	GetTweakableFunc = (GetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f8e60);
 	SetTweakableFunc = (SetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f9200);
 	GetTweakableStrValueFunc = (GetTweakableStrValue_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f8ee0);
 }
 
-void InitializeTweakables()
+void BaseTweakableInitialize()
 {
 	IntroScreenTweakable = BaseTweakable("Intro Screen:Display time for section"); // set 0.0f (default 4.0f)
 	IntroScreenTweakable.SetTweakableStrValue("0.0f");
