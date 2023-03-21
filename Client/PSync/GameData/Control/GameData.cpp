@@ -48,6 +48,7 @@ void* __fastcall triggerComponentCtor(coregame::TriggerComponent* pointer, uint6
 		}
 	}
 	
+	triggerCount++;
 	return result;
 }
 
@@ -61,13 +62,13 @@ void* __fastcall triggerComponentDtor(coregame::TriggerComponent* pointer) {
 		}
 	}
 
+	triggerCount--;
 	return triggerComponentDtorOriginal(pointer);
 }
 
 char __fastcall enterTrigger(uint64_t* pointer, uint64_t* pointer_b, uint64_t a3) {
 	printf("trigger: 0x%llx gameobjectstate: 0x%llx a3: %lu\n", pointer, pointer_b, a3);
 
-	triggerCount++;
 	return enterTriggerOriginal(pointer, pointer_b, a3);
 }
 
