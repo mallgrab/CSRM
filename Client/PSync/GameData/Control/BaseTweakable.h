@@ -13,9 +13,15 @@ extern SetTweakable_t SetTweakableFunc;
 using GetTweakableStrValue_t = char** (__fastcall*)(char* rString, char* tweakableName, char formated);
 extern GetTweakableStrValue_t GetTweakableStrValueFunc;
 
+struct BaseTweakable_vtbl
+{
+	virtual void* BaseTweakableDtor(char a2) = 0;
+	virtual bool InitialTweakable() = 0;
+};
+
 struct BaseTweakable
 {
-	ptr* VFTABLE = nullptr;
+	BaseTweakable_vtbl* vtable;
 	char* name = nullptr;
 	char* name2 = nullptr;
 	int32_t field_10 = 0;
