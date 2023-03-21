@@ -179,6 +179,9 @@
     <ClInclude Include="PSync\GameData\Control\RemedyLib.h">
       <Filter>PSync\GameData\Control</Filter>
     </ClInclude>
+    <ClInclude Include="PSync\GameData\Control\Trigger.h">
+      <Filter>PSync\GameData\Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -261,6 +264,9 @@
       <Filter>PSync\GameData\Control</Filter>
     </ClCompile>
     <ClCompile Include="PSync\GameData\Control\BaseTweakable.cpp">
+      <Filter>PSync\GameData\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="PSync\GameData\Control\Trigger.cpp">
       <Filter>PSync\GameData\Control</Filter>
     </ClCompile>
   </ItemGroup>

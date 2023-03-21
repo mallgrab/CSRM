@@ -469,7 +469,7 @@ void ControlUI::DebugTab() {
 			AbilityLevitateTweakable.SetTweakableStrValue(config->disableLevitation ? "1" : "0");
 
 		ImGui::Text("\n");
-		ImGui::Text("Triggers (%i):\n", controlData->getTriggerCount());
+		ImGui::Text("Triggers (%i):\n", TriggerGetCount());
 		ImGui::Checkbox("Enable Triggers", &config->drawTriggers);
 		ImGui::SameLine();
 		ImGui::Checkbox("Ins toggle", &config->drawTriggersHotkey);
@@ -655,11 +655,11 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, BaseConfig *conf
 	if (!myViewMatrix)
 		return;
 
-	if (!gameData->GetMapIsLoaded() || !gameData->GetTriggers().size())
+	if (!gameData->GetMapIsLoaded() || !TriggerGetVector().size())
 		return;
 
 	//Vector3 playerPos = *gameData->GetPlayerPos();
-	auto triggers = gameData->GetTriggers();
+	auto triggers = TriggerGetVector();
 	for (int i = 0; i < triggers.size(); i++)
 	{
 		ImColor triggerColor;

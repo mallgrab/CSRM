@@ -237,6 +237,7 @@
     <ClInclude Include="PSync\GameData\Control\BaseTweakable.h" />
     <ClInclude Include="PSync\GameData\Control\GameData.h" />
     <ClInclude Include="PSync\GameData\Control\RemedyLib.h" />
+    <ClInclude Include="PSync\GameData\Control\Trigger.h" />
     <ClInclude Include="PSync\GameData\DarkSouls3GameData.h" />
     <ClInclude Include="PSync\GameData\DevilMayCry3SEGameData.h" />
     <ClInclude Include="PSync\GameData\NieRAutomataGameData.h" />
@@ -273,6 +274,7 @@
     <ClCompile Include="PSync\Fonts\RodinProM.cpp" />
     <ClCompile Include="PSync\GameData\Control\BaseTweakable.cpp" />
     <ClCompile Include="PSync\GameData\Control\GameData.cpp" />
+    <ClCompile Include="PSync\GameData\Control\Trigger.cpp" />
     <ClCompile Include="PSync\UI\BaseUI.cpp" />
     <ClCompile Include="PSync\UI\ControlUI.cpp" />
     <ClCompile Include="PSync\UI\DevilMayCry3SEUI.cpp" />

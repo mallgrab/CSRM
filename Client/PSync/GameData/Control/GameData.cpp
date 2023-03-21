@@ -3,15 +3,6 @@
 using setAsPlayerOriginal_t = void(__stdcall*)(uint64_t* x, char y);
 setAsPlayerOriginal_t setAsPlayerOriginal;
 
-using triggerComponentCtorOriginal_t = void* (__fastcall*)(coregame::TriggerComponent* x, uint64_t* y);
-triggerComponentCtorOriginal_t triggerComponentCtorOriginal;
-
-using triggerComponentDtorOriginal_t = void* (__fastcall*)(coregame::TriggerComponent* x);
-triggerComponentDtorOriginal_t triggerComponentDtorOriginal;
-
-using enterTriggerOriginal_t = char(__fastcall*)(uint64_t* x, uint64_t* y, uint64_t z);
-enterTriggerOriginal_t enterTriggerOriginal;
-
 using getWorldSpaceAABBOriginal_t = uint64_t * (__fastcall*)(uint64_t x, uint64_t* y);
 getWorldSpaceAABBOriginal_t getWorldSpaceAABBOriginal;
 
@@ -31,46 +22,7 @@ using characterControllerMoveRelative_t = void(__fastcall*)(uint64_t* x, float* 
 characterControllerMoveRelative_t characterControllerMoveCapsuleOriginal;
 
 ptr* playerController;
-std::vector<coregame::TriggerComponent*> triggerPtrs;
 bool mapIsLoaded;
-int triggerCount = 0;
-
-void* __fastcall triggerComponentCtor(coregame::TriggerComponent* pointer, uint64_t* pointer_b) {
-	void* result = triggerComponentCtorOriginal(pointer, pointer_b);
-	coregame::TriggerComponent* trigger = pointer;
-
-	for (int i = 0; i < triggerPtrs.size(); i++)
-	{
-		if (triggerPtrs.at(i) == nullptr)
-		{
-			triggerPtrs.at(i) = trigger;
-			break;
-		}
-	}
-	
-	triggerCount++;
-	return result;
-}
-
-void* __fastcall triggerComponentDtor(coregame::TriggerComponent* pointer) {
-	for (int i = 0; i < triggerPtrs.size(); i++)
-	{
-		if (triggerPtrs.at(i) == pointer) 
-		{
-			triggerPtrs.at(i) = nullptr;
-			break;
-		}
-	}
-
-	triggerCount--;
-	return triggerComponentDtorOriginal(pointer);
-}
-
-char __fastcall enterTrigger(uint64_t* pointer, uint64_t* pointer_b, uint64_t a3) {
-	printf("trigger: 0x%llx gameobjectstate: 0x%llx a3: %lu\n", pointer, pointer_b, a3);
-
-	return enterTriggerOriginal(pointer, pointer_b, a3);
-}
 
 void __stdcall setAsPlayerCharacter(uint64_t* pointer, char isPlayer) {
 	if (isPlayer == 1) {
@@ -202,18 +154,8 @@ float ControlGameData::getPlayerPosSpeed()
 }
 #endif
 
-#define MAX_TRIGGERS 4096 //1024 //8192
 void ControlGameData::InitGameData()
 {
-	triggerPtrs.reserve(MAX_TRIGGERS); // enough?
-	for (int i = 0; i < MAX_TRIGGERS; i++)
-		triggerPtrs.push_back({});
-	// actually instead we should allocate 1024 triggers that are set to null
-	// then oncce it gets used it shouldn't be null anymore
-	// if it gets unallocated we set it back to null so we only need to have a small if statement inside the render code
-	// to check if a trigger ptr is null or not
-	// idk how else to not get fucked by multithreading lmao
-
 	uint64_t processStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
 	uint64_t coregameDllAddr = reinterpret_cast<uint64_t>(GetModuleHandle(L"coregame_rmdwin7_f.dll"));
 	uint64_t physicsDllAddr = reinterpret_cast<uint64_t>(GetModuleHandle(L"physics_rmdwin7_f.dll"));
@@ -222,9 +164,6 @@ void ControlGameData::InitGameData()
 	ptrViewMatrixAddr = reinterpret_cast<ptr*>(renderDllAddr + 0x123B6A0);
 
 	ptr* setPlayerFunctionAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x5d60);
-	ptr* triggerComponentCtorFunctionAddr = reinterpret_cast<ptr*>(coregameDllAddr + 0x1c6110);
-	ptr* triggerComponentDtorFunctionAddr = reinterpret_cast<ptr*>(coregameDllAddr + 0x1c62b0);
-	ptr* enterTriggerFunctionAddr = reinterpret_cast<ptr*>(coregameDllAddr + 0x1c6db0);
 	ptr* getWorldSpaceAABBFunctionAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x80510);
 	ptr* startUnloadingLevelFunctionAddr = reinterpret_cast<ptr*>(coregameDllAddr + 0x3fe20);
 	ptr* startLoadingLevelFunctionAddr = reinterpret_cast<ptr*>(coregameDllAddr + 0x19db90);
@@ -234,18 +173,11 @@ void ControlGameData::InitGameData()
 
 	BaseTweakableInstallHooks(rlDllAddr);
 	BaseTweakableInitialize();
+	TriggerInstallHooks(coregameDllAddr);
+	TriggerInitialize();
 
 	if (MH_CreateHook(setPlayerFunctionAddr, &setAsPlayerCharacter, reinterpret_cast<LPVOID*>(&setAsPlayerOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(setPlayerFunctionAddr) != MH_OK) throw;
-
-	if (MH_CreateHook(triggerComponentCtorFunctionAddr, &triggerComponentCtor, reinterpret_cast<LPVOID*>(&triggerComponentCtorOriginal)) != MH_OK) throw;
-	if (MH_EnableHook(triggerComponentCtorFunctionAddr) != MH_OK) throw;
-
-	if (MH_CreateHook(triggerComponentDtorFunctionAddr, &triggerComponentDtor, reinterpret_cast<LPVOID*>(&triggerComponentDtorOriginal)) != MH_OK) throw;
-	if (MH_EnableHook(triggerComponentDtorFunctionAddr) != MH_OK) throw;
-
-	if (MH_CreateHook(enterTriggerFunctionAddr, &enterTrigger, reinterpret_cast<LPVOID*>(&enterTriggerOriginal)) != MH_OK) throw;
-	if (MH_EnableHook(enterTriggerFunctionAddr) != MH_OK) throw;
 
 	if (MH_CreateHook(getWorldSpaceAABBFunctionAddr, &getWorldSpaceAABB, reinterpret_cast<LPVOID*>(&getWorldSpaceAABBOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(getWorldSpaceAABBFunctionAddr) != MH_OK) throw;
@@ -267,8 +199,6 @@ void ControlGameData::InitGameData()
 
 	printf("process physics: 0x%llx\n", processStartAddr);
 	printf("setplayer: 0x%llx\n", (uint64_t)setPlayerFunctionAddr);
-	printf("triggerComponentCtor: 0x%llx\n", (uint64_t)triggerComponentCtorFunctionAddr);
-	printf("entertrigger: 0x%llx\n", (uint64_t)enterTriggerFunctionAddr);
 	printf("getWorldSpaceAABB: 0x%llx\n", (uint64_t)getWorldSpaceAABBFunctionAddr);
 	printf("startUnloadingLevel: 0x%llx\n", (uint64_t)startUnloadingLevelFunctionAddr);
 	printf("startLoadingLevel: 0x%llx\n", (uint64_t)startLoadingLevelFunctionAddr);
@@ -346,17 +276,7 @@ Matrix4* ControlGameData::GetViewMatrix()
 	return &viewMatrix;
 }
 
-std::vector<coregame::TriggerComponent*> ControlGameData::GetTriggers()
-{
-	return triggerPtrs;
-}
-
 bool ControlGameData::GetMapIsLoaded()
 {
 	return mapIsLoaded;
-}
-
-int ControlGameData::getTriggerCount(void)
-{
-	return triggerCount;
 }

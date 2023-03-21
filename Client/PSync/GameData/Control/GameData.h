@@ -4,6 +4,7 @@
 #include "../BaseGameData.h"
 #include "../ocular/kiero/minhook/include/MinHook.h"
 #include "BaseTweakable.h"
+#include "Trigger.h"
 #include "RemedyLib.h"
 
 struct Point {
@@ -23,12 +24,10 @@ public:
 	void InitGameData() override;
 	Vector3* GetPlayerPos() override;
 	Matrix4* GetViewMatrix() override;
-	std::vector<coregame::TriggerComponent*> GetTriggers();
 	bool GetMapIsLoaded();
 	float* getPlayerCapsuleSpeed();
 	float getPlayerPhysxSpeed();
 	float getPlayerPosSpeed();
 	void SetPlayerPos(Vector3 newPos);
 	Vector3 *GetPlayerPos_Real();
-	int getTriggerCount(void);
 };
