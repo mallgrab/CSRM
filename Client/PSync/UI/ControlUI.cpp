@@ -664,20 +664,18 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, BaseConfig *conf
 	{
 		ImColor triggerColor;
 
-		if (triggers.at(i).trigger == NULL ||
-			*triggers.at(i).genericentity == NULL ||
-			triggers.at(i).triggerobject.trigger == nullptr)
+		if ((triggers.at(i) == nullptr) || (triggers.at(i)->ComponentBaseState() == nullptr))
 			continue;
 
-		if (*triggers.at(i).triggerobject.onEnter == 1)
+		if (triggers.at(i)->ComponentBaseState()->onEnter == 1)
 			triggerColor = ImColor(1.0f, 1.0f, 1.0f, config->triggerOpacity * 0.9f);
-		else if (*triggers.at(i).triggerobject.onEnter != 0)
+		else if (triggers.at(i)->ComponentBaseState()->onEnter != 0)
 			triggerColor = ImColor(0.7f, 1.0f, 0.7f, config->triggerOpacity * 0.5f);
 		else
 			triggerColor = ImColor(1.0f, 1.0f, 1.0f, config->triggerOpacity * 0.2f);
 
-		Vector3 minA = triggers.at(i).triggerobject.minmax.a;
-		Vector3 maxB = triggers.at(i).triggerobject.minmax.b;
+		Vector3 minA = { triggers.at(i)->boundbox.points[0], triggers.at(i)->boundbox.points[1], triggers.at(i)->boundbox.points[2] };
+		Vector3 maxB = { triggers.at(i)->boundbox.points[3], triggers.at(i)->boundbox.points[4], triggers.at(i)->boundbox.points[5] };
 
 		Vector3 minA_tmpA = minA; minA_tmpA.x = maxB.x;
 		Vector3 minA_tmpB = minA; minA_tmpB.y = maxB.y;

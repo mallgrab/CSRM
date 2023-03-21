@@ -3,10 +3,10 @@
 using setAsPlayerOriginal_t = void(__stdcall*)(uint64_t* x, char y);
 setAsPlayerOriginal_t setAsPlayerOriginal;
 
-using triggerComponentCtorOriginal_t = void* (__fastcall*)(uint64_t* x, uint64_t* y);
+using triggerComponentCtorOriginal_t = void* (__fastcall*)(coregame::TriggerComponent* x, uint64_t* y);
 triggerComponentCtorOriginal_t triggerComponentCtorOriginal;
 
-using triggerComponentDtorOriginal_t = void* (__fastcall*)(uint64_t* x);
+using triggerComponentDtorOriginal_t = void* (__fastcall*)(coregame::TriggerComponent* x);
 triggerComponentDtorOriginal_t triggerComponentDtorOriginal;
 
 using enterTriggerOriginal_t = char(__fastcall*)(uint64_t* x, uint64_t* y, uint64_t z);
@@ -31,36 +31,35 @@ using characterControllerMoveRelative_t = void(__fastcall*)(uint64_t* x, float* 
 characterControllerMoveRelative_t characterControllerMoveCapsuleOriginal;
 
 ptr* playerController;
-std::vector<triggerPtr> triggerPtrs;
+std::vector<coregame::TriggerComponent*> triggerPtrs;
 bool mapIsLoaded;
 int triggerCount = 0;
 
-void* __fastcall triggerComponentCtor(uint64_t* pointer, uint64_t* pointer_b) {
-	triggerPtr tO = { pointer, (uint64_t**)(pointer + 4), (uint64_t**)(pointer + 1), (uint64_t*)(pointer + 29) };
-	uint64_t* aabb = (pointer + 29);
+void* __fastcall triggerComponentCtor(coregame::TriggerComponent* pointer, uint64_t* pointer_b) {
+	void* result = triggerComponentCtorOriginal(pointer, pointer_b);
+	coregame::TriggerComponent* trigger = pointer;
 
-	// don't include triggers with no physx component, can't draw them otherwise
-	if (aabb) {
-		for (int i = 0; i < triggerPtrs.size(); i++) {
-			if (triggerPtrs.at(i).trigger == NULL) {
-				triggerPtrs.at(i) = tO;
-				break;
-			}
+	for (int i = 0; i < triggerPtrs.size(); i++)
+	{
+		if (triggerPtrs.at(i) == nullptr)
+		{
+			triggerPtrs.at(i) = trigger;
+			break;
 		}
 	}
-
-	return triggerComponentCtorOriginal(pointer, pointer_b);
+	
+	return result;
 }
 
-void* __fastcall triggerComponentDtor(uint64_t* pointer) {
+void* __fastcall triggerComponentDtor(coregame::TriggerComponent* pointer) {
 	for (int i = 0; i < triggerPtrs.size(); i++)
-		if (triggerPtrs.at(i).trigger == pointer) {
-			triggerPtrs.at(i).trigger = NULL;
-			triggerPtrs.at(i).gameobject = NULL;
-			triggerPtrs.at(i).genericentity = NULL;
-			triggerPtrs.at(i).networkstate = NULL;
-			// clean triggercomponent too?
+	{
+		if (triggerPtrs.at(i) == pointer) 
+		{
+			triggerPtrs.at(i) = nullptr;
+			break;
 		}
+	}
 
 	return triggerComponentDtorOriginal(pointer);
 }
@@ -346,56 +345,8 @@ Matrix4* ControlGameData::GetViewMatrix()
 	return &viewMatrix;
 }
 
-std::vector<triggerPtr> ControlGameData::GetTriggers()
+std::vector<coregame::TriggerComponent*> ControlGameData::GetTriggers()
 {
-	for (int i = 0; i < triggerPtrs.size(); i++) {
-		if (triggerPtrs.at(i).trigger == NULL)
-			continue;
-
-		uint64_t* gameobjectPtr = *triggerPtrs.at(i).gameobject;
-		uint64_t* networkstatePtr = *triggerPtrs.at(i).networkstate;
-		uint64_t* triggerPtr = triggerPtrs.at(i).trigger;
-		uint64_t* triggerEntityPtr = triggerPtrs.at(i).genericentity;
-		uint64_t triggerEntity = *triggerPtrs.at(i).genericentity;
-
-		Point p;
-		float tmpFloats[6];
-		uint64_t* floatLoc = reinterpret_cast<uint64_t*>(&tmpFloats);
-
-		if (gameobjectPtr != NULL) {
-			uint32_t* onEnterLoc = reinterpret_cast<uint32_t*>(networkstatePtr + 9);
-			float* posLocPtr = reinterpret_cast<float*>(gameobjectPtr + 2);
-			float posLoc[3];
-			posLoc[0] = posLocPtr[0];
-			posLoc[1] = posLocPtr[1];
-			posLoc[2] = posLocPtr[2];
-
-			// trigger might not be finished constructed yet
-			if (posLoc == NULL || onEnterLoc == NULL || triggerEntity == NULL)
-				continue;
-
-			Vector3 pos = { posLoc[0], posLoc[1], posLoc[2] };
-			uint32_t* onEnterPtr = onEnterLoc;
-			triggerObject tO = { triggerPtr, pos, onEnterLoc };
-
-			memset(&tmpFloats, 0.0f, sizeof(float) * 6);
-			getWorldSpaceAABB(triggerEntity, floatLoc);
-
-			p.a.x = tmpFloats[0];
-			p.a.y = tmpFloats[1];
-			p.a.z = tmpFloats[2];
-
-			p.b.x = tmpFloats[3];
-			p.b.y = tmpFloats[4];
-			p.b.z = tmpFloats[5];
-
-			if (triggerPtrs.at(i).triggerobject.trigger == nullptr) {
-				triggerPtrs.at(i).triggerobject = tO;
-				triggerPtrs.at(i).triggerobject.minmax = p;
-			}
-		}
-	}
-
 	return triggerPtrs;
 }
 
