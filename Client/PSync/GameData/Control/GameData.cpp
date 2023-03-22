@@ -22,9 +22,15 @@ characterControllerCtor_t characterControllerOriginal;
 using characterControllerMoveRelative_t = void(__fastcall*)(uint64_t* x, float* y, float z, float w);
 characterControllerMoveRelative_t characterControllerMoveCapsuleOriginal;
 
+using isFreeCameraOn_t = bool (__fastcall*)(ptr** inputManagerInstance);
+isFreeCameraOn_t isFreeCameraOn;
+
+using setFreeCamera_t = void (__fastcall*)(ptr** inputManagerInstance, bool a2);
+setFreeCamera_t setFreeCamera;
+
+ptr** inputManagerInstance;
 ptr* playerController;
 bool mapIsLoaded;
-bool inputs[64] = {};
 
 void __stdcall setAsPlayerCharacter(uint64_t* pointer, char isPlayer) {
 	if (isPlayer == 1) {
@@ -161,36 +167,27 @@ float ControlGameData::getPlayerPosSpeed()
 // the gameclient constructor since there isnt any exported function that gives us the instance
 using readDigital_t = bool(__fastcall*)(ptr** inputManagerInstance, int64_t num);
 readDigital_t readDigitalFunc;
-bool freecamFlying = false;
-bool setFreeCam = false;
-int toggleCameraModeTwice = 0;
+
+bool toggleFreeCam = false;
 
 bool readDigitalHook(ptr** inputManagerInstance, int64_t num)
 {
 	bool origReturn = readDigitalFunc(inputManagerInstance, num);
 
-	// 44 or 45
-	if (setFreeCam && !freecamFlying && (num == 44))
+	if (toggleFreeCam && (num == 44))
 	{
-		freecamFlying = true;
-		return true;
-	}
-
-	if (!setFreeCam && freecamFlying && (num == 44))
-	{
-		freecamFlying = false;
-		toggleCameraModeTwice = 10;
-		return false;
-	}
-
-	if (toggleCameraModeTwice && (num == 44))
-	{
-		toggleCameraModeTwice--;
-
-		if (toggleCameraModeTwice % 2)
-			return false;
-		else
+		if (!isFreeCameraOn(inputManagerInstance))
+		{
+			setFreeCamera(inputManagerInstance, true);
+			toggleFreeCam = false;
 			return true;
+		}
+	}
+			
+	if (toggleFreeCam && (num == 46 || num == 47))
+	{
+		toggleFreeCam = false;
+		return true;
 	}
 
 	return origReturn;
@@ -198,10 +195,7 @@ bool readDigitalHook(ptr** inputManagerInstance, int64_t num)
 
 void ControlGameData::ToggleFreeCam()
 {
-	if (!setFreeCam)
-		setFreeCam = true;
-	else
-		setFreeCam = false;
+	toggleFreeCam = true;
 }
 
 void ControlGameData::InitGameData()
@@ -226,11 +220,16 @@ void ControlGameData::InitGameData()
 	TriggerInstallHooks(coregameDllAddr);
 	TriggerInitialize();
 
-	ptr* readDigital = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?readDigital@InputManager@input@@QEAA_NH_N@Z");
-	//readDigitalFunc = reinterpret_cast<readDigital_t>(readDigital);
+	inputManagerInstance = (ptr**)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?sm_pInstance@InputManager@input@@0PEAV12@EA");
+	ptr* readDigitalPtr = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?readDigital@InputManager@input@@QEAA_NH_N@Z");
+	ptr* isFreeCameraOnPtr = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?isFreeCameraWithoutPlayerControlsOn@InputManager@input@@QEAA_NXZ");
+	ptr* setFreeCameraPtr = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?setFreeCameraWithoutPlayerControls@InputManager@input@@QEAAX_N@Z");
 
-	if (MH_CreateHook(readDigital, &readDigitalHook, reinterpret_cast<LPVOID*>(&readDigitalFunc)) != MH_OK) throw;
-	if (MH_EnableHook(readDigital) != MH_OK) throw;
+	isFreeCameraOn = reinterpret_cast<isFreeCameraOn_t>(isFreeCameraOnPtr);
+	setFreeCamera = reinterpret_cast<setFreeCamera_t>(setFreeCameraPtr);
+
+	if (MH_CreateHook(readDigitalPtr, &readDigitalHook, reinterpret_cast<LPVOID*>(&readDigitalFunc)) != MH_OK) throw;
+	if (MH_EnableHook(readDigitalPtr) != MH_OK) throw;
 
 	if (MH_CreateHook(setPlayerFunctionAddr, &setAsPlayerCharacter, reinterpret_cast<LPVOID*>(&setAsPlayerOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(setPlayerFunctionAddr) != MH_OK) throw;
@@ -326,32 +325,8 @@ void ControlGameData::SetPlayerPos(Vector3 newPos)
 	*z = newPos.z;
 }
 
-using isLoadingOn_t = int64_t(__fastcall*)(ptr** inputManagerInstance);
-using setDebugButtons_t = void(__fastcall*)(ptr** inputManagerInstance, bool a2);
-using setDebug_t = void(__fastcall*)(ptr** inputManagerInstance, bool a2);
-using setFreeCamera_t = void(__fastcall*)(ptr** inputManagerInstance, bool a2);
-
 Matrix4* ControlGameData::GetViewMatrix()
 {
-	ptr** inputManagerInstance = (ptr**)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?sm_pInstance@InputManager@input@@0PEAV12@EA");
-	ptr* isFreeCameraOn = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?isFreeCameraWithoutPlayerControlsOn@InputManager@input@@QEAA_NXZ");
-	ptr* setFreeCamera = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?setFreeCameraWithoutPlayerControls@InputManager@input@@QEAAX_N@Z");
-	ptr* setDebugButtons = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?setDebugButtons@InputManager@input@@QEAAX_N@Z");
-	ptr* setDebug = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?setDebug@InputManager@input@@QEAAX_N@Z");
-
-
-	setFreeCamera_t setFreeCameraFunc = reinterpret_cast<setFreeCamera_t>(setFreeCamera);
-	setFreeCameraFunc(inputManagerInstance, true);
-
-	isLoadingOn_t isFreeCameraOnFunc = reinterpret_cast<isLoadingOn_t>(isFreeCameraOn);
-	int64_t result = isFreeCameraOnFunc(inputManagerInstance);
-
-	setDebugButtons_t setDebugButtonsFunc = reinterpret_cast<setDebugButtons_t>(setDebugButtons);
-	setDebugButtonsFunc(inputManagerInstance, true);
-
-	setDebug_t setDebugFunc = reinterpret_cast<setDebugButtons_t>(setDebug);
-	setDebugFunc(inputManagerInstance, true);
-
 	viewMatrix = *reinterpret_cast<Matrix4*>(ptrViewMatrixAddr);
 	return &viewMatrix;
 }
