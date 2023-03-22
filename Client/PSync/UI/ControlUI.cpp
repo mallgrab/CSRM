@@ -479,6 +479,11 @@ void ControlUI::DebugTab() {
 		}
 
 		ImGui::Text("\n");
+		ImGui::Text("Camera settings:");
+		if (ImGui::Checkbox("Toggle Freecam", &config->freecam))
+			controlData->ToggleFreeCam();
+
+		ImGui::Text("\n");
 		ImGui::Text("Speedometer:");
 		ImGui::Checkbox("Draw Speedometer", &config->drawSpeedometer);
 		if (config->drawSpeedometer) {

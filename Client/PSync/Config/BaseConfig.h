@@ -47,6 +47,9 @@ public:
 	bool disableLevitation = false;
 	//CSRM - control specific variables - end
 
+	// Camera
+	bool freecam = false;
+
 	// Vars
 	//int menuKeybind = VK_PRIOR; //0x21; //pageup
 	int menuKeybind = VK_HOME; //0x24; //home
