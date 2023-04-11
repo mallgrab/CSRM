@@ -1,2 +1,5 @@
 PSyncServer:
-	g++ -std=c++11 main.cpp Server.cpp -o PSync_Server.out -lenet -lpthread
+	g++ -std=c++20 main.cpp GameServers/BaseServer.cpp GameServers/TestServer.cpp -o PSync_Server -lenet -lpthread
+
+clean:
+	rm PSync_Server
