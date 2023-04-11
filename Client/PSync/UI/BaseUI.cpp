@@ -443,6 +443,7 @@ void BaseUI::DrawPlayerList() {
 			ImGui::TextColored(nameCol, client_it.second->nickname.c_str());
 		}
 		ImGui::PopFont();
+		ImGui::End();
 	}
 	ImGui::PopStyleColor();
 }
