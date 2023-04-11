@@ -32,6 +32,9 @@ public:
 	// Save/Load position
 	bool saveLoadPosition = true;
 
+	bool drawFPS = false;
+	bool showPos = false;
+
 	// Speedometer
 	bool drawSpeedometer = false;
 	bool speedometerShowTopSpeed = false;
