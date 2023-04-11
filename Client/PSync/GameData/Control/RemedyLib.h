@@ -83,6 +83,8 @@ namespace net
 	};
 }
 
+#define DEFAULT_STRING_SIZE 256
+
 namespace r
 {
 	class GameUpdateObject;
@@ -93,6 +95,38 @@ namespace r
 
 	struct BoundBox {
 		float points[6];
+	};
+
+	struct rstring
+	{
+		char* tptr_a;
+		char* tptr_b;
+		uint32_t size_a;
+		uint32_t size_b;
+		uint64_t empty;
+		char text[];
+
+		rstring(int size)
+		{
+			*text = text[size];
+			memset(text, 0, sizeof(char) * size);
+			size_a = size;
+			size_b = size;
+			empty = 0;
+			tptr_a = &text[0];
+			tptr_b = &text[0];
+		}
+
+		rstring()
+		{
+			*text = text[DEFAULT_STRING_SIZE];
+			memset(text, 0, sizeof(char) * DEFAULT_STRING_SIZE);
+			size_a = DEFAULT_STRING_SIZE;
+			size_b = DEFAULT_STRING_SIZE;
+			empty = 0;
+			tptr_a = &text[0];
+			tptr_b = &text[0];
+		}
 	};
 
 	class GameUpdateObject
