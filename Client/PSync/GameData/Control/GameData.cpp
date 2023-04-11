@@ -49,7 +49,6 @@ void startUnloadingLevel(uint64_t* ptr) {
 	printf("start unloading level\n");
 
 	mapIsLoaded = false;
-	triggerCount = 0;
 	startUnloadingLevelOriginal(ptr);
 }
 
@@ -57,7 +56,6 @@ void startLoadingLevel(uint64_t x, uint64_t y, uint64_t z, int64_t a, char b, ui
 	printf("start loading level\n");
 
 	mapIsLoaded = false;
-	triggerCount = 0;
 	startLoadingLevelOriginal(x, y, z, a, b, c);
 }
 

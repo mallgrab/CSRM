@@ -37,7 +37,7 @@ void draw_speed(ImVec2 position, float speed) {
 		(position.y - ImGui::CalcTextSize(health_text).y / 2.0f) }, ImGui::ColorConvertFloat4ToU32({ 1,1,1,1.0f }), health_text);
 }
 #else
-static void ImGui_DrawStringWithDropShadow(const ImVec2 &pos, const ImVec4 &color, const char *text)
+static inline void ImGui_DrawStringWithDropShadow(const ImVec2 &pos, const ImVec4 &color, const char *text)
 { //utility function that handles dropshadow
 	ImGui::GetForegroundDrawList()->AddText({ pos.x + 2.0f, pos.y + 2.0f }, ImGui::ColorConvertFloat4ToU32({ 0.0f, 0.0f, 0.0f, color.w}), text);
 	ImGui::GetForegroundDrawList()->AddText(pos, ImGui::ColorConvertFloat4ToU32(color), text);
@@ -80,21 +80,19 @@ float CSRM_SpeedometerSpeed(float speed, int speedometerType)
 //static void CSRM_Speedometer(float speed, BaseConfig *config, ImGuiIO *io)
 static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGuiIO *io)
 {
-	if (!config || !io || !gameData)
-		return;
-
-	if (!gameData->GetMapIsLoaded())
-		return; //don't draw if map isn't loaded
-
-	const float speed = gameData->getPlayerPhysxSpeed();
-	//const float speed = gameData->getPlayerPosSpeed();
-	static float topSpeed = 0.0f, previousSpeed = speed;
+	static float topSpeed = 0;
 	float drawSpeed, drawTopSpeed;
 	int len = 0;
 	char text[MAX_SPEED_LEN];
 	ImVec4 color;
 	ImVec2 pos, textSize;
 	ImFont *font;
+
+	if (!gameData->GetMapIsLoaded())
+		return; //don't draw if map isn't loaded
+
+	const float speed = gameData->getPlayerPhysxSpeed();
+	//const float speed = gameData->getPlayerPosSpeed();
 
 	if (config->speedometerSize < 1.0f || config->speedometerSize > 10.0f) //shuoldn't need this anymore 
 		config->speedometerSize = 1.0f;
@@ -293,6 +291,92 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 #undef GROUND_SPEED
 #endif
 
+static void CSRM_DrawFPS(ControlGameData *gameData, BaseConfig *config, ImGuiIO *io) {
+	char text[16];
+	const ImVec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	ImVec2 pos, textSize;
+	ImFont *font;
+
+	sprintf_s(text, sizeof(text), "%.0ffps", io->Framerate);
+	font = ImGui::GetFont();
+	font->Scale = 2.0f;
+	ImGui::PushFont(font);
+	ImGui::PopFont();
+
+	textSize = ImGui::CalcTextSize(text);
+	pos = { (io->DisplaySize.x - textSize.x), 0.0f };
+	ImGui_DrawStringWithDropShadow(pos, color, text);
+
+	//reset font scale
+	font->Scale = 1.0f;
+	ImGui::PushFont(font);
+	ImGui::PopFont();
+}
+
+static void CSRM_DrawPos(ControlGameData *gameData, BaseConfig *config, ImGuiIO *io) {
+#if 0 //fixme: add camera/player angle
+	int len = 0;
+	char text[512];
+	const ImVec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	ImVec2 pos, textSize;
+	ImFont *font;
+	Vector3 playerPos = *gameData->GetPlayerPos(); //this is crashing..???
+	Matrix4* myViewMatrix = gameData->GetViewMatrix();
+	float speed = gameData->getPlayerPhysxSpeed();
+
+	if (!myViewMatrix)
+		return;
+
+	len += sprintf_s(text+len, sizeof(text)-len,
+					 "pos:  %.02f %.02f %.02f\n",
+					 playerPos.x, playerPos.y, playerPos.z);
+
+	/*len += sprintf_s(text+len, sizeof(text)-len,
+					 "ang:  %.02f %.02f %.02f\n",
+					 myViewMatrix->_30, myViewMatrix->_31, myViewMatrix->_32);*/ //FIXME: this is not the real view angle lol
+
+	len += sprintf_s(text+len, sizeof(text)-len,
+					 "vel:  %.02f\n", speed);
+
+	font = ImGui::GetFont();
+	//font->Scale = 1.0f;
+	//ImGui::PushFont(font);
+	//ImGui::PopFont();
+
+	textSize = ImGui::CalcTextSize(text);
+	pos = { ((io->DisplaySize.x * 0.75f) - (textSize.x*0.5f)), 0.0f };
+	ImGui_DrawStringWithDropShadow(pos, color, text);
+
+	//reset font scale
+	//font->Scale = 1.0f;
+	//ImGui::PushFont(font);
+	//ImGui::PopFont();
+#endif
+}
+
+static void CSRM_DrawHUD(ControlGameData *gameData, BaseConfig *config, ImGuiIO *io) {
+	if (config->drawFPS) {
+		CSRM_DrawFPS(gameData, config, io);
+	}
+
+	/*if (!config || !io || !gameData) {
+		return;
+	}*/
+
+	if (!gameData->GetMapIsLoaded()) {
+		return;
+	}
+
+	if (config->showPos) {
+		CSRM_DrawPos(gameData, config, io);
+	}
+
+	if (config->drawSpeedometer) {
+		CSRM_Speedometer(gameData, config, io);
+		//controlData->getPlayerPosSpeed();
+	}
+}
+
 #define MAX_POSITION_SLOTS 10
 static Vector3 savedPositions[MAX_POSITION_SLOTS];
 static void CSRM_SavePosition(int slot, ControlGameData *gameData, ControlUI *ui)
@@ -432,7 +516,7 @@ void ControlUI::DebugTab() {
 		Vector3* myPlayerPos = data->GetPlayerPos();
 
 		ControlGameData *controlData = ((ControlGameData*)data);
-		if (!controlData) return; //don't rlly need this but...
+		//if (!controlData) return; //don't rlly need this but...
 
 		/*
 		ImGui::InputFloat("Countdown Time", &countdownTme);
@@ -468,22 +552,11 @@ void ControlUI::DebugTab() {
 		if (ImGui::Checkbox("Disable levitation", &config->disableLevitation))
 			AbilityLevitateTweakable.SetTweakableStrValue(config->disableLevitation ? "1" : "0");
 
-		ImGui::Text("\n");
-		ImGui::Text("Triggers (%i):\n", TriggerGetCount());
-		ImGui::Checkbox("Enable Triggers", &config->drawTriggers);
-		ImGui::SameLine();
-		ImGui::Checkbox("Ins toggle", &config->drawTriggersHotkey);
-		if (config->drawTriggers) {
-			ImGui::Text("Trigger Opacity:");
-			ImGui::SliderFloat("##TriggerOpacitySlider", &config->triggerOpacity, 0.0f, 1.0f, "%.3f");
-		}
+		ImGui::Text("\nHUD:");
+		ImGui::Checkbox("Draw FPS", &config->drawFPS);
+		//ImGui::SameLine();
+		//ImGui::Checkbox("Show Pos", &config->showPos);
 
-		ImGui::Text("\n");
-		ImGui::Text("Camera settings:");
-		if (ImGui::Checkbox("Toggle Freecam", &config->freecam))
-			controlData->ToggleFreeCam();
-
-		ImGui::Text("\n");
 		ImGui::Text("Speedometer:");
 		ImGui::Checkbox("Draw Speedometer", &config->drawSpeedometer);
 		if (config->drawSpeedometer) {
@@ -509,6 +582,20 @@ void ControlUI::DebugTab() {
 
 			ImGui::Checkbox("Print speed to console", &config->speedometerConsolePrint);
 		}
+
+		ImGui::Text("\n");
+		ImGui::Text("Triggers (%i):", TriggerGetCount());
+		ImGui::Checkbox("Enable Triggers", &config->drawTriggers);
+		ImGui::SameLine();
+		ImGui::Checkbox("Ins toggle", &config->drawTriggersHotkey);
+		if (config->drawTriggers) {
+			ImGui::Text("Trigger Opacity:");
+			ImGui::SliderFloat("##TriggerOpacitySlider", &config->triggerOpacity, 0.0f, 1.0f, "%.3f");
+		}
+		//ImGui::Text("\n");
+		ImGui::Text("Camera settings:");
+		if (ImGui::Checkbox("Toggle Freecam", &config->freecam))
+			controlData->ToggleFreeCam();
 
 		//ImGui::Text("\n");
 		ImGui::Text("\nDebug:");
@@ -783,7 +870,6 @@ void ControlUI::Init()
 
 	if (init) return; //really don't need the ImGUI mousecursor at all with how input works
 	BaseUI::Init();
-	//config->ReadConfig();
 }
 
 void ControlUI::DrawPlayerObjects() {
@@ -791,12 +877,9 @@ void ControlUI::DrawPlayerObjects() {
 	ImGuiIO io = ImGui::GetIO();
 
 	ControlGameData *controlData = (ControlGameData *)data;
-	if (!controlData) return; //don't rlly need this but...
+	//if (!controlData) return; //don't rlly need this but...
 
-	if (config->drawSpeedometer) {
-		CSRM_Speedometer(controlData, config, &io);
-		//controlData->getPlayerPosSpeed();
-	}
+	CSRM_DrawHUD(controlData, config, &io);
 
 	if (config->drawTriggers) {
 		CSRM_DrawTriggers(controlData, config, drawList, (int)screenWidth, (int)screenHeight);

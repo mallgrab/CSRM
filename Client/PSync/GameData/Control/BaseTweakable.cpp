@@ -29,7 +29,7 @@ void BaseTweakableInitialize()
 	SSAATweakable.SetTweakableStrValue("0.0f");
 
 	MotionBlurTweakable = BaseTweakable("VectorBlur:Shutter Speed"); // set to 0.0f; (default 0.4f)
-	MotionBlurTweakable.SetTweakableStrValue("0.0f");
+	//MotionBlurTweakable.SetTweakableStrValue("0.0f"); //leave this at default for now, since it affects how the game feels
 
 	AbilityLevitateTweakable = BaseTweakable("Ability Levitate: Disable");
 }
