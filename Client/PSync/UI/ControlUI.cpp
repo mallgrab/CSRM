@@ -258,7 +258,6 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	if (config->speedometerConsolePrint)
 	{
 		static float prevSpeed = speed;
-		//static const int baseTime = timeGetTime();
 		static int baseTime = clock();
 		static int lastUpdateTime = 0;
 		int curTime = clock() - baseTime;
@@ -291,7 +290,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 #undef GROUND_SPEED
 #endif
 
-static void CSRM_DrawFPS(ControlGameData *gameData, BaseConfig *config, ImGuiIO *io) {
+static void CSRM_DrawFPS(ControlGameData *gameData, BaseConfig *config, ControlUI *ui, ImGuiIO *io) {
 	char text[16];
 	const ImVec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	ImVec2 pos, textSize;
@@ -304,7 +303,10 @@ static void CSRM_DrawFPS(ControlGameData *gameData, BaseConfig *config, ImGuiIO 
 	ImGui::PopFont();
 
 	textSize = ImGui::CalcTextSize(text);
-	pos = { (io->DisplaySize.x - textSize.x), 0.0f };
+	if (config->playerListEnabled && ui->client->IsRunning() && ui->client->GetUserCount() > 0) //move to bottom right corner if player list is being shown
+		pos = { io->DisplaySize.x - textSize.x - 4.0f, io->DisplaySize.y - textSize.y - 4.0f };
+	else
+		pos = { (io->DisplaySize.x - textSize.x), 0.0f };
 	ImGui_DrawStringWithDropShadow(pos, color, text);
 
 	//reset font scale
@@ -354,14 +356,10 @@ static void CSRM_DrawPos(ControlGameData *gameData, BaseConfig *config, ImGuiIO 
 #endif
 }
 
-static void CSRM_DrawHUD(ControlGameData *gameData, BaseConfig *config, ImGuiIO *io) {
+static void CSRM_DrawHUD(ControlGameData *gameData, BaseConfig *config, ControlUI *ui, ImGuiIO *io) {
 	if (config->drawFPS) {
-		CSRM_DrawFPS(gameData, config, io);
+		CSRM_DrawFPS(gameData, config, ui, io);
 	}
-
-	/*if (!config || !io || !gameData) {
-		return;
-	}*/
 
 	if (!gameData->GetMapIsLoaded()) {
 		return;
@@ -481,13 +479,8 @@ static int CSRM_SlotFromKey(WPARAM key)
 
 void ControlUI::KeyPress(WPARAM key) {
 	//printf("ControlUI::KeyPress %i\n", (int)key);
-	if (key == config->menuKeybind) {
-		data->uiToggle = !data->uiToggle;
-		return;
-	}
-
 	if (config->drawTriggersHotkey) {
-		if (key == 0x2D) {
+		if (key == 0x2D) { //insert
 			config->drawTriggers = !config->drawTriggers;
 			return;
 		}
@@ -504,6 +497,8 @@ void ControlUI::KeyPress(WPARAM key) {
 			return;
 		}
 	}
+
+	BaseUI::KeyPress(key);
 }
 
 void ControlUI::DebugTab() {
@@ -843,7 +838,7 @@ void ControlUI::Init()
 {
 	// despite being called "Init" this function is deceivingly called every frame
 	// and returned out of early with the init check, so we'll check for resolution changes and such here
-	ImGuiIO io = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 	static ImVec2 lastDisplaySize = io.DisplaySize;
 
 	//printf("ControlUI::Init()\n");
@@ -868,18 +863,24 @@ void ControlUI::Init()
 		lastDisplaySize = io.DisplaySize;
 	}
 
-	if (init) return; //really don't need the ImGUI mousecursor at all with how input works
+	if (init) return; //really don't need the ImGUI mousecursor at all with how input works rn
 	BaseUI::Init();
+}
+
+void ControlUI::RenderOSD() {
+	ImDrawList *drawList = ImGui::GetForegroundDrawList();
+	ImGuiIO &io = ImGui::GetIO();
+	ControlGameData *controlData = (ControlGameData *)data;
+
+	BaseUI::RenderOSD();
+	CSRM_DrawHUD(controlData, config, this, &io);
 }
 
 void ControlUI::DrawPlayerObjects() {
 	ImDrawList *drawList = ImGui::GetForegroundDrawList();
-	ImGuiIO io = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 
 	ControlGameData *controlData = (ControlGameData *)data;
-	//if (!controlData) return; //don't rlly need this but...
-
-	CSRM_DrawHUD(controlData, config, &io);
 
 	if (config->drawTriggers) {
 		CSRM_DrawTriggers(controlData, config, drawList, (int)screenWidth, (int)screenHeight);

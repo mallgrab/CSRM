@@ -98,7 +98,6 @@ void BaseUI::DebugTab() {
 		Matrix4* myViewMatrix = data->GetViewMatrix();
 		Vector3* myPlayerPos = data->GetPlayerPos();
 
-		/*
 		ImGui::InputFloat("Countdown Time", &countdownTme);
 		if (ImGui::Button("Start Countdown")) {
 			drawCountdown = true;
@@ -106,16 +105,13 @@ void BaseUI::DebugTab() {
 			countdownGoTime = 2.0f;
 			countdownOpacityPerc = 1.0f;
 		}
-		*/
 
 		ImGui::Text("\nScreen Size:");
 		ImGui::Text("%f, %f", io.DisplaySize.x, io.DisplaySize.y);
 
-		/*
 		ImGui::Checkbox("Override Resolution", &config->overrideResolution);
 		ImGui::InputFloat("Custom Width", &config->customWidth);
 		ImGui::InputFloat("Custom Height", &config->customHeight);
-		*/
 
 		if (myPlayerPos != nullptr) {
 			ImGui::Text("\nPosX: %f", myPlayerPos->x);
@@ -156,14 +152,12 @@ void BaseUI::DebugTab() {
 
 		ImGui::Checkbox("Draw Own User", &config->drawSelf);
 
-		/*
 		ImGui::InputText("Chapter String", chapterString, sizeof(chapterString));
 		if (ImGui::Button("Set Chapter")) {
 			client->SendChapter(chapterString);
 		}
 
-		ImGui::Checkbox("DO NOT ENABLE UNLESS YOU SERIOUSLY KNOW WHAT YOU ARE DOING", &config->unknownBoolean);
-		*/
+		//ImGui::Checkbox("DO NOT ENABLE UNLESS YOU SERIOUSLY KNOW WHAT YOU ARE DOING", &config->unknownBoolean);
 		
 		ImGui::EndTabItem();
 	}
@@ -420,9 +414,9 @@ void BaseUI::RenderOSD() {
 	DrawNotifications(io, drawList);
 	DrawCountdown(io, drawList, screenWidth, screenHeight);
 
-	//if (!drawPlayers) return;
+	if (!drawPlayers) return;
 	// Draw player list
-	//if (config->playerListEnabled) DrawPlayerList();
+	if (config->playerListEnabled) DrawPlayerList();
 
 	// Draw viewport elements
 	DrawPlayerObjects();
@@ -436,6 +430,20 @@ void BaseUI::DrawPlayerList() {
 	ImGui::SetNextWindowPos(ImVec2(screenWidth - playerListWidth, 0));
 	ImGui::SetNextWindowSize(ImVec2(playerListWidth, 0));
 
+	if (ImGui::Begin("PlayerList", &drawPlayers, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs)) {
+		ImGui::PushFont(rodinProMFontSmall);
+		for (const auto& client_it : client->GetUserList()) {
+			ImColor nameCol = Float3AToImColor(client_it.second->colour, 1.0f);
+#if 0
+			// Special name colours
+			if (client_it.second->nickname == "Wolf") {
+				nameCol = ImColor::HSV(gHue / 360.0f, 1.0f, 1.0f, 1.0f);
+			}
+#endif
+			ImGui::TextColored(nameCol, client_it.second->nickname.c_str());
+		}
+		ImGui::PopFont();
+	}
 	ImGui::PopStyleColor();
 }
 
@@ -445,8 +453,6 @@ void BaseUI::DrawPlayerObjects() {
 	if (myViewMatrix != nullptr) {
 		Vector3 worldPos;
 		ImVec2 nicknamePos;
-		ImColor defaultTriggerColor = ImColor(1.0f, 1.0f, 1.0f, 0.5f);
-		Vector2 tmp;
 
 		for (const auto& client_it : client->GetUserList()) {
 			if (client_it.second == nullptr) continue;
