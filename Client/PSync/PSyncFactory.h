@@ -68,7 +68,9 @@ public:
         client.config = &config;
 
         data.InitGameData();
-        // config.ReadConfig(); for later, not important atm
+#ifndef _DEBUG
+        config.ReadConfig(); // for later, not important atm
+#endif
 
         oHook.SetImGuiWndProcHandlerToggle(&data.uiToggle);
 
