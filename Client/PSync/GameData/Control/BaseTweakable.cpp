@@ -10,11 +10,16 @@ BaseTweakable SSAATweakable;
 BaseTweakable MotionBlurTweakable;
 BaseTweakable AbilityLevitateTweakable;
 
-void BaseTweakableInstallHooks(uint64_t rlDllAddr)
+void BaseTweakableInstallHooks(LPCWSTR dllName)
 {
-	GetTweakableFunc = (GetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f8e60);
-	SetTweakableFunc = (SetTweakable_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f9200);
-	GetTweakableStrValueFunc = (GetTweakableStrValue_t)reinterpret_cast<ptr*>(rlDllAddr + 0x1f8ee0);
+	HINSTANCE module = GetModuleHandle(dllName);
+
+	if (module != NULL)
+	{
+		GetTweakableFunc = (GetTweakable_t)GetProcAddress(module, "?getTweakable@BaseTweakable@d@@SAPEAV12@PEBD@Z");
+		SetTweakableFunc = (SetTweakable_t)GetProcAddress(module, "?setTweakable@BaseTweakable@d@@SA_NPEBD0_N@Z");
+		GetTweakableStrValueFunc = (GetTweakableStrValue_t)GetProcAddress(module, "?getTweakableStrValue@BaseTweakable@d@@SA?AV?$InplaceString@$0IA@@r@@PEBD_N@Z");
+	}
 }
 
 void BaseTweakableInitialize()

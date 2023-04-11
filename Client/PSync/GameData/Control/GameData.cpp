@@ -213,7 +213,7 @@ void ControlGameData::InitGameData()
 	ptr* characterControllerCtorAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x5d80);
 	ptr* characterControllerMoveCapsuleAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x7540);
 
-	BaseTweakableInstallHooks(rlDllAddr);
+	BaseTweakableInstallHooks(L"rl_rmdwin7_f.dll");
 	BaseTweakableInitialize();
 	TriggerInstallHooks(coregameDllAddr);
 	TriggerInitialize();

@@ -77,5 +77,5 @@ extern BaseTweakable SSAATweakable;
 extern BaseTweakable MotionBlurTweakable;
 extern BaseTweakable AbilityLevitateTweakable;
 
-void BaseTweakableInstallHooks(uint64_t rlDllAddr);
+void BaseTweakableInstallHooks(LPCWSTR dllName);
 void BaseTweakableInitialize();
