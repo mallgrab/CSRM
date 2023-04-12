@@ -589,7 +589,7 @@ void ControlUI::DebugTab() {
 		}
 		//ImGui::Text("\n");
 		ImGui::Text("Camera settings:");
-		if (ImGui::Checkbox("Toggle Freecam", &config->freecam))
+		if (ImGui::Button("Toggle Freecam"))
 			controlData->ToggleFreeCam();
 
 		//ImGui::Text("\n");
