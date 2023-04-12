@@ -126,6 +126,9 @@ void BaseServer::StartServer(int port, int numClients) {
 			{
 				printf("New client connected, assigning ID: %u\n", nextClientID);
 				client_map[nextClientID] = new Client(nextClientID);
+#if CLIENT_TIMEOUT_TIME
+				client_map[nextClientID]->lastPacketTime = clock();
+#endif
 				event.peer->data = client_map[nextClientID];
 
 				// Once a client connects, send them their ID.
@@ -199,6 +202,10 @@ void BaseServer::HandlePacket(ENetPacket* packet, ENetPeer* peer) {
 	char* data = (char*)packet->data;
 	char packetType = data[0];
 
+#if CLIENT_TIMEOUT_TIME
+	if (client) client->lastPacketTime = clock();
+#endif
+
 	switch (packetType) {
 	case '0':
 	{
@@ -241,11 +248,28 @@ void BaseServer::HandlePacket(ENetPacket* packet, ENetPeer* peer) {
 		// Check if the nickname is unique
 		bool isUnique = true;
 		for (const auto& client_it : client_map) {
+#if CLIENT_TIMEOUT_TIME
+			if (client_it.second->nickname == sNickname) {
+				printf("Client %u requested nickname (%s) was not unique, ", client->ID, sNickname.c_str());
+				clock_t timeout = clock() - client_it.second->lastPacketTime;
+				if (client_it.second->lastPacketTime < client->lastPacketTime && timeout >= CLIENT_TIMEOUT_TIME)
+				{
+					printf("timing out old client %i.\n", timeout);
+					DisconnectClient(client_it.second);
+				}
+				else {
+					printf("rejecting.\n");
+					isUnique = false;
+				}
+				break;
+			}
+#else
 			if (client_it.second->nickname == sNickname) {
 				printf("Client %u requested nickname (%s) was not unique, rejecting.\n", client->ID, sNickname.c_str());
 				isUnique = false;
 				break;
 			}
+#endif
 		}
 		if (!isUnique) {
 			DisconnectClient(client);

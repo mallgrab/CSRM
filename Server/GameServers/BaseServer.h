@@ -6,6 +6,7 @@
 #include <thread>
 #include <cstring>
 
+//#define CLIENT_TIMEOUT_TIME 5000 //#if guarding this because i don't actually know if it works right
 class Client {
 public:
 	inline Client(int clientID) {
@@ -18,6 +19,10 @@ public:
 
 	std::string nickname;
 	std::string connectTime;
+
+#if CLIENT_TIMEOUT_TIME
+	int lastPacketTime;
+#endif
 
 	unsigned int ID;
 	unsigned int colour = 16777215;
