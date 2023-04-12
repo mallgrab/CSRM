@@ -175,6 +175,10 @@ void BaseUI::ConnectionTab() {
 		ImGui::InputText("##nickname", config->nickname, sizeof(config->nickname));
 		ImGui::PopItemWidth();
 		ImGui::Checkbox("Connect On Startup", &config->connectOnStart);
+		if (config->connectOnStart) {
+			ImGui::SameLine();
+			ImGui::Checkbox("Auto-retry", &config->autoRetry);
+		}
 
 		if (ImGui::CollapsingHeader("Colours")) {
 			ImGui::ColorEdit3("Colour", config->myColour);

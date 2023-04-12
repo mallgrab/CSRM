@@ -141,6 +141,20 @@ void BaseClient::StartClient(char* serverIP, int port, char* nickname, unsigned 
 				printf("[PSync] Registration failed due to nickname being rejected.\n");
 				ui->CreateNotification(const_cast<char*>("[PSync] Registration failed due to nickname being rejected."), 4.0f, 0.1f, 0.5f, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 0.0f, 0.0f));
 			}
+
+			if (config->connectOnStart && config->autoRetry)
+			{ //try to resend..?
+				ResetClient();
+				Sleep(2000);
+				printf("[PSync] Attempting reconnection in 3 seconds...\n");
+				ui->CreateNotification(const_cast<char*>("[PSync] Attempting reconnection in 3 seconds..."), 3);
+				Sleep(3000);
+				StartClient(config->serverIP, atoi(config->serverPort), config->nickname,
+							ImGui::ColorConvertFloat4ToU32(Float3AToImColor(config->myColour, 1.0f)),
+							ImGui::ColorConvertFloat4ToU32(Float3AToImColor(config->myTrailColour, 1.0f)));
+				//works ok but maybe it should wait a few seconds between re-attempts?
+				return;
+			}
 		}
 
 		status = "Connected";

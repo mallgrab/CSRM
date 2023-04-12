@@ -62,7 +62,9 @@ public:
 	char nickname[32] = "";
 	float myColour[3] = { 1.0f, 1.0f, 1.0f };
 	float myTrailColour[3] = { 0.26f, 0.53f, 0.96f };
+
 	bool connectOnStart = false;
+	bool autoRetry = true; //retry with autoconnect enabled
 
 	float playerNicknamePlateColour[4] = { 0.2f, 0.2f, 0.2f, 0.8f };
 	float playerObjectOpacity = 0.9f;
