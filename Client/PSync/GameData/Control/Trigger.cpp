@@ -39,8 +39,9 @@ void* __fastcall triggerComponentDtor(coregame::TriggerComponent* pointer) {
 }
 
 char __fastcall enterTrigger(uint64_t* pointer, uint64_t* pointer_b, uint64_t a3) {
+#ifdef _DEBUG
 	printf("trigger: 0x%llx gameobjectstate: 0x%llx a3: %lu\n", pointer, pointer_b, a3);
-
+#endif
 	return enterTriggerOriginal(pointer, pointer_b, a3);
 }
 
