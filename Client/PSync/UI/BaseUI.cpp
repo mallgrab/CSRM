@@ -177,7 +177,7 @@ void BaseUI::ConnectionTab() {
 		ImGui::Checkbox("Connect On Startup", &config->connectOnStart);
 		if (config->connectOnStart) {
 			ImGui::SameLine();
-			ImGui::Checkbox("Auto-retry", &config->autoRetry);
+			ImGui::Checkbox("Auto-retry", &config->autoRetryOnStart);
 		}
 
 		if (ImGui::CollapsingHeader("Colours")) {

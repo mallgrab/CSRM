@@ -142,17 +142,18 @@ void BaseClient::StartClient(char* serverIP, int port, char* nickname, unsigned 
 				ui->CreateNotification("[PSync] Registration failed due to nickname being rejected.", 4.0f, 0.1f, 0.5f, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 0.0f, 0.0f));
 			}
 
-			if (config->connectOnStart && config->autoRetry)
-			{ //try to resend..?
+			if (config->connectOnStart && config->autoRetryOnStart)
+			{ //try to reconnect after some time
 				ResetClient();
-				Sleep(2000);
-				printf("[PSync] Attempting reconnection in 3 seconds...\n");
-				ui->CreateNotification("[PSync] Attempting reconnection in 3 seconds...", 3);
-				Sleep(3000);
+				Sleep(3500);
+				printf("[PSync] Attempting reconnection in 5 seconds...\n");
+				ui->CreateNotification("[PSync] Attempting reconnect in 5 seconds...", 5);
+				Sleep(5000);
 				StartClient(config->serverIP, atoi(config->serverPort), config->nickname,
 							ImGui::ColorConvertFloat4ToU32(Float3AToImColor(config->myColour, 1.0f)),
 							ImGui::ColorConvertFloat4ToU32(Float3AToImColor(config->myTrailColour, 1.0f)));
-				//works ok but maybe it should wait a few seconds between re-attempts?
+				//works ok since this runs on a separate thread, but it's stupid it has to retry 3 or 4 times before the old client times out
+				//would be cool if we could just send a disconnect packet on shutdown!
 				return;
 			}
 		}

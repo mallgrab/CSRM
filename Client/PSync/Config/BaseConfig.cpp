@@ -30,6 +30,7 @@ void BaseConfig::ReadConfig() {
 	readFromIni(file, "Nickname", tempStr);
 	strcpy_s(nickname, tempStr.c_str());
 	readFromIni(file, "ConnectOnStart", connectOnStart);
+	readFromIni(file, "AutoRetryOnStart", autoRetryOnStart);
 
 	readFromIni(file, "MyColourR", myColour[0]);
 	readFromIni(file, "MyColourG", myColour[1]);
@@ -99,6 +100,7 @@ void BaseConfig::WriteConfig() {
 	writeToIni(file, "MyTrailColourB", myTrailColour[2]);
 
 	writeToIni(file, "ConnectOnStart", connectOnStart);
+	writeToIni(file, "AutoRetryOnStart", autoRetryOnStart);
 
 	writeHeader(file, "[Nicknames]");
 	writeToIni(file, "PlayerNicknamePlateColourR", playerNicknamePlateColour[0]);
