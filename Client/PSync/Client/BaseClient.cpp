@@ -7,7 +7,7 @@ Vector3 prevPos = { 0.0f, 0.0f, 0.0f };
 
 void BaseClient::StopClient() {
 	printf("[PSync] Shutting down PSync client...\n");
-	ui->CreateNotification(const_cast<char*>("[PSync] Shutting down PSync client..."));
+	ui->CreateNotification("[PSync] Shutting down PSync client...");
 	stopClient = true;
 }
 
@@ -27,7 +27,7 @@ void BaseClient::ResetClient() {
 void BaseClient::StartClient(char* serverIP, int port, char* nickname, unsigned int playerColour, unsigned int playerTrailColour) {
 	if (clientRunning) {
 		printf("[PSync] Client already running!\n");
-		ui->CreateNotification(const_cast<char*>("[PSync] Client already running!"), 4.0f, 0.1f, 0.5f, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 1.0f, 0.0f));
+		ui->CreateNotification("[PSync] Client already running!", 4.0f, 0.1f, 0.5f, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 1.0f, 0.0f));
 		return;
 	}
 
@@ -62,7 +62,7 @@ void BaseClient::StartClient(char* serverIP, int port, char* nickname, unsigned 
 
 		ENetEvent event;
 		printf("[PSync] Attempting connection to server...\n");
-		ui->CreateNotification(const_cast<char*>("[PSync] Attempting connection to server..."));
+		ui->CreateNotification("[PSync] Attempting connection to server...");
 		status = "Connecting...";
 		if (enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) // Wait 5 seconds for connect event to confirm we are connected.
 		{
@@ -124,7 +124,7 @@ void BaseClient::StartClient(char* serverIP, int port, char* nickname, unsigned 
 				if (receivedID != localID) continue;		// If this isn't our connection announcement, check the next packet.
 				stopClient = false;
 				printf("[PSync] Nickname successfully registered.\n");
-				ui->CreateNotification(const_cast<char*>("[PSync] Registration successful. Connection complete."), ImColor(0.2f, 0.2f, 0.2f), ImColor(0.0f, 1.0f, 0.0f));
+				ui->CreateNotification("[PSync] Registration successful. Connection complete.", ImColor(0.2f, 0.2f, 0.2f), ImColor(0.0f, 1.0f, 0.0f));
 				break;
 			}
 
@@ -135,11 +135,11 @@ void BaseClient::StartClient(char* serverIP, int port, char* nickname, unsigned 
 		if (stopClient) {
 			if (localID == -1) {
 				printf("[PSync] Registration failed due to server not assigning ID.\n");
-				ui->CreateNotification(const_cast<char*>("[PSync] Registration failed due to server not assigning ID."), 4.0f, 0.1f, 0.5f, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 0.0f, 0.0f));
+				ui->CreateNotification("[PSync] Registration failed due to server not assigning ID.", 4.0f, 0.1f, 0.5f, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 0.0f, 0.0f));
 			}
 			else {
 				printf("[PSync] Registration failed due to nickname being rejected.\n");
-				ui->CreateNotification(const_cast<char*>("[PSync] Registration failed due to nickname being rejected."), 4.0f, 0.1f, 0.5f, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 0.0f, 0.0f));
+				ui->CreateNotification("[PSync] Registration failed due to nickname being rejected.", 4.0f, 0.1f, 0.5f, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 0.0f, 0.0f));
 			}
 
 			if (config->connectOnStart && config->autoRetry)
@@ -147,7 +147,7 @@ void BaseClient::StartClient(char* serverIP, int port, char* nickname, unsigned 
 				ResetClient();
 				Sleep(2000);
 				printf("[PSync] Attempting reconnection in 3 seconds...\n");
-				ui->CreateNotification(const_cast<char*>("[PSync] Attempting reconnection in 3 seconds..."), 3);
+				ui->CreateNotification("[PSync] Attempting reconnection in 3 seconds...", 3);
 				Sleep(3000);
 				StartClient(config->serverIP, atoi(config->serverPort), config->nickname,
 							ImGui::ColorConvertFloat4ToU32(Float3AToImColor(config->myColour, 1.0f)),
@@ -210,7 +210,7 @@ void BaseClient::StartClient(char* serverIP, int port, char* nickname, unsigned 
 					stopClient = true;
 
 					printf("[PSync] Connection closed by server.\n");
-					ui->CreateNotification(const_cast<char*>("[PSync] Connection closed by server."));
+					ui->CreateNotification("[PSync] Connection closed by server.");
 					break;
 				}
 				}
@@ -236,7 +236,7 @@ void BaseClient::StartClient(char* serverIP, int port, char* nickname, unsigned 
 
 		enet_peer_reset(peer);
 		printf("[PSync] Disconnected.\n");
-		ui->CreateNotification(const_cast<char*>("[PSync] Disconnected."));
+		ui->CreateNotification("[PSync] Disconnected.");
 
 		ResetClient();
 

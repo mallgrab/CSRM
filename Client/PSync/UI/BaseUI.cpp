@@ -651,7 +651,7 @@ void BaseUI::DrawNotifications(ImGuiIO io, ImDrawList* drawList) {
 	}
 }
 
-void BaseUI::CreateNotification(char* message) {
+void BaseUI::CreateNotification(const char *message) {
 	if (strlen(message) > sizeof(notifMessage)) return;
 	strcpy_s(notifMessage, message);
 
@@ -663,7 +663,7 @@ void BaseUI::CreateNotification(char* message) {
 	notifRemainingTime = 4.0f;
 }
 
-void BaseUI::CreateNotification(char* message, float duration) {
+void BaseUI::CreateNotification(const char *message, float duration) {
 	if (strlen(message) > sizeof(notifMessage)) return;
 	strcpy_s(notifMessage, message);
 
@@ -675,7 +675,7 @@ void BaseUI::CreateNotification(char* message, float duration) {
 	notifRemainingTime = duration;
 }
 
-void BaseUI::CreateNotification(char* message, ImColor bgCol, ImColor textCol) {
+void BaseUI::CreateNotification(const char *message, ImColor bgCol, ImColor textCol) {
 	if (strlen(message) > sizeof(notifMessage)) return;
 	strcpy_s(notifMessage, message);
 
@@ -687,7 +687,7 @@ void BaseUI::CreateNotification(char* message, ImColor bgCol, ImColor textCol) {
 	notifRemainingTime = 4.0f;
 }
 
-void BaseUI::CreateNotification(char* message, float duration, float fadeIn, float fadeOut) {
+void BaseUI::CreateNotification(const char *message, float duration, float fadeIn, float fadeOut) {
 	if (strlen(message) > sizeof(notifMessage)) return;
 	strcpy_s(notifMessage, message);
 
@@ -697,7 +697,7 @@ void BaseUI::CreateNotification(char* message, float duration, float fadeIn, flo
 	notifRemainingTime = duration;
 }
 
-void BaseUI::CreateNotification(char* message, float duration, float fadeIn, float fadeOut, ImColor bgCol, ImColor textCol) {
+void BaseUI::CreateNotification(const char *message, float duration, float fadeIn, float fadeOut, ImColor bgCol, ImColor textCol) {
 	if (strlen(message) > sizeof(notifMessage)) return;
 	strcpy_s(notifMessage, message);
 

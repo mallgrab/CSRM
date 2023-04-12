@@ -27,11 +27,11 @@ public:
 	virtual void Init();
 	virtual void RenderGUI();
 	virtual void RenderOSD();
-	void CreateNotification(char* message);
-	void CreateNotification(char* message, float duration);
-	void CreateNotification(char* message, ImColor bgCol, ImColor textCol);
-	void CreateNotification(char* message, float duration, float fadeIn, float fadeOut);
-	void CreateNotification(char* message, float duration, float fadeIn, float fadeOut, ImColor bgCol, ImColor textCol);
+	void CreateNotification(const char *message);
+	void CreateNotification(const char *message, float duration);
+	void CreateNotification(const char *message, ImColor bgCol, ImColor textCol);
+	void CreateNotification(const char *message, float duration, float fadeIn, float fadeOut);
+	void CreateNotification(const char *message, float duration, float fadeIn, float fadeOut, ImColor bgCol, ImColor textCol);
 
 	void QueueCountdown(unsigned int time);
 protected:
