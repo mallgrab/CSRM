@@ -12,6 +12,8 @@ class Functions:
     extern: str = ""
     definition: str = ""
     declaration: str = ""
+    returnType: str = ""
+    defType: str = ""
     flagRemove: bool = False
 
     def __init__(self, exported, formated):
@@ -96,6 +98,9 @@ def main():
     counterConstructorName = ""
     suffixCounterFunction = 1
 
+    # add exported function strings for later demangling
+    stringToDemangle: str = ""
+
     for index, string in enumerate(formattedFunctionList):
         stringToFormat: str = ''
         stringToFormat = formattedFunctionList[index]
@@ -117,7 +122,8 @@ def main():
 
                     constructorName += str(suffixCounterConstructor)
                     suffixCounterConstructor += 1
-
+            
+            stringToDemangle += exportedFunctionList[index] + " "
             functionList.append(Functions(exportedFunctionList[index], constructorName))
         else:
             # dont include functions with namespaces if we didnt search for one
@@ -149,7 +155,81 @@ def main():
                     functionName += str(suffixCounterFunction)
                     suffixCounterFunction += 1
 
+            stringToDemangle += exportedFunctionList[index] + " "
             functionList.append(Functions(exportedFunctionList[index], functionName))
+
+    # get demangled strings into a list
+    demangledStringOutput: list = list()
+    cmd = "demumble " + stringToDemangle
+
+    try:
+        output = subprocess.check_output(cmd, text=True)
+    except FileNotFoundError:
+        print("dumpbin does not exist in your user environment")
+        return
+
+    demangledStringOutput = output.split('\n')
+
+    # remove last element in the list if it got included as an element from split as an empty newline
+    if len(demangledStringOutput[len(demangledStringOutput)-1]) == 0:
+        demangledStringOutput.pop()
+
+    # get demangled return type & arguments from exported function
+    for index, function in enumerate(functionList):
+        demangledFunctionDefinition = demangledStringOutput[index].split(" ")
+        
+        # normally the second element in the list is the return type
+        # on constructors it usually doesnt show what type it returns
+        # could be a pointer tho... check in ghidra/ida
+        if demangledFunctionDefinition[1] == '__cdecl':
+            function.returnType = "void"
+        elif demangledFunctionDefinition[1] == 'enum':
+            function.returnType = "int64_t /*enum*/"
+        elif demangledFunctionDefinition[1] == 'static' or demangledFunctionDefinition[1] == 'class':
+            function.returnType = demangledFunctionDefinition[2]
+        else:
+            function.returnType = demangledFunctionDefinition[1]
+
+        if function.returnType == 'class':
+            function.returnType = "void*"
+
+        # get only the arguments from the function
+        demangledFunctionArguments = demangledStringOutput[index].split("(")[1]
+        demangledFunctionArguments = demangledFunctionArguments.split(")")[0]
+
+        # remove class and enum from the argument types
+        demangledFunctionArguments = demangledFunctionArguments.replace("class ", "")
+        demangledFunctionArguments = demangledFunctionArguments.replace("enum ", "")
+        demangledFunctionArguments = demangledFunctionArguments.replace(" const &", "")
+        demangledFunctionArguments = demangledFunctionArguments.replace(" const", "")
+        demangledFunctionArguments = demangledFunctionArguments.replace(" &", "")
+        
+        variableNameCounter: int = 1
+        splitByEachArgument = demangledFunctionArguments.split(",")
+        for index, string in enumerate(splitByEachArgument):
+            if string[0] == ' ':
+                splitByEachArgument[index] = string[1:]
+
+        for index, string in enumerate(splitByEachArgument):
+            # dont add an additional space character if the variable is a pointer
+            if splitByEachArgument[index][-1:] == '*':
+                splitByEachArgument[index] = splitByEachArgument[index] + "a" + str(variableNameCounter)
+            else:
+                splitByEachArgument[index] = splitByEachArgument[index] + " a" + str(variableNameCounter)
+            variableNameCounter += 1
+        
+        defType: str = ""
+
+        for index, string in enumerate(splitByEachArgument):
+            if len(splitByEachArgument) - 1 != index:
+                defType += string + ", "
+            else:
+                defType += string
+
+        function.defType = defType
+
+        if demangledFunctionArguments == "void":
+            function.defType = ""
 
     regularFunctionList:List[Functions] = functionList.copy()
     overloadedFunctionList: list = list()
@@ -199,20 +279,20 @@ def main():
     
     # construct string output from exported & named functions
     for function in regularFunctionList:
-        function.typeDef = " ".join(["using", function.formattedName + "_t", "= void (__fastcall*)(void* tmp);"])
+        function.typeDef = " ".join(["using", function.formattedName + "_t", "=", function.returnType, "(__fastcall*)(" + function.defType + ");"])
         function.extern = " ".join(["extern", function.formattedName + "_t", function.formattedName + ";"])
         function.definition = " ".join([function.formattedName + "_t", function.formattedName])
         function.pointer = " ".join([function.formattedName, "=", "(" + function.formattedName + "_t" + ")" + 'GetProcAddress(module, "' + function.exportedName + '");'])
 
     for functionList in overloadedFunctionList:
         for function in functionList:
-            function.typeDef = " ".join(["using", function.formattedName + "_t", "= void (__fastcall*)(void* tmp);"])
+            function.typeDef = " ".join(["using", function.formattedName + "_t", "=", function.returnType, "(__fastcall*)(" + function.defType + ");"])
             function.extern = " ".join(["extern", function.formattedName + "_t", function.formattedName + ";"])
             function.definition = " ".join([function.formattedName + "_t", function.formattedName])
 
             # since we are suffixing a number to the formatted name, remove it again
             functionNameFormatted = re.sub('\\d', '', function.formattedName)
-            function.declaration = " ".join(["void", functionNameFormatted + "(void* tmp)"])
+            function.declaration = " ".join([function.returnType, functionNameFormatted + "(" + function.defType + ")"])
 
             # suffix with func so we dont get naming collision
             function.pointer = " ".join([function.formattedName + "Func", "=", "(" + function.formattedName + "_t" + ")" + 'GetProcAddress(module, "' + function.exportedName + '");'])
@@ -257,7 +337,7 @@ def main():
             fileOutputClass.write(function.declaration + "\n")
             fileOutputClass.write("{" + "\n")
             # suffix with func so we dont get naming collision
-            fileOutputClass.write("\t" + function.formattedName + "Func" + "(tmp);" + "\n")
+            fileOutputClass.write("\t" + function.formattedName + "Func" + "(" + function.defType + ");" + "\n")
             fileOutputClass.write("}" + "\n")
 
     fileOutputClass.write("\n" + "void " + fitlerByString + "InstallHooks(LPCWSTR dllName)" + "\n")
