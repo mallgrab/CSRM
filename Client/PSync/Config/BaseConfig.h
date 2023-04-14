@@ -10,6 +10,13 @@ class BaseUI;
 
 #include "../UI/BaseUI.h"
 
+typedef enum listPosition {
+	PLAYERLIST_TOPLEFT = 0,
+	PLAYERLIST_TOPRIGHT,
+	PLAYERLIST_BOTTOMLEFT,
+	PLAYERLIST_BOTTOMRIGHT
+} listPosition_t;
+
 // I don't really like the way this config system is setup, but I'm lazy rn and I'll just throw this on the backburner for a overhaul.
 // Probably could do with some macros.
 class BaseConfig {
@@ -26,6 +33,7 @@ public:
 	// Vars
 	//int menuKeybind = VK_PRIOR; //0x21; //pageup
 	int menuKeybind = VK_HOME; //0x24; //home
+	//float menuAccentColour[3] = { 215 / 255.0f, 65 / 255.0f, 167 / 255.0f };
 	float menuAccentColour[3] = { 55 / 255.0f, 55 / 255.0f, 55 / 255.0f };
 	bool drawImGuiCursor = false;
 	bool positionSmoothing = true;
@@ -49,7 +57,9 @@ public:
 	int playerTrailLength = 18;
 
 	bool playerListEnabled = true;
-	int playerListWidth = 160;
+	int playerListWidth = 0; //160;
+	//for some reason this shit doesn't get read from the config properly, why??
+	int playerListPos = PLAYERLIST_BOTTOMRIGHT; //PLAYERLIST_TOPRIGHT;
 
 	bool drawSelf = false;
 

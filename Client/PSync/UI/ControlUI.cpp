@@ -302,8 +302,8 @@ static void CSRM_DrawFPS(ControlGameData *gameData, ControlConfig *config, Contr
 	ImGui::PopFont();
 
 	textSize = ImGui::CalcTextSize(text);
-	if (config->playerListEnabled && ui->client->IsRunning() && ui->client->GetUserCount() > 0) //move to bottom right corner if player list is being shown
-		pos = { io->DisplaySize.x - textSize.x - 4.0f, io->DisplaySize.y - textSize.y - 4.0f };
+	if (config->playerListEnabled && config->playerListPos == PLAYERLIST_TOPRIGHT, ui->client->IsRunning() && ui->client->GetUserCount() > 0)
+		pos = { io->DisplaySize.x - textSize.x - 4.0f, io->DisplaySize.y - textSize.y - 4.0f }; //move to bottom right corner if player list is being shown
 	else
 		pos = { (io->DisplaySize.x - textSize.x), 0.0f };
 	ImGui_DrawStringWithDropShadow(pos, color, text);

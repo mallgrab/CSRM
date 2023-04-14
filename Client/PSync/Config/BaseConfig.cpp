@@ -55,6 +55,9 @@ void BaseConfig::ReadConfig() {
 
 	readFromIni(file, "PlayerListEnabled", playerListEnabled);
 	readFromIni(file, "PlayerListWidth", playerListWidth);
+	//playerListPos = 0;
+	readFromIni(file, "PlayerListPosition", playerListPos); //what the actual FUCK is going on here? this doesn't work like at all??
+	//printf("reading PlayerListPosition %i\n", playerListPos);
 
 	readFromIni(file, "DrawSelf", drawSelf);
 
@@ -121,6 +124,8 @@ void BaseConfig::WriteConfig() {
 	writeHeader(file, "[Player List]");
 	writeToIni(file, "PlayerListEnabled", playerListEnabled);
 	writeToIni(file, "PlayerListWidth", playerListWidth);
+	writeToIni(file, "PlayerListPosition", playerListPos); //??????????
+	//printf("writing PlayerListPosition %i\n", playerListPos);
 
 	writeHeader(file, "[Other]");
 	writeToIni(file, "DrawSelf", drawSelf);

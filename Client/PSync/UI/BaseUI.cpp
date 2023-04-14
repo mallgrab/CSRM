@@ -284,7 +284,10 @@ void BaseUI::CustomizationTab() {
 
 		if (ImGui::CollapsingHeader("Player List")) {
 			ImGui::Checkbox("Draw Player List", &config->playerListEnabled);
-			if (ImGui::InputInt("Player List Width", &config->playerListWidth, 5) && config->playerListWidth <= 0) config->playerListWidth = 1;
+			if (ImGui::InputInt("Player List Width", &config->playerListWidth, 5) && config->playerListWidth < 0) 
+				config->playerListWidth = 0;
+			ImGui::Combo("Position:", &config->playerListPos,
+						 "Top left\0Top right\0Bottom left\0Bottom right\0\0");
 		}
 
 		ImGui::EndTabItem();
@@ -427,25 +430,63 @@ void BaseUI::RenderOSD() {
 	
 }
 
+#define PLAYERLIST_PADDING 8.0f
 void BaseUI::DrawPlayerList() {
-	int playerListWidth = config->playerListWidth;
-
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.3f));
-	ImGui::SetNextWindowPos(ImVec2(screenWidth - playerListWidth, 0));
-	ImGui::SetNextWindowSize(ImVec2(playerListWidth, 0));
 
-	if (ImGui::Begin("PlayerList", &drawPlayers, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs)) {
+	if (ImGui::Begin("PlayerList", &drawPlayers, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs))
+	{
+		ImVec2 pos;
+		ImVec2 size = ImVec2(config->playerListWidth, 0);
+		//if (size.x <= 0) size.x = 160;
+
 		ImGui::PushFont(rodinProMFontSmall);
 		for (const auto& client_it : client->GetUserList()) {
 			ImColor nameCol = Float3AToImColor(client_it.second->colour, 1.0f);
+			const char *name = client_it.second->nickname.c_str();
+			ImVec2 rowSize = ImGui::CalcTextSize(name);
+
+			rowSize.x += (PLAYERLIST_PADDING*2);
+			rowSize.y += PLAYERLIST_PADDING;
+
+			if (config->playerListWidth <= 0) { //autosizing..
+				if (rowSize.x > size.x) //this name is longer than the previous longest name
+					size.x = rowSize.x;
+			}
+
 #if 0
 			// Special name colours
 			if (client_it.second->nickname == "Wolf") {
 				nameCol = ImColor::HSV(gHue / 360.0f, 1.0f, 1.0f, 1.0f);
 			}
 #endif
-			ImGui::TextColored(nameCol, client_it.second->nickname.c_str());
+
+			size.y += rowSize.y;
+			ImGui::TextColored(nameCol, name);
 		}
+
+		//size.y += (PLAYERLIST_PADDING*0.5f);
+		switch (config->playerListPos)
+		{
+			case PLAYERLIST_TOPLEFT:
+				pos = ImVec2(0, 0);
+				break;
+			default:
+			case PLAYERLIST_TOPRIGHT:
+				pos = ImVec2(screenWidth - size.x, 0);
+				break;
+			case PLAYERLIST_BOTTOMLEFT:
+				pos = ImVec2(0, screenHeight - size.y - PLAYERLIST_PADDING);
+				break;
+			case PLAYERLIST_BOTTOMRIGHT:
+				pos = ImVec2(screenWidth - size.x, screenHeight - size.y - PLAYERLIST_PADDING);
+				break;
+		}
+
+		size.y = 0;
+		ImGui::SetWindowPos(pos);
+		ImGui::SetWindowSize(size);
+
 		ImGui::PopFont();
 		ImGui::End();
 	}
