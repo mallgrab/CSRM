@@ -78,6 +78,69 @@ struct Vector3 {
 
 };
 
+struct Vector4 {
+    union {
+        struct {
+            float x;
+            float y;
+            float z;
+            float w;
+        };
+
+        float v[4];
+    };
+
+    Vector4() { x = 0.0f; y = 0.0f; z = 0.0f; w = 0.0f; }
+
+    Vector4(float _x, float _y, float _z, float _w) { x = _x; y = _y; z = _z; w = _w; }
+
+    Vector4(float v[4]) { x = v[0]; y = v[1]; z = v[2]; w = v[3]; }
+
+    Vector4(std::tuple<float, float, float, float> tuple) { x = std::get<0>(tuple); y = std::get<1>(tuple); z = std::get<2>(tuple); w = std::get<3>(tuple);
+    }
+
+    inline bool operator == (Vector4 other) {
+        return (x == other.x && y == other.y && z == other.z && w == other.w);
+    }
+
+    inline Vector4 operator = (float other[4]) {
+        x = other[0];
+        y = other[1];
+        z = other[2];
+        w = other[3];
+        return *this;
+    }
+
+    inline Vector4 operator = (std::tuple<float, float, float, float> other) {
+        x = std::get<0>(other);
+        y = std::get<1>(other);
+        z = std::get<2>(other);
+        w = std::get<3>(other);
+        return *this;
+    }
+
+    inline Vector4 operator + (Vector4 other) {
+        return Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
+    }
+
+    inline Vector4 operator - (Vector4 other) {
+        return Vector4(x - other.x, y - other.y, z - other.z, w - other.w);
+    }
+
+    inline Vector4 operator * (float other) {
+        return Vector4(x * other, y * other, z * other, w * other);
+    }
+
+    inline float DistanceTo(Vector4 other) {
+        return sqrtf(powf(other.x - x, 2) + powf(other.y - y, 2) + powf(other.z - z, 2) + powf(other.w - w, 2));
+    }
+
+    inline Vector4 LerpTo(Vector4 other, float perc) {
+        return Vector4(*this + (other - *this) * perc);
+    }
+
+};
+
 class Matrix4 {
 public:
     union
