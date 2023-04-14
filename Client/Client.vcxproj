@@ -231,6 +231,7 @@
     <ClInclude Include="PSync\Client\ControlClient.h" />
     <ClInclude Include="PSync\Client\NieRAutomataClient.h" />
     <ClInclude Include="PSync\Config\BaseConfig.h" />
+    <ClInclude Include="PSync\Config\ControlConfig.h" />
     <ClInclude Include="PSync\Config\DevilMayCry3SEConfig.h" />
     <ClInclude Include="PSync\Config\NieRAutomataConfig.h" />
     <ClInclude Include="PSync\GameData\BaseGameData.h" />

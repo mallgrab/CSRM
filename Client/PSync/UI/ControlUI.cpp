@@ -77,8 +77,7 @@ float CSRM_SpeedometerSpeed(float speed, int speedometerType)
 	return retSpeed;
 }
 
-//static void CSRM_Speedometer(float speed, BaseConfig *config, ImGuiIO *io)
-static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGuiIO *io)
+static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, ImGuiIO *io)
 {
 	static float topSpeed = 0;
 	float drawSpeed, drawTopSpeed;
@@ -244,7 +243,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 	ImGui::PopFont();
 
 	textSize = ImGui::CalcTextSize(text);
-	pos = { (config->speedometerX - (textSize.x * 0.5f)), (config->speedometerY - (textSize.y * 0.5f)) };
+	pos = { (config->speedometerPos[0] - (textSize.x * 0.5f)), (config->speedometerPos[1] - (textSize.y * 0.5f))};
 	color = CSRM_SpeedColor(speed, config->speedometerColorSpeed);
 	ImGui_DrawStringWithDropShadow(pos, color, text);
 
@@ -290,7 +289,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, BaseConfig *config, ImGu
 #undef GROUND_SPEED
 #endif
 
-static void CSRM_DrawFPS(ControlGameData *gameData, BaseConfig *config, ControlUI *ui, ImGuiIO *io) {
+static void CSRM_DrawFPS(ControlGameData *gameData, ControlConfig *config, ControlUI *ui, ImGuiIO *io) {
 	char text[16];
 	const ImVec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	ImVec2 pos, textSize;
@@ -315,7 +314,7 @@ static void CSRM_DrawFPS(ControlGameData *gameData, BaseConfig *config, ControlU
 	ImGui::PopFont();
 }
 
-static void CSRM_DrawPos(ControlGameData *gameData, BaseConfig *config, ImGuiIO *io) {
+static void CSRM_DrawPos(ControlGameData *gameData, ControlConfig *config, ImGuiIO *io) {
 #if 0 //fixme: add camera/player angle
 	int len = 0;
 	char text[512];
@@ -356,7 +355,7 @@ static void CSRM_DrawPos(ControlGameData *gameData, BaseConfig *config, ImGuiIO 
 #endif
 }
 
-static void CSRM_DrawHUD(ControlGameData *gameData, BaseConfig *config, ControlUI *ui, ImGuiIO *io) {
+static void CSRM_DrawHUD(ControlGameData *gameData, ControlConfig *config, ControlUI *ui, ImGuiIO *io) {
 	if (config->drawFPS) {
 		CSRM_DrawFPS(gameData, config, ui, io);
 	}
@@ -479,14 +478,15 @@ static int CSRM_SlotFromKey(WPARAM key)
 
 void ControlUI::KeyPress(WPARAM key) {
 	//printf("ControlUI::KeyPress %i\n", (int)key);
-	if (config->drawTriggersHotkey) {
+	ControlConfig *cfg = (ControlConfig *)config;
+	if (cfg->drawTriggersHotkey) {
 		if (key == 0x2D) { //insert
-			config->drawTriggers = !config->drawTriggers;
+			cfg->drawTriggers = !cfg->drawTriggers;
 			return;
 		}
 	}
 
-	if (config->saveLoadPosition)
+	if (cfg->saveLoadPosition)
 	{
 		if (key >= VK_F1 && key <= VK_F9) {
 			CSRM_SavePosition(CSRM_SlotFromKey(key), (ControlGameData *)data, this);
@@ -501,6 +501,9 @@ void ControlUI::KeyPress(WPARAM key) {
 	BaseUI::KeyPress(key);
 }
 
+extern float countdownOpacityPerc;
+extern float countdownGoTime;
+extern float countdownTme;
 void ControlUI::DebugTab() {
 	if (ImGui::BeginTabItem("Debug"))
 	{
@@ -511,17 +514,7 @@ void ControlUI::DebugTab() {
 		Vector3* myPlayerPos = data->GetPlayerPos();
 
 		ControlGameData *controlData = ((ControlGameData*)data);
-		//if (!controlData) return; //don't rlly need this but...
-
-		/*
-		ImGui::InputFloat("Countdown Time", &countdownTme);
-		if (ImGui::Button("Start Countdown")) {
-			drawCountdown = true;
-			countdownRemainingTime = countdownTme;
-			countdownGoTime = 2.0f;
-			countdownOpacityPerc = 1.0f;
-		}
-		*/
+		ControlConfig *cfg = ((ControlConfig*)config);
 
 		ImGui::Text("%.01f FPS\n", io.Framerate);
 		ImGui::Text("Screen Size:");
@@ -535,57 +528,54 @@ void ControlUI::DebugTab() {
 		*/
 
 		//ImGui::Text("\n");
-		if (ImGui::Checkbox("Motion blur", &config->motionBlur))
-			MotionBlurTweakable.SetTweakableStrValue(config->motionBlur ? "0.4f" : "0.0f");
+		if (ImGui::Checkbox("Motion blur", &cfg->motionBlur))
+			MotionBlurTweakable.SetTweakableStrValue(cfg->motionBlur ? "0.4f" : "0.0f");
 		ImGui::SameLine();
-		if (ImGui::Checkbox("Temporal SSAA", &config->TemporalSSAA))
-			SSAATweakable.SetTweakableStrValue(config->TemporalSSAA ? "1.0f" : "0.0f");
+		if (ImGui::Checkbox("Temporal SSAA", &cfg->TemporalSSAA))
+			SSAATweakable.SetTweakableStrValue(cfg->TemporalSSAA ? "1.0f" : "0.0f");
 
 		ImGui::Text("\n");
 		ImGui::Text("Game settings:");
-		ImGui::Checkbox("Save/Load position", &config->saveLoadPosition);
-		if (ImGui::Checkbox("Disable levitation", &config->disableLevitation))
-			AbilityLevitateTweakable.SetTweakableStrValue(config->disableLevitation ? "1" : "0");
+		ImGui::Checkbox("Save/Load position", &cfg->saveLoadPosition);
+		if (ImGui::Checkbox("Disable levitation", &cfg->disableLevitation))
+			AbilityLevitateTweakable.SetTweakableStrValue(cfg->disableLevitation ? "1" : "0");
 
 		ImGui::Text("\nHUD:");
-		ImGui::Checkbox("Draw FPS", &config->drawFPS);
+		ImGui::Checkbox("Draw FPS", &cfg->drawFPS);
 		//ImGui::SameLine();
-		//ImGui::Checkbox("Show Pos", &config->showPos);
+		//ImGui::Checkbox("Show Pos", &cfg->showPos);
 
 		ImGui::Text("Speedometer:");
-		ImGui::Checkbox("Draw Speedometer", &config->drawSpeedometer);
-		if (config->drawSpeedometer) {
+		ImGui::Checkbox("Draw Speedometer", &cfg->drawSpeedometer);
+		if (cfg->drawSpeedometer) {
 			ImGui::SameLine();
-			ImGui::Checkbox("Speed Color", &config->speedometerColorSpeed);
-			ImGui::Checkbox("Show Top Speed", &config->speedometerShowTopSpeed);
+			ImGui::Checkbox("Speed Color", &cfg->speedometerColorSpeed);
+			ImGui::Checkbox("Show Top Speed", &cfg->speedometerShowTopSpeed);
 			ImGui::SameLine();
-			ImGui::Checkbox("Show Ground Speed", &config->speedometerGroundSpeed);
+			ImGui::Checkbox("Show Ground Speed", &cfg->speedometerGroundSpeed);
 
-			ImGui::Combo("Unit type:", &config->speedometerType, "Normal\0Raw\0Quake Units\0\0");
+			ImGui::Combo("Unit type:", &cfg->speedometerType, "Normal\0Raw\0Quake Units\0\0");
 
 			//ImGui::InputFloat("X", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
 			//ImGui::InputFloat("Y", &config->speedometerY, 1.0f, 2.0f);
-			ImGui::Text("X Pos:");
+			ImGui::Text("Speedometer position:");
 			ImGui::SameLine();
-			ImGui::InputFloat("", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
-			ImGui::Text("Y Pos:");
-			ImGui::SameLine();
-			ImGui::InputFloat("", &config->speedometerY, 1.0f, 2.0f);
+			ImGui::InputFloat2("##SpeedometerPosFields", cfg->speedometerPos, "%.2f", ImGuiInputTextFlags_CharsScientific);
 			ImGui::Text("Size:");
 			ImGui::SameLine();
-			ImGui::InputFloat("", &config->speedometerSize, 0.125f, 0.25f);
+			ImGui::InputFloat("", &cfg->speedometerSize, 0.125f, 0.25f);
 
-			ImGui::Checkbox("Print speed to console", &config->speedometerConsolePrint);
+			ImGui::Checkbox("Print speed to console", &cfg->speedometerConsolePrint);
 		}
 
 		ImGui::Text("\n");
 		ImGui::Text("Triggers (%i):", TriggerGetCount());
-		ImGui::Checkbox("Enable Triggers", &config->drawTriggers);
+		ImGui::Checkbox("Enable Triggers", &cfg->drawTriggers);
 		ImGui::SameLine();
-		ImGui::Checkbox("Ins toggle", &config->drawTriggersHotkey);
-		if (config->drawTriggers) {
+		ImGui::Checkbox("Ins toggle", &cfg->drawTriggersHotkey);
+		if (cfg->drawTriggers) {
 			ImGui::Text("Trigger Opacity:");
-			ImGui::SliderFloat("##TriggerOpacitySlider", &config->triggerOpacity, 0.0f, 1.0f, "%.3f");
+			ImGui::SliderFloat("##TriggerOpacitySlider", &cfg->triggerOpacity, 0.0f, 1.0f, "%.3f");
 		}
 		//ImGui::Text("\n");
 		ImGui::Text("Camera settings:");
@@ -633,6 +623,14 @@ void ControlUI::DebugTab() {
 				ImGui::Text("\nScreenPos:");
 				ImGui::Text("%f, %f", scrnOutPos.x, scrnOutPos.y);
 			}
+		}
+
+		ImGui::InputFloat("Countdown Time", &countdownTme);
+		if (ImGui::Button("Start Countdown test")) {
+			drawCountdown = true;
+			countdownRemainingTime = countdownTme;
+			countdownGoTime = 2.0f;
+			countdownOpacityPerc = 1.0f;
 		}
 
 		/*
@@ -733,7 +731,7 @@ void ControlUI::ConfigTab() {
 	}
 }
 
-static inline void CSRM_DrawTriggers(ControlGameData *gameData, BaseConfig *config, ImDrawList *drawList, int screenWidth, int screenHeight)
+static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *config, ImDrawList *drawList, int screenWidth, int screenHeight)
 {
 	Matrix4* myViewMatrix = gameData->GetViewMatrix();
 	Vector3 worldPos;
@@ -841,24 +839,27 @@ void ControlUI::Init()
 	ImGuiIO &io = ImGui::GetIO();
 	static ImVec2 lastDisplaySize = io.DisplaySize;
 
+	ControlConfig *cfg = (ControlConfig *)config;
 	//printf("ControlUI::Init()\n");
 
-	if (config->speedometerSize == -1.0f || //config uninitialized
-		config->speedometerX < 0.0f || config->speedometerX > io.DisplaySize.x || //config values gone wrong
-		config->speedometerY < 0.0f || config->speedometerY > io.DisplaySize.y ||
+	if (cfg->speedometerSize == -1.0f || //config uninitialized
+		cfg->speedometerPos[0] < 0.0f || cfg->speedometerPos[0] > io.DisplaySize.x || //config values gone wrong
+		cfg->speedometerPos[1] < 0.0f || cfg->speedometerPos[1] > io.DisplaySize.y ||
 		lastDisplaySize.y != io.DisplaySize.y || lastDisplaySize.x != io.DisplaySize.x) //window size changed
 	{
 		float yscale = io.DisplaySize.y * (1.0f/720.0f); //scale from 720p, should probably factor in DisplayFramebufferScale as well
 
 		//printf("resolution changed or something\n");
 
-		if (yscale < 1.0f || yscale > 10.0f)
-			yscale = 1.0f;
+		if (yscale < 0.1f)
+			yscale = 0.1f;
+		else if (yscale > 10.0f)
+			yscale = 10.0f;
 
-		config->speedometerX = io.DisplaySize.x * 0.5f;
-		config->speedometerY = 75 * yscale;
+		cfg->speedometerPos[0] = io.DisplaySize.x * 0.5f;
+		cfg->speedometerPos[1] = 75 * yscale;
 
-		config->speedometerSize = yscale;
+		cfg->speedometerSize = yscale;
 
 		lastDisplaySize = io.DisplaySize;
 	}
@@ -873,7 +874,7 @@ void ControlUI::RenderOSD() {
 	ControlGameData *controlData = (ControlGameData *)data;
 
 	BaseUI::RenderOSD();
-	CSRM_DrawHUD(controlData, config, this, &io);
+	CSRM_DrawHUD(controlData, (ControlConfig *)config, this, &io);
 }
 
 void ControlUI::DrawPlayerObjects() {
@@ -881,9 +882,10 @@ void ControlUI::DrawPlayerObjects() {
 	ImGuiIO &io = ImGui::GetIO();
 
 	ControlGameData *controlData = (ControlGameData *)data;
+	ControlConfig *cfg = (ControlConfig *)config;
 
-	if (config->drawTriggers) {
-		CSRM_DrawTriggers(controlData, config, drawList, (int)screenWidth, (int)screenHeight);
+	if (cfg->drawTriggers) {
+		CSRM_DrawTriggers(controlData, cfg, drawList, (int)screenWidth, (int)screenHeight);
 	}
 
 	if (client->status == "Connected") {

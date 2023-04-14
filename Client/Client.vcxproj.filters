@@ -182,6 +182,9 @@
     <ClInclude Include="PSync\GameData\Control\Trigger.h">
       <Filter>PSync\GameData\Control</Filter>
     </ClInclude>
+    <ClInclude Include="PSync\Config\ControlConfig.h">
+      <Filter>PSync\Config</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

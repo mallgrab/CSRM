@@ -36,6 +36,7 @@ typedef uint32_t ptr;
 #include "GameData/Control/GameData.h"
 #include "UI/ControlUI.h"
 #include "Client/ControlClient.h"
+#include "Config/ControlConfig.h"
 
 class PSyncFactory {
 private:
@@ -50,41 +51,6 @@ public:
         GetModuleFileName(NULL, path, MAX_PATH);
         _wsplitpath_s(path, NULL, NULL, NULL, NULL, filename, FILENAME_MAX, NULL, NULL);
 
-#if 1
-        std::wcout << "control injected" << std::endl;
-        static ControlGameData data;
-        static BaseConfig config;
-        static ControlUI ui;
-        static ControlClient client;
-
-        config.ui = &ui;
-
-        ui.data = &data;
-        ui.config = &config;
-        ui.client = &client;
-
-        client.data = &data;
-        client.ui = &ui;
-        client.config = &config;
-
-        data.InitGameData();
-#ifndef _DEBUG
-        config.ReadConfig(); // for later, not important atm
-#endif
-
-        oHook.SetImGuiWndProcHandlerToggle(&data.uiToggle);
-
-        oHook.BindPreframeFunction(std::bind(&ControlUI::Init, &ui));
-        oHook.BindKeypressFunction(std::function<void(WPARAM)>(std::bind(&ControlUI::KeyPress, &ui, std::placeholders::_1)));
-        oHook.BindRenderFunction(std::function<void()>(std::bind(&ControlUI::RenderOSD, &ui)));
-        oHook.BindRenderFunction(std::function<void()>(std::bind(&ControlUI::RenderGUI, &ui)));
-
-        if (config.connectOnStart) {
-            unsigned int playerColour = ImGui::ColorConvertFloat4ToU32(Float3AToImColor(config.myColour, 1.0f));
-            unsigned int playerTrailColour = ImGui::ColorConvertFloat4ToU32(Float3AToImColor(config.myTrailColour, 1.0f));
-            client.StartClient(config.serverIP, atoi(config.serverPort), config.nickname, playerColour, playerTrailColour);
-        }
-#else
         //std::wcout << filename << std::endl;
         if (wcscmp(filename, L"NieRAutomata") == 0) {
             static NieRAutomataGameData data;
@@ -225,7 +191,7 @@ public:
         else if (wcscmp(filename, L"Control_DX11") == 0) {
             std::wcout << "control injected" << std::endl;
             static ControlGameData data;
-            static BaseConfig config;
+            static ControlConfig config;
             static ControlUI ui;
             static ControlClient client;
 
@@ -240,7 +206,9 @@ public:
             client.config = &config;
 
             data.InitGameData();
+#ifndef _DEBUG
             config.ReadConfig();
+#endif
 
             oHook.SetImGuiWndProcHandlerToggle(&data.uiToggle);
 
@@ -259,6 +227,5 @@ public:
             std::wcout << "Executable filename not recognized: " << filename << std::endl;
             return;
         }
-#endif
 	}
 };
