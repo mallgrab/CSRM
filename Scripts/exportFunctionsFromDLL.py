@@ -337,7 +337,14 @@ def main():
             fileOutputClass.write(function.declaration + "\n")
             fileOutputClass.write("{" + "\n")
             # suffix with func so we dont get naming collision
-            fileOutputClass.write("\t" + function.formattedName + "Func" + "(" + function.defType + ");" + "\n")
+            suffixedFormattedName = function.formattedName + "Func"
+
+            # check if we need to return the result of the original function call
+            if function.returnType == 'void':
+                fileOutputClass.write("\t" + suffixedFormattedName + "(" + function.defType + ");" + "\n")
+            else:
+                fileOutputClass.write("\t return " + suffixedFormattedName + "(" + function.defType + ");" + "\n")
+
             fileOutputClass.write("}" + "\n")
 
     fileOutputClass.write("\n" + "void " + fitlerByString + "InstallHooks(LPCWSTR dllName)" + "\n")
