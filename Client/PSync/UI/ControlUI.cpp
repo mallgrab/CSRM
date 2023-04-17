@@ -869,26 +869,16 @@ void ControlUI::Init()
 }
 
 void ControlUI::RenderOSD() {
+	if (!init) return;
 	ImDrawList *drawList = ImGui::GetForegroundDrawList();
 	ImGuiIO &io = ImGui::GetIO();
-	ControlGameData *controlData = (ControlGameData *)data;
-
-	BaseUI::RenderOSD();
-	CSRM_DrawHUD(controlData, (ControlConfig *)config, this, &io);
-}
-
-void ControlUI::DrawPlayerObjects() {
-	ImDrawList *drawList = ImGui::GetForegroundDrawList();
-	ImGuiIO &io = ImGui::GetIO();
-
 	ControlGameData *controlData = (ControlGameData *)data;
 	ControlConfig *cfg = (ControlConfig *)config;
+
+	BaseUI::RenderOSD();
 
 	if (cfg->drawTriggers) {
 		CSRM_DrawTriggers(controlData, cfg, drawList, (int)screenWidth, (int)screenHeight);
 	}
-
-	if (client->status == "Connected") {
-		BaseUI::DrawPlayerObjects();
-	}
+	CSRM_DrawHUD(controlData, cfg, this, &io);
 }
