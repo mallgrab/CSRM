@@ -14,6 +14,7 @@ class Functions:
     declaration: str = ""
     returnType: str = ""
     defType: str = ""
+    argumentsOnly: str = ""
     flagRemove: bool = False
 
     def __init__(self, exported, formated):
@@ -210,16 +211,33 @@ def main():
             if string[0] == ' ':
                 splitByEachArgument[index] = string[1:]
 
+        # build argument list for the exported function
+        argumentsOnly: str = ""
         for index, string in enumerate(splitByEachArgument):
             # dont add an additional space character if the variable is a pointer
             if splitByEachArgument[index][-1:] == '*':
                 splitByEachArgument[index] = splitByEachArgument[index] + "a" + str(variableNameCounter)
             else:
                 splitByEachArgument[index] = splitByEachArgument[index] + " a" + str(variableNameCounter)
+
+            # skip functions that are void
+            if len(splitByEachArgument) == 1 and splitByEachArgument[0].find('void') != -1:
+                continue
+            
+            if len(splitByEachArgument) == 1:
+                argumentsOnly += "a" + str(variableNameCounter)
+                continue
+
+            if index == 0:
+                argumentsOnly += "a" + str(variableNameCounter) + ", "
+            elif index == len(splitByEachArgument) - 1:
+                argumentsOnly += "a" + str(variableNameCounter)
+            else:
+                argumentsOnly += "a" + str(variableNameCounter) + ", "
+           
             variableNameCounter += 1
         
         defType: str = ""
-
         for index, string in enumerate(splitByEachArgument):
             if len(splitByEachArgument) - 1 != index:
                 defType += string + ", "
@@ -227,6 +245,7 @@ def main():
                 defType += string
 
         function.defType = defType
+        function.argumentsOnly = argumentsOnly
 
         if demangledFunctionArguments == "void":
             function.defType = ""
@@ -341,9 +360,9 @@ def main():
 
             # check if we need to return the result of the original function call
             if function.returnType == 'void':
-                fileOutputClass.write("\t" + suffixedFormattedName + "(" + function.defType + ");" + "\n")
+                fileOutputClass.write("\t" + suffixedFormattedName + "(" + function.argumentsOnly + ");" + "\n")
             else:
-                fileOutputClass.write("\t return " + suffixedFormattedName + "(" + function.defType + ");" + "\n")
+                fileOutputClass.write("\t return " + suffixedFormattedName + "(" + function.argumentsOnly + ");" + "\n")
 
             fileOutputClass.write("}" + "\n")
 
