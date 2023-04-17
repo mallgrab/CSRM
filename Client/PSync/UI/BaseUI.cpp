@@ -427,10 +427,9 @@ void BaseUI::RenderOSD() {
 
 	// Draw viewport elements
 	DrawPlayerObjects();
-	
 }
 
-#define PLAYERLIST_PADDING 8.0f
+#define PLAYERLIST_PADDING 4.0f
 void BaseUI::DrawPlayerList() {
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.3f));
 
@@ -446,8 +445,8 @@ void BaseUI::DrawPlayerList() {
 			const char *name = client_it.second->nickname.c_str();
 			ImVec2 rowSize = ImGui::CalcTextSize(name);
 
-			rowSize.x += (PLAYERLIST_PADDING*2);
-			rowSize.y += PLAYERLIST_PADDING;
+			rowSize.x += (PLAYERLIST_PADDING*4);
+			rowSize.y += (PLAYERLIST_PADDING*2);
 
 			if (config->playerListWidth <= 0) { //autosizing..
 				if (rowSize.x > size.x) //this name is longer than the previous longest name
