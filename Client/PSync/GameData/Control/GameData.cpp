@@ -239,13 +239,27 @@ void ControlGameData::EnableDeveloperMenus()
 	*/
 }
 
+using setPresentInterval_t = void(__fastcall*)(void* RendererInterfaceInstance, uint64_t interval);
+setPresentInterval_t setPresentIntervalFunc;
+void setPresentInterval(void* RendererInterfaceInstance, uint64_t interval)
+{
+	interval = 0; //force disable vsync
+	setPresentIntervalFunc(RendererInterfaceInstance, interval);
+}
+
 void ControlGameData::InitGameData()
 {
+	HMODULE coregameModule = GetModuleHandle(L"coregame_rmdwin7_f.dll");
+	HMODULE inputModule = GetModuleHandle(L"input_rmdwin7_f.dll");
+	HMODULE physicsModule = GetModuleHandle(L"physics_rmdwin7_f.dll");
+	HMODULE rendererModule = GetModuleHandle(L"renderer_rmdwin7_f.dll");
+	HMODULE rlModule = GetModuleHandle(L"rl_rmdwin7_f.dll");
+
 	uint64_t processStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
-	uint64_t coregameDllAddr = reinterpret_cast<uint64_t>(GetModuleHandle(L"coregame_rmdwin7_f.dll"));
-	uint64_t physicsDllAddr = reinterpret_cast<uint64_t>(GetModuleHandle(L"physics_rmdwin7_f.dll"));
-	uint64_t renderDllAddr = reinterpret_cast<uint64_t>(GetModuleHandle(L"renderer_rmdwin7_f.dll"));
-	uint64_t rlDllAddr = reinterpret_cast<uint64_t>(GetModuleHandle(L"rl_rmdwin7_f.dll"));
+	uint64_t coregameDllAddr = reinterpret_cast<uint64_t>(coregameModule);
+	uint64_t physicsDllAddr = reinterpret_cast<uint64_t>(physicsModule);
+	uint64_t renderDllAddr = reinterpret_cast<uint64_t>(rendererModule);
+	uint64_t rlDllAddr = reinterpret_cast<uint64_t>(rlModule);
 	ptrViewMatrixAddr = reinterpret_cast<ptr*>(renderDllAddr + 0x123B6A0);
 
 	ptr* setPlayerFunctionAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x5d60);
@@ -280,10 +294,14 @@ void ControlGameData::InitGameData()
 	TriggerInstallHooks(coregameDllAddr);
 	TriggerInitialize();
 
-	inputManagerInstance = (ptr**)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?sm_pInstance@InputManager@input@@0PEAV12@EA");
-	ptr* readDigitalPtr = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?readDigital@InputManager@input@@QEAA_NH_N@Z");
-	ptr* isFreeCameraOnPtr = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?isFreeCameraWithoutPlayerControlsOn@InputManager@input@@QEAA_NXZ");
-	ptr* setFreeCameraPtr = (ptr*)GetProcAddress(GetModuleHandle(L"input_rmdwin7_f.dll"), "?setFreeCameraWithoutPlayerControls@InputManager@input@@QEAAX_N@Z");
+	ptr* setPresentIntervalPtr = (ptr*)GetProcAddress(rendererModule, "?setPresentInterval@RendererInterfaceWrapper@rend@@QEAAXH@Z");
+	if (MH_CreateHook(setPresentIntervalPtr, &setPresentInterval, reinterpret_cast<LPVOID*>(&setPresentIntervalFunc)) != MH_OK) throw;
+	if (MH_EnableHook(setPresentIntervalPtr) != MH_OK) throw;
+
+	inputManagerInstance = (ptr**)GetProcAddress(inputModule, "?sm_pInstance@InputManager@input@@0PEAV12@EA");
+	ptr* readDigitalPtr = (ptr*)GetProcAddress(inputModule, "?readDigital@InputManager@input@@QEAA_NH_N@Z");
+	ptr* isFreeCameraOnPtr = (ptr*)GetProcAddress(inputModule, "?isFreeCameraWithoutPlayerControlsOn@InputManager@input@@QEAA_NXZ");
+	ptr* setFreeCameraPtr = (ptr*)GetProcAddress(inputModule, "?setFreeCameraWithoutPlayerControls@InputManager@input@@QEAAX_N@Z");
 
 	isFreeCameraOn = reinterpret_cast<isFreeCameraOn_t>(isFreeCameraOnPtr);
 	setFreeCamera = reinterpret_cast<setFreeCamera_t>(setFreeCameraPtr);
