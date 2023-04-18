@@ -213,6 +213,13 @@ void ControlGameData::InitGameData()
 	ptr* characterControllerCtorAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x5d80);
 	ptr* characterControllerMoveCapsuleAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x7540);
 
+#if 0 //not early enough
+	//patch out single instance check
+	ptr* singleInstanceAddr = reinterpret_cast<ptr*>(processStartAddr + 0x30aa08);
+	if ( (byte)*singleInstanceAddr == 0x75)
+		*singleInstanceAddr = 0xEB; //change JNZ to JMP (75->EB)
+#endif
+
 	BaseTweakableInstallHooks(L"rl_rmdwin7_f.dll");
 	BaseTweakableInitialize();
 	TriggerInstallHooks(coregameDllAddr);
