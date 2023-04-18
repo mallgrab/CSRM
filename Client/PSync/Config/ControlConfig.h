@@ -42,7 +42,7 @@ protected:
 		readFromIni(file, "drawFPS", drawFPS);
 		//readFromIni(file, "showPos", showPos);
 
-		//readFromIni(file, "drawSpeedometer", drawSpeedometer); //causing crashes when enabled on startup rn
+		readFromIni(file, "drawSpeedometer", drawSpeedometer); //causing crashes when enabled on startup rn
 		readFromIni(file, "speedometerShowTopSpeed", speedometerShowTopSpeed);
 		readFromIni(file, "speedometerGroundSpeed", speedometerGroundSpeed);
 		readFromIni(file, "speedometerColorSpeed", speedometerColorSpeed);
@@ -60,7 +60,7 @@ protected:
 		writeToIni(file, "drawFPS", drawFPS);
 		//writeToIni(file, "showPos", showPos);
 
-		//writeToIni(file, "drawSpeedometer", drawSpeedometer);
+		writeToIni(file, "drawSpeedometer", drawSpeedometer);
 		writeToIni(file, "speedometerShowTopSpeed", speedometerShowTopSpeed);
 		writeToIni(file, "speedometerGroundSpeed", speedometerGroundSpeed);
 		writeToIni(file, "speedometerColorSpeed", speedometerColorSpeed);

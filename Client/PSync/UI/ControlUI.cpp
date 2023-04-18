@@ -210,7 +210,6 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 		}
 	}
 
-	//ImGui::SetWindowFontScale(2.0f);
 	font = ImGui::GetFont();
 	font->Scale = config->speedometerSize;
 	ImGui::PushFont(font);
@@ -225,7 +224,6 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 	font->Scale = 1.0f;
 	ImGui::PushFont(font);
 	ImGui::PopFont();
-	//ImGui::SetWindowFontScale(1.0f);
 
 	//print to console window, throttle at 60hz?
 	if (config->speedometerConsolePrint)
@@ -279,7 +277,7 @@ static void CSRM_DrawFPS(ControlGameData *gameData, ControlConfig *config, Contr
 	if (config->playerListEnabled && config->playerListPos == PLAYERLIST_TOPRIGHT && ui->client->IsRunning() && ui->client->GetUserCount() > 0)
 		pos = { io->DisplaySize.x - textSize.x - 4.0f, io->DisplaySize.y - textSize.y - 4.0f }; //move to bottom right corner if player list is being shown
 	else
-		pos = { (io->DisplaySize.x - textSize.x), 0.0f };
+		pos = { io->DisplaySize.x - textSize.x - 4.0f, 4.0f };
 	ImGui_DrawStringWithDropShadow(pos, color, text);
 
 	//reset font scale

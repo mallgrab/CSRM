@@ -34,13 +34,14 @@ public:
 	void CreateNotification(const char *message, float duration, float fadeIn, float fadeOut, ImColor bgCol, ImColor textCol);
 
 	void QueueCountdown(unsigned int time);
+
+	// Fonts
+	ImFont* rodinProMFontBig;
+	ImFont* rodinProMFontSmall;
 protected:
 	bool init = false;
 	float screenWidth = 0.0f;
 	float screenHeight = 0.0f;
-	// Fonts
-	ImFont* rodinProMFontBig;
-	ImFont* rodinProMFontSmall;
 	// Notification vars
 	bool drawNotif = false;
 	char notifMessage[256];
