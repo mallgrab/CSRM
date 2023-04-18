@@ -30,6 +30,7 @@ public:
 	float getPlayerPosSpeed();
 	void SetPlayerPos(Vector3 newPos);
 	Vector3* GetPlayerPos_Real();
+	bool playerIsOnGround();
 	void ToggleFreeCam();
 	void EnableDeveloperMenus();
 };

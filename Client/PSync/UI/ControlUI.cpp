@@ -162,7 +162,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 		topSpeed = 0;
 	else if (speed > topSpeed)
 		topSpeed = speed;
-	else if (topSpeed > 7.0f && speed <= 7.0f) //reset if below sprinting speed
+	else if (topSpeed > 6.0f && speed < 6.0f) //reset if well below sprinting speed
 		topSpeed = speed;
 
 	//sprintf_s(text, sizeof(text), "%.2f", speed);
@@ -184,55 +184,29 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 		static int drawTime = 0;
 		const int curTime = clock();
 		const int delta = curTime - lastUpdateTime; //this shit HAS to be throttled I guess?
-
-		static bool onGround = true;
-		static float jumpSpeed = 0;
-		static float jumpY = 0;
+		static float groundSpeed = 0;
 
 		if (delta >= 33) //30hz..
 		{
-			Vector3 pos = *gameData->GetPlayerPos();
-			//static Vector3 previousPos = pos;
-			const float yPos = pos.y;
-			static float previousYPos = yPos;
-			const float heightDiff = yPos - previousYPos;
-			static float previousHeightDiff = heightDiff;
+			const bool onGround = gameData->playerIsOnGround();
+			static bool lastOnGround = onGround;
 
-			if (yPos == previousYPos && pos.y <= jumpY) //not moving up or down and we're below where we were when we jumped
-				onGround = true;
-
-			if (heightDiff > 0 && previousHeightDiff < 0) //moving up after previously moving downward (hopped)
-				onGround = true;
-
-			if (onGround) {
-				if (heightDiff > 0)
-				{ //we're moving up for the first time so probably jump (stairs and shit are obviously gonna trigger this lol)
-					onGround = false;
-					drawTime = curTime + 1500;
-				}
-				/*else {
-					drawTime = 0; //don't draw
-				}*/
-
-				jumpSpeed = speed;
-				jumpY = yPos;
+			//printf("playerIsOnGround %s\n", onGround ? "yes" : "no");
+			if (!onGround && lastOnGround) { //airborne this frame while we were grounded last frame
+				drawTime = curTime + 1500;
+				groundSpeed = speed;
 			}
+			/*else if (onGround && lastOnGround) {
+				drawTime = 0; //don't draw
+			}*/
 
-			/*
-			if (heightDiff)
-				printf("%i heightDiff %f - jumpSpeed %f - onGround %s\n",
-					   curTime, heightDiff, jumpSpeed, onGround ? "true" : "false");
-			*/
-
-			previousYPos = yPos;
-			previousHeightDiff = heightDiff;
+			lastOnGround = onGround;
 			lastUpdateTime = curTime;
-
 		}
 
 		if (curTime <= drawTime) {
 			len += sprintf_s(text+len, sizeof(text)-len,
-							 config->speedometerType != 1 ? "  %.0f" : "  %.02f", CSRM_SpeedometerSpeed(jumpSpeed, config->speedometerType));
+							 config->speedometerType != 1 ? "  %.0f" : "  %.02f", CSRM_SpeedometerSpeed(groundSpeed, config->speedometerType));
 		}
 	}
 
@@ -279,9 +253,9 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 
 			//actually print the shit
 			if (config->speedometerType != 1)
-				printf("XYVel - %.03f: %.0f\n", seconds, drawSpeed);
+				printf("XYVel - %.03f: %.0f - %s\n", seconds, drawSpeed, gameData->playerIsOnGround() ? "grounded" : "airborne");
 			else
-				printf("XYVel - %.03f: %.02f\n", seconds, drawSpeed);
+				printf("XYVel - %.03f: %.02f - %s\n", seconds, drawSpeed, gameData->playerIsOnGround() ? "grounded" : "airborne");
 		}
 	}
 }

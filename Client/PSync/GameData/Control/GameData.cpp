@@ -162,6 +162,15 @@ float ControlGameData::getPlayerPosSpeed()
 }
 #endif
 
+bool ControlGameData::playerIsOnGround()
+{
+	if (!playerController || !playerCharacterController || !mapIsLoaded)
+		return false;
+
+	bool *onGround = (bool*)(playerController + 21) + 6;
+	return *onGround;
+}
+
 // hack!!! rewrite this later once we figure out more about the gameclient instance
 // theres a function that lets us set the camera mode directly but requires hooking
 // the gameclient constructor since there isnt any exported function that gives us the instance
