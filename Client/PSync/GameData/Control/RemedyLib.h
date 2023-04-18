@@ -104,7 +104,7 @@ namespace r
 		uint32_t size_a;
 		uint32_t size_b;
 		uint64_t empty;
-		char text[];
+		char *text;
 
 		rstring(int size)
 		{
