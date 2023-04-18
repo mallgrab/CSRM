@@ -578,9 +578,10 @@ void ControlUI::DebugTab() {
 			ImGui::SliderFloat("##TriggerOpacitySlider", &cfg->triggerOpacity, 0.0f, 1.0f, "%.3f");
 		}
 		//ImGui::Text("\n");
-		ImGui::Text("Camera settings:");
-		if (ImGui::Button("Toggle Freecam"))
-			controlData->ToggleFreeCam();
+		ImGui::Text("Developer features:");
+		if (ImGui::Button("Toggle Freecam")) controlData->ToggleFreeCam();
+		ImGui::SameLine();
+		if (ImGui::Button("Enable developer menus")) controlData->EnableDeveloperMenus();
 
 		//ImGui::Text("\n");
 		ImGui::Text("\nDebug:");

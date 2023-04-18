@@ -196,6 +196,38 @@ void ControlGameData::ToggleFreeCam()
 	toggleFreeCam = true;
 }
 
+void ControlGameData::EnableDeveloperMenus()
+{ //scuffed, should do this another way
+	/* To restore the Mission select screen (Basically enables developer mode I guess?)
+	patch 1404F8C8				cmp		byte ptr [rax+130h], 0
+	just change it to mov ,1 instead. And then maybe skip the jump after that. */
+	//Control_DX11.exe+40F8C8
+	uint64_t processStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
+	byte *devModeAddr = reinterpret_cast<byte*>(processStartAddr + 0x40f8c8);
+
+	//cmp byte ptr[rax+130h], 0 -> mov byte ptr[rax+130h], 1
+	//80 B8 30 01 00 00 00 -> C6 80 30 01 00 00 01
+	*devModeAddr = 0xC6; devModeAddr++;
+	*devModeAddr = 0x80; devModeAddr++;
+	*devModeAddr = 0x30; devModeAddr++;
+	*devModeAddr = 0x01; devModeAddr++;
+	*devModeAddr = 0x00; devModeAddr++;
+	*devModeAddr = 0x00; devModeAddr++;
+	*devModeAddr = 0x01;
+
+	/*
+	//doesn't seem to do anything
+	//JZ 0x14040FD23 -> NOP NOP NOP
+	//0F 84 4E 04 00 00 -> 66 90 66 90 66 90
+	*devModeAddr = 0x66; devModeAddr++;
+	*devModeAddr = 0x90; devModeAddr++;
+	*devModeAddr = 0x66; devModeAddr++;
+	*devModeAddr = 0x90; devModeAddr++;
+	*devModeAddr = 0x66; devModeAddr++;
+	*devModeAddr = 0x90; devModeAddr++;
+	*/
+}
+
 void ControlGameData::InitGameData()
 {
 	uint64_t processStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
@@ -218,6 +250,18 @@ void ControlGameData::InitGameData()
 	ptr* singleInstanceAddr = reinterpret_cast<ptr*>(processStartAddr + 0x30aa08);
 	if ( (byte)*singleInstanceAddr == 0x75)
 		*singleInstanceAddr = 0xEB; //change JNZ to JMP (75->EB)
+#endif
+
+#ifdef _DEBUG //dev moed ?
+	byte *devModeAddr = reinterpret_cast<byte*>(processStartAddr + 0x40f8c8);
+	//80 B8 30 01 00 00 00 -> C6 80 30 01 00 00 01
+	*devModeAddr = 0xC6; devModeAddr++;
+	*devModeAddr = 0x80; devModeAddr++;
+	*devModeAddr = 0x30; devModeAddr++;
+	*devModeAddr = 0x01; devModeAddr++;
+	*devModeAddr = 0x00; devModeAddr++;
+	*devModeAddr = 0x00; devModeAddr++;
+	*devModeAddr = 0x01; devModeAddr++;
 #endif
 
 	BaseTweakableInstallHooks(L"rl_rmdwin7_f.dll");

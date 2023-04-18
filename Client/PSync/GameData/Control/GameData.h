@@ -31,4 +31,5 @@ public:
 	void SetPlayerPos(Vector3 newPos);
 	Vector3* GetPlayerPos_Real();
 	void ToggleFreeCam();
+	void EnableDeveloperMenus();
 };
