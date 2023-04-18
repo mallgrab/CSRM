@@ -58,8 +58,7 @@ public:
 
 	bool playerListEnabled = true;
 	int playerListWidth = 0; //160;
-	//for some reason this shit doesn't get read from the config properly, why??
-	int playerListPos = PLAYERLIST_BOTTOMRIGHT; //PLAYERLIST_TOPRIGHT;
+	int playerListPos = PLAYERLIST_TOPRIGHT;
 
 	bool drawSelf = false;
 

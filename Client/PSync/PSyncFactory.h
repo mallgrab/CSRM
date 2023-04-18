@@ -206,9 +206,7 @@ public:
             client.config = &config;
 
             data.InitGameData();
-#ifndef _DEBUG
             config.ReadConfig();
-#endif
 
             oHook.SetImGuiWndProcHandlerToggle(&data.uiToggle);
 

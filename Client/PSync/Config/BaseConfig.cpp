@@ -55,9 +55,7 @@ void BaseConfig::ReadConfig() {
 
 	readFromIni(file, "PlayerListEnabled", playerListEnabled);
 	readFromIni(file, "PlayerListWidth", playerListWidth);
-	//playerListPos = 0;
-	readFromIni(file, "PlayerListPosition", playerListPos); //what the actual FUCK is going on here? this doesn't work like at all??
-	//printf("reading PlayerListPosition %i\n", playerListPos);
+	readFromIni(file, "PlayerListPosition", playerListPos);
 
 	readFromIni(file, "DrawSelf", drawSelf);
 
@@ -121,11 +119,12 @@ void BaseConfig::WriteConfig() {
 	writeToIni(file, "PlayerTrailThickness", playerTrailThickness);
 	writeToIni(file, "PlayerTrailLength", playerTrailLength);
 
-	writeHeader(file, "[Player List]");
+	//writeHeader(file, "[Player List]"); //FIX THIS so a space in a header line doesn't break everything below it
+										  //all of this code expects every line in the config file to contain exactly 1 space lol
+	writeHeader(file, "[PlayerList]");
 	writeToIni(file, "PlayerListEnabled", playerListEnabled);
 	writeToIni(file, "PlayerListWidth", playerListWidth);
-	writeToIni(file, "PlayerListPosition", playerListPos); //??????????
-	//printf("writing PlayerListPosition %i\n", playerListPos);
+	writeToIni(file, "PlayerListPosition", playerListPos);
 
 	writeHeader(file, "[Other]");
 	writeToIni(file, "DrawSelf", drawSelf);

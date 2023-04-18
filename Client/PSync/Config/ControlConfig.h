@@ -33,7 +33,7 @@ public:
 
 protected:
 	inline void ReadExtraConfig(std::fstream& file) {
-		readFromIni(file, "drawTriggers", drawTriggers);
+		//readFromIni(file, "drawTriggers", drawTriggers);
 		readFromIni(file, "drawTriggersHotkey", drawTriggersHotkey);
 		readFromIni(file, "triggerOpacity", triggerOpacity);
 
@@ -51,7 +51,7 @@ protected:
 	}
 
 	inline void WriteExtraConfig(std::fstream& file) {
-		writeToIni(file, "drawTriggers", drawTriggers);
+		//writeToIni(file, "drawTriggers", drawTriggers);
 		writeToIni(file, "drawTriggersHotkey", drawTriggersHotkey);
 		writeToIni(file, "triggerOpacity", triggerOpacity);
 
