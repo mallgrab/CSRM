@@ -62,7 +62,7 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
 			windowClass.lpfnWndProc = DefWindowProc;
 			windowClass.cbClsExtra = 0;
 			windowClass.cbWndExtra = 0;
-			windowClass.hInstance = GetModuleHandle(nullptr);
+			windowClass.hInstance = GetModuleHandle(NULL);
 			windowClass.hIcon = NULL;
 			windowClass.hCursor = NULL;
 			windowClass.hbrBackground = NULL;
@@ -73,11 +73,7 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
 
 			::RegisterClassEx(&windowClass);
 
-			//HWND window = ::CreateWindow(windowClass.lpszClassName, KIERO_TEXT("Kiero DirectX Window"), WM_NULL | WS_VISIBLE, 0, 0, 100, 100, NULL, NULL, windowClass.hInstance, NULL);
-			//HWND parent = GetAncestor(window, 3);
-			//DestroyWindow(parent);
-
-			HWND window = GetForegroundWindow();
+			HWND window = ::CreateWindow(windowClass.lpszClassName, KIERO_TEXT("Kiero DirectX Window"), WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, NULL, NULL, windowClass.hInstance, NULL);
 
 			if (_renderType == RenderType::D3D9)
 			{
@@ -273,7 +269,6 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
 					return Status::ModuleNotFoundError;
 				}
 
-
 				void* D3D11CreateDeviceAndSwapChain;
 				if ((D3D11CreateDeviceAndSwapChain = ::GetProcAddress(libD3D11, "D3D11CreateDeviceAndSwapChain")) == NULL)
 				{
@@ -281,7 +276,6 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
 					::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
 					return Status::UnknownError;
 				}
-
 
 				D3D_FEATURE_LEVEL featureLevel;
 				const D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0 };

@@ -43,13 +43,17 @@ private:
     OcularHook oHook;
 
 public:
-	inline void PSyncMod(OcularHook ocular) {
+	inline void PSyncMod(OcularHook ocular, wchar_t *path, wchar_t *filename) {
         oHook = ocular;
+#if 0 //moved to main.cpp
         wchar_t path[FILENAME_MAX];
         wchar_t filename[FILENAME_MAX];
 
         GetModuleFileName(NULL, path, MAX_PATH);
         _wsplitpath_s(path, NULL, NULL, NULL, NULL, filename, FILENAME_MAX, NULL, NULL);
+#else
+        //assert(filename);
+#endif
 
         //std::wcout << filename << std::endl;
         if (wcscmp(filename, L"NieRAutomata") == 0) {
