@@ -543,7 +543,7 @@ void ControlUI::DebugTab() {
 		ControlConfig *cfg = ((ControlConfig*)config);
 
 		ImGui::Text("%.01f FPS\n", io.Framerate);
-		ImGui::Text("Screen Size:");
+		ImGui::TextUnformatted("Screen Size:");
 		ImGui::SameLine();
 		ImGui::Text("%.0f, %.0f", io.DisplaySize.x, io.DisplaySize.y);
 
@@ -560,18 +560,18 @@ void ControlUI::DebugTab() {
 		if (ImGui::Checkbox("Temporal SSAA", &cfg->TemporalSSAA))
 			SSAATweakable.SetTweakableStrValue(cfg->TemporalSSAA ? "1.0f" : "0.0f");
 
-		ImGui::Text("\n");
-		ImGui::Text("Game settings:");
+		ImGui::TextUnformatted("\n");
+		ImGui::TextUnformatted("Game settings:");
 		ImGui::Checkbox("Save/Load position", &cfg->saveLoadPosition);
 		if (ImGui::Checkbox("Disable levitation", &cfg->disableLevitation))
 			AbilityLevitateTweakable.SetTweakableStrValue(cfg->disableLevitation ? "1" : "0");
 
-		ImGui::Text("\nHUD:");
+		ImGui::TextUnformatted("\nHUD:");
 		ImGui::Checkbox("Draw FPS", &cfg->drawFPS);
 		//ImGui::SameLine();
 		//ImGui::Checkbox("Show Pos", &cfg->showPos);
 
-		ImGui::Text("Speedometer:");
+		ImGui::TextUnformatted("Speedometer:");
 		ImGui::Checkbox("Draw Speedometer", &cfg->drawSpeedometer);
 		if (cfg->drawSpeedometer) {
 			ImGui::SameLine();
@@ -582,37 +582,39 @@ void ControlUI::DebugTab() {
 			ImGui::SameLine();
 			ImGui::Checkbox("Show Ground Speed", &cfg->speedometerGroundSpeed);
 
-			ImGui::Combo("Unit type:", &cfg->speedometerType, "Normal\0Raw\0Quake Units\0\0");
+			ImGui::TextUnformatted("Unit type:");
+			ImGui::SameLine();
+			ImGui::Combo("##UnitTypeCombo", &cfg->speedometerType, "Normal\0Raw\0Quake Units\0\0");
 
 			//ImGui::InputFloat("X", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
 			//ImGui::InputFloat("Y", &config->speedometerY, 1.0f, 2.0f);
-			ImGui::Text("Position:");
+			ImGui::TextUnformatted("Position:");
 			ImGui::SameLine();
 			ImGui::InputFloat2("##SpeedometerPosFields", cfg->speedometerPos, "%.2f", ImGuiInputTextFlags_CharsScientific);
-			ImGui::Text("Size:");
+			ImGui::TextUnformatted("Size:");
 			ImGui::SameLine();
 			ImGui::InputFloat("", &cfg->speedometerSize, 0.125f, 0.25f);
 
 			ImGui::Checkbox("Print speed to console", &cfg->speedometerConsolePrint);
 		}
 
-		ImGui::Text("\n");
+		ImGui::TextUnformatted("\n");
 		ImGui::Text("Triggers (%i):", TriggerGetCount());
 		ImGui::Checkbox("Enable Triggers", &cfg->drawTriggers);
 		ImGui::SameLine();
 		ImGui::Checkbox("Ins toggle", &cfg->drawTriggersHotkey);
 		if (cfg->drawTriggers) {
-			ImGui::Text("Trigger Opacity:");
+			ImGui::TextUnformatted("Trigger Opacity:");
 			ImGui::SliderFloat("##TriggerOpacitySlider", &cfg->triggerOpacity, 0.0f, 1.0f, "%.3f");
 		}
 		//ImGui::Text("\n");
-		ImGui::Text("Developer features:");
+		ImGui::TextUnformatted("Developer features:");
 		if (ImGui::Button("Toggle Freecam")) controlData->ToggleFreeCam();
 		ImGui::SameLine();
 		if (ImGui::Button("Enable developer menus")) controlData->EnableDeveloperMenus();
 
-		//ImGui::Text("\n");
-		ImGui::Text("\nDebug:");
+		//ImGui::TextUnformatted("\n");
+		ImGui::TextUnformatted("\nDebug:");
 		if (myPlayerPos != nullptr) {
 			ImGui::Text("PosX: %f", myPlayerPos->x);
 			ImGui::Text("PosY: %f", myPlayerPos->y);
