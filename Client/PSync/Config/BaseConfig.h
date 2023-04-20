@@ -10,7 +10,7 @@ class BaseUI;
 
 #include "../UI/BaseUI.h"
 
-typedef enum listPosition {
+typedef enum listPosition_e {
 	PLAYERLIST_TOPLEFT = 0,
 	PLAYERLIST_TOPRIGHT,
 	PLAYERLIST_BOTTOMLEFT,

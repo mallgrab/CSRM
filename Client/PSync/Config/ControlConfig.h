@@ -20,6 +20,7 @@ public:
 	bool speedometerShowTopSpeed = false;
 	bool speedometerGroundSpeed = true; //show speed on jumps?
 	bool speedometerColorSpeed = true;
+	bool speedometerGraph = true;
 	bool speedometerConsolePrint = false;
 	int speedometerType = 0;
 	//float speedometerX = -1.0f, speedometerY = -1.0f;
@@ -46,6 +47,7 @@ protected:
 		readFromIni(file, "speedometerShowTopSpeed", speedometerShowTopSpeed);
 		readFromIni(file, "speedometerGroundSpeed", speedometerGroundSpeed);
 		readFromIni(file, "speedometerColorSpeed", speedometerColorSpeed);
+		readFromIni(file, "speedometerGraph", speedometerGraph);
 		//readFromIni(file, "speedometerConsolePrint", speedometerConsolePrint);
 		//readFromIni(file, "speedometerType", speedometerType);
 	}
@@ -64,6 +66,7 @@ protected:
 		writeToIni(file, "speedometerShowTopSpeed", speedometerShowTopSpeed);
 		writeToIni(file, "speedometerGroundSpeed", speedometerGroundSpeed);
 		writeToIni(file, "speedometerColorSpeed", speedometerColorSpeed);
+		writeToIni(file, "speedometerGraph", speedometerGraph);
 		//writeToIni(file, "speedometerConsolePrint", speedometerConsolePrint);
 		//writeToIni(file, "speedometerType", speedometerType);
 	}

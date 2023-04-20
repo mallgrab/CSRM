@@ -37,10 +37,16 @@ void draw_speed(ImVec2 position, float speed) {
 		(position.y - ImGui::CalcTextSize(health_text).y / 2.0f) }, ImGui::ColorConvertFloat4ToU32({ 1,1,1,1.0f }), health_text);
 }
 #else
+//utility function that handles dropshadow
+static inline void ImGui_DrawStringWithDropShadow(ImDrawList *drawList, const ImVec2 &pos, const ImVec4 &color, const char *text)
+{
+	drawList->AddText({ pos.x + 2.0f, pos.y + 2.0f }, ImGui::ColorConvertFloat4ToU32({ 0.0f, 0.0f, 0.0f, color.w }), text);
+	drawList->AddText(pos, ImGui::ColorConvertFloat4ToU32(color), text);
+}
+
 static inline void ImGui_DrawStringWithDropShadow(const ImVec2 &pos, const ImVec4 &color, const char *text)
-{ //utility function that handles dropshadow
-	ImGui::GetForegroundDrawList()->AddText({ pos.x + 2.0f, pos.y + 2.0f }, ImGui::ColorConvertFloat4ToU32({ 0.0f, 0.0f, 0.0f, color.w}), text);
-	ImGui::GetForegroundDrawList()->AddText(pos, ImGui::ColorConvertFloat4ToU32(color), text);
+{
+	ImGui_DrawStringWithDropShadow(ImGui::GetForegroundDrawList(), pos, color, text);
 }
 
 #define GROUND_SPEED 6.00f //4.50f
@@ -210,6 +216,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 		}
 	}
 
+	//set font scale
 	font = ImGui::GetFont();
 	font->Scale = config->speedometerSize;
 	ImGui::PushFont(font);
@@ -218,42 +225,89 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 	textSize = ImGui::CalcTextSize(text);
 	pos = { (config->speedometerPos[0] - (textSize.x * 0.5f)), (config->speedometerPos[1] - (textSize.y * 0.5f))};
 	color = CSRM_SpeedColor(speed, config->speedometerColorSpeed);
-	ImGui_DrawStringWithDropShadow(pos, color, text);
+	ImDrawList *drawList = ImGui::GetForegroundDrawList();
+	ImGui_DrawStringWithDropShadow(drawList, pos, color, text);
 
 	//reset font scale
 	font->Scale = 1.0f;
 	ImGui::PushFont(font);
 	ImGui::PopFont();
 
-	//print to console window, throttle at 60hz?
-	if (config->speedometerConsolePrint)
+	if (!config->speedometerConsolePrint && !config->speedometerGraph) return; //prolly remove this in the future
+
+#define SPEED_SAMPLES 512 //has to be divisible by 128?
+#define SPEED_GRAPH_BASE_WIDTH 480 //should prolly scale this as well?
+	//print to console window, throttle at 30hz?
+	static int baseTime = clock();
+	static int lastUpdateTime = 0;
+	int curTime = clock() - baseTime;
+	static float prevSpeed = speed;
+	static float speedHistory[SPEED_SAMPLES];
+	static int speedHistoryIndex = 0;
+	bool update30Hz = (bool)(curTime - lastUpdateTime >= 33); //~30hz
+
+	if (speed != prevSpeed)
+		update30Hz = true; //reset if speed has changed since last update
+
+	if (update30Hz)
 	{
-		static float prevSpeed = speed;
-		static int baseTime = clock();
-		static int lastUpdateTime = 0;
-		int curTime = clock() - baseTime;
+		lastUpdateTime = curTime;
 
-		if (curTime - lastUpdateTime >= 33) //~30hz
+		if (config->speedometerGraph)
+		{ //update graph data
+			speedHistory[speedHistoryIndex & (SPEED_SAMPLES - 1)] = speed;
+			speedHistoryIndex++;
+		}
+
+		if (config->speedometerConsolePrint)
 		{
-			float seconds = 0.0f;
-
-			lastUpdateTime = curTime;
-			if (prevSpeed == speed && speed < 0.01f) {
+			if (prevSpeed == speed && speed < 0.01f)
+			{
 				baseTime = clock(); //reset timer when coming to a complete stop
 				lastUpdateTime = 0;
 				prevSpeed = speed;
-				return;
 			}
+			else //don't return early
+			{
+				float seconds = 0.0f;
+				if (curTime > 0)
+					seconds = (float)curTime / 1000.0f;
 
-			prevSpeed = speed;
+				//actually print the shit
+				if (config->speedometerType != 1)
+					printf("XYVel - %.03f: %.0f - %s\n", seconds, drawSpeed, gameData->playerIsOnGround() ? "grounded" : "airborne");
+				else
+					printf("XYVel - %.03f: %.02f - %s\n", seconds, drawSpeed, gameData->playerIsOnGround() ? "grounded" : "airborne");
+			}
+		}
+		prevSpeed = speed;
+	}
 
-			if (curTime > 0) seconds = (float)curTime / 1000.0f;
+	if (config->speedometerGraph)
+	{ //draw the graph
+		int i;
+		ImVec2 p1, p2;
+		float scale = config->speedometerSize;
+		float graphWidth = SPEED_GRAPH_BASE_WIDTH * config->speedometerSize;
+		if (graphWidth > SPEED_SAMPLES) {
+			graphWidth = SPEED_SAMPLES;
+			scale = (float)(SPEED_SAMPLES/SPEED_GRAPH_BASE_WIDTH);
+		}
+		const float graphStartX = (io->DisplaySize.x * 0.5f) + (graphWidth * 0.5f);
+		const static ImU32 graphColor = ImGui::ColorConvertFloat4ToU32(ImVec4(0, 255, 0, 255));
 
-			//actually print the shit
-			if (config->speedometerType != 1)
-				printf("XYVel - %.03f: %.0f - %s\n", seconds, drawSpeed, gameData->playerIsOnGround() ? "grounded" : "airborne");
-			else
-				printf("XYVel - %.03f: %.02f - %s\n", seconds, drawSpeed, gameData->playerIsOnGround() ? "grounded" : "airborne");
+		for (i = 0; i < graphWidth; i++)
+		{ //loop through speedHistory, draw line by line right to left
+			int index = (speedHistoryIndex - 1 - i) & (SPEED_SAMPLES - 1);
+			float h = speedHistory[index];
+
+			h *= config->speedometerSize; //scale it up kinda?
+
+			p1.x = p2.x = graphStartX - (float)(i * scale);
+			p1.y = p2.y = io->DisplaySize.y;
+			p2.y -= h;
+			//if (s > 0)
+				drawList->AddLine(p1, p2, graphColor, scale);
 		}
 	}
 }
@@ -452,7 +506,7 @@ void ControlUI::KeyPress(WPARAM key) {
 	//printf("ControlUI::KeyPress %i\n", (int)key);
 	ControlConfig *cfg = (ControlConfig *)config;
 	if (cfg->drawTriggersHotkey) {
-		if (key == 0x2D) { //insert
+		if (key == VK_INSERT) { //0x2D
 			cfg->drawTriggers = !cfg->drawTriggers;
 			return;
 		}
@@ -521,7 +575,9 @@ void ControlUI::DebugTab() {
 		ImGui::Checkbox("Draw Speedometer", &cfg->drawSpeedometer);
 		if (cfg->drawSpeedometer) {
 			ImGui::SameLine();
+			ImGui::Checkbox("Speed graph", &cfg->speedometerGraph);
 			ImGui::Checkbox("Speed Color", &cfg->speedometerColorSpeed);
+			ImGui::SameLine();
 			ImGui::Checkbox("Show Top Speed", &cfg->speedometerShowTopSpeed);
 			ImGui::SameLine();
 			ImGui::Checkbox("Show Ground Speed", &cfg->speedometerGroundSpeed);
@@ -530,7 +586,7 @@ void ControlUI::DebugTab() {
 
 			//ImGui::InputFloat("X", &config->speedometerX, 1.0f, 2.0f); //change this to use InputFloat2
 			//ImGui::InputFloat("Y", &config->speedometerY, 1.0f, 2.0f);
-			ImGui::Text("Speedometer position:");
+			ImGui::Text("Position:");
 			ImGui::SameLine();
 			ImGui::InputFloat2("##SpeedometerPosFields", cfg->speedometerPos, "%.2f", ImGuiInputTextFlags_CharsScientific);
 			ImGui::Text("Size:");
