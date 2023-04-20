@@ -253,11 +253,8 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 	{
 		lastUpdateTime = curTime;
 
-		if (config->speedometerGraph)
-		{ //update graph data
-			speedHistory[speedHistoryIndex & (SPEED_SAMPLES - 1)] = speed;
-			speedHistoryIndex++;
-		}
+		if (config->speedometerGraph) //update graph data
+			speedHistory[speedHistoryIndex++ & (SPEED_SAMPLES - 1)] = speed;
 
 		if (config->speedometerConsolePrint)
 		{
@@ -301,6 +298,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 			int index = (speedHistoryIndex - 1 - i) & (SPEED_SAMPLES - 1);
 			float h = speedHistory[index];
 
+			h *= 2.0f; //double it so it's a little easier to read - should this be a config setting?
 			h *= config->speedometerSize; //scale it up kinda?
 
 			p1.x = p2.x = graphStartX - (float)(i * scale);
