@@ -291,12 +291,19 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 			scale = (float)(SPEED_SAMPLES/SPEED_GRAPH_BASE_WIDTH);
 		}
 		const float graphStartX = (io->DisplaySize.x * 0.5f) + (graphWidth * 0.5f);
-		const static ImU32 graphColor = ImGui::ColorConvertFloat4ToU32(ImVec4(0, 255, 0, 255));
+		const static ImU32 colorGreen = ImGui::ColorConvertFloat4ToU32(ImVec4(0, 255, 0, 255));
+		const static ImU32 colorYellow = ImGui::ColorConvertFloat4ToU32(ImVec4(255, 255, 0, 255));
 
 		for (i = 0; i < graphWidth; i++)
 		{ //loop through speedHistory, draw line by line right to left
 			int index = (speedHistoryIndex - 1 - i) & (SPEED_SAMPLES - 1);
 			float h = speedHistory[index];
+			ImU32 graphColor = colorGreen;
+
+			if (h > 50) { //cap this off
+				h = 50;
+				graphColor = colorYellow;
+			}
 
 			h *= 2.0f; //double it so it's a little easier to read - should this be a config setting?
 			h *= config->speedometerSize; //scale it up kinda?
@@ -304,7 +311,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 			p1.x = p2.x = graphStartX - (float)(i * scale);
 			p1.y = p2.y = io->DisplaySize.y;
 			p2.y -= h;
-			//if (s > 0)
+			if (h > 0)
 				drawList->AddLine(p1, p2, graphColor, scale);
 		}
 	}
