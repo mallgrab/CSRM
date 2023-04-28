@@ -278,7 +278,11 @@ void ControlGameData::InitGameData()
 #endif
 
 #ifdef _DEBUG //dev moed ?
-	byte *devModeAddr = reinterpret_cast<byte*>(processStartAddr + 0x40f8c8);
+	byte* devModeAddr = reinterpret_cast<byte*>(processStartAddr + 0x40f8c8);
+	DWORD  oldProtect;
+	if (!VirtualProtect(devModeAddr, sizeof(uint64_t*), PAGE_EXECUTE_READWRITE, &oldProtect))
+		throw("we died\n");
+
 	//80 B8 30 01 00 00 00 -> C6 80 30 01 00 00 01
 	*devModeAddr = 0xC6; devModeAddr++;
 	*devModeAddr = 0x80; devModeAddr++;
