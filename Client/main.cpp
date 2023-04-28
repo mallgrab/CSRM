@@ -70,6 +70,7 @@ DWORD WINAPI MainThread(LPVOID lpReserved) {
 	wchar_t filename[FILENAME_MAX];
 
 	ConsoleSetup();
+	MH_Initialize();
 
 	GetModuleFileName(NULL, path, MAX_PATH);
 	_wsplitpath_s(path, NULL, NULL, NULL, NULL, filename, FILENAME_MAX, NULL, NULL);
@@ -81,7 +82,6 @@ DWORD WINAPI MainThread(LPVOID lpReserved) {
 		if (D3D11Handle) {
 			ptr *createDeviceAndSwapChainPtr = (ptr *)GetProcAddress(D3D11Handle, "D3D11CreateDeviceAndSwapChain");
 			if (createDeviceAndSwapChainPtr) {
-				MH_Initialize();
 				if (MH_CreateHook(createDeviceAndSwapChainPtr, &hkD3D11CreateDeviceAndSwapChain, reinterpret_cast<LPVOID*>(&imp_D3D11CreateDeviceAndSwapChain)) != MH_OK) throw;
 				if (MH_EnableHook(createDeviceAndSwapChainPtr) != MH_OK) throw;
 			}
