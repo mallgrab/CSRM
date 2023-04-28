@@ -65,12 +65,58 @@ HRESULT WINAPI hkD3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVE
 }
 #endif
 
+#define HOOK_PRINTF 0
+// TODO: check if we can hook network printf only so we can then sort them by modules
+
+#if HOOK_PRINTF
+using stdio_common_vsnprintf_s_t = int(__fastcall*)(uint64_t options, char* buffer, size_t bufferCount, size_t maxCount, char* format, _locale_t locale, va_list arglist);
+stdio_common_vsnprintf_s_t stdio_common_vsnprintf_s_Func;
+int stdio_common_vsnprintf_s(uint64_t options, char* buffer, size_t bufferCount, size_t maxCount, char* format, _locale_t locale, va_list arglist)
+{
+	int result = stdio_common_vsnprintf_s_Func(options, buffer, bufferCount, maxCount, format, locale, arglist);
+	printf("%s\n", buffer);
+	return result;
+}
+
+using stdio_common_vsprintf_t = int(__fastcall*)(uint64_t options, void* buffer, size_t bufferCount, void* format, void* locale, void* arglist);
+stdio_common_vsprintf_t stdio_common_vsprintf_Func;
+int stdio_common_vsprintf(uint64_t options, char* buffer, size_t bufferCount, void* format, void* locale, void* arglist)
+{
+	int result = stdio_common_vsprintf_Func(options, buffer, bufferCount, format, locale, arglist);
+	printf("%s\n", buffer);
+	return result;
+}
+
+using stdio_common_vsprintf_s_t = int(__fastcall*)(uint64_t options, void* buffer, size_t bufferCount, void* format, void* locale, void* arglist);
+stdio_common_vsprintf_s_t stdio_common_vsprintf_s_Func;
+int stdio_common_vsprintf_s(uint64_t options, char* buffer, size_t bufferCount, void* format, void* locale, void* arglist)
+{
+	int result = stdio_common_vsprintf_s_Func(options, buffer, bufferCount, format, locale, arglist);
+	printf("%s\n", buffer);
+	return result;
+}
+#endif
+
 DWORD WINAPI MainThread(LPVOID lpReserved) {
 	wchar_t path[FILENAME_MAX];
 	wchar_t filename[FILENAME_MAX];
 
 	ConsoleSetup();
 	MH_Initialize();
+
+#if HOOK_PRINTF
+	ptr* stdio_common_vsnprintf_s_Ptr = (ptr*)GetProcAddress(GetModuleHandle(L"api-ms-win-crt-stdio-l1-1-0.dll"), "__stdio_common_vsnprintf_s");
+	if (MH_CreateHook(stdio_common_vsnprintf_s_Ptr, &stdio_common_vsnprintf_s, reinterpret_cast<LPVOID*>(&stdio_common_vsnprintf_s_Func)) != MH_OK) throw;
+	if (MH_EnableHook(stdio_common_vsnprintf_s_Ptr) != MH_OK) throw;
+
+	ptr* stdio_common_vsprintf_Ptr = (ptr*)GetProcAddress(GetModuleHandle(L"api-ms-win-crt-stdio-l1-1-0.dll"), "__stdio_common_vsprintf");
+	if (MH_CreateHook(stdio_common_vsprintf_Ptr, &stdio_common_vsprintf, reinterpret_cast<LPVOID*>(&stdio_common_vsprintf_Func)) != MH_OK) throw;
+	if (MH_EnableHook(stdio_common_vsprintf_Ptr) != MH_OK) throw;
+
+	ptr* stdio_common_vsprintf_s_Ptr = (ptr*)GetProcAddress(GetModuleHandle(L"api-ms-win-crt-stdio-l1-1-0.dll"), "__stdio_common_vsprintf_s");
+	if (MH_CreateHook(stdio_common_vsprintf_s_Ptr, &stdio_common_vsprintf_s, reinterpret_cast<LPVOID*>(&stdio_common_vsprintf_s_Func)) != MH_OK) throw;
+	if (MH_EnableHook(stdio_common_vsprintf_s_Ptr) != MH_OK) throw;
+#endif
 
 	GetModuleFileName(NULL, path, MAX_PATH);
 	_wsplitpath_s(path, NULL, NULL, NULL, NULL, filename, FILENAME_MAX, NULL, NULL);
