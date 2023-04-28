@@ -215,6 +215,9 @@ void ControlGameData::EnableDeveloperMenus()
 	//Control_DX11.exe+40F8C8
 	uint64_t processStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
 	byte *devModeAddr = reinterpret_cast<byte*>(processStartAddr + 0x40f8c8);
+	DWORD  oldProtect;
+	if (!VirtualProtect(devModeAddr, sizeof(uint64_t*), PAGE_EXECUTE_READWRITE, &oldProtect))
+		throw("we died\n");
 
 	//cmp byte ptr[rax+130h], 0 -> mov byte ptr[rax+130h], 1
 	//80 B8 30 01 00 00 00 -> C6 80 30 01 00 00 01
@@ -278,19 +281,7 @@ void ControlGameData::InitGameData()
 #endif
 
 #ifdef _DEBUG //dev moed ?
-	byte* devModeAddr = reinterpret_cast<byte*>(processStartAddr + 0x40f8c8);
-	DWORD  oldProtect;
-	if (!VirtualProtect(devModeAddr, sizeof(uint64_t*), PAGE_EXECUTE_READWRITE, &oldProtect))
-		throw("we died\n");
-
-	//80 B8 30 01 00 00 00 -> C6 80 30 01 00 00 01
-	*devModeAddr = 0xC6; devModeAddr++;
-	*devModeAddr = 0x80; devModeAddr++;
-	*devModeAddr = 0x30; devModeAddr++;
-	*devModeAddr = 0x01; devModeAddr++;
-	*devModeAddr = 0x00; devModeAddr++;
-	*devModeAddr = 0x00; devModeAddr++;
-	*devModeAddr = 0x01; devModeAddr++;
+	EnableDeveloperMenus();
 #endif
 
 	ShapeEngine::InstallHooks(L"renderer_rmdwin7_f.dll");
