@@ -289,6 +289,7 @@ void ControlGameData::InitGameData()
 	*devModeAddr = 0x01; devModeAddr++;
 #endif
 
+	ShapeEngine::InstallHooks(L"renderer_rmdwin7_f.dll");
 	BaseTweakableInstallHooks(L"rl_rmdwin7_f.dll");
 	BaseTweakableInitialize();
 	TriggerInstallHooks(coregameDllAddr);

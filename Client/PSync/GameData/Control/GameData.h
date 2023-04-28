@@ -4,6 +4,7 @@
 #include "../BaseGameData.h"
 #include "../ocular/kiero/minhook/include/MinHook.h"
 #include "BaseTweakable.h"
+#include "ShapeEngine.h"
 #include "Trigger.h"
 #include "RemedyLib.h"
 

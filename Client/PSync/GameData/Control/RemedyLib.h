@@ -97,6 +97,8 @@ namespace r
 		float points[6];
 	};
 
+	typedef int32_t ThreadID;
+
 	struct rstring
 	{
 		char* tptr_a;
