@@ -15,7 +15,7 @@ namespace rend
 
 	namespace ShapeEngine
 	{
-		typedef enum Pivot
+		typedef enum
 		{
 			tmp1,
 			tmp2,
@@ -26,7 +26,7 @@ namespace rend
 			tmp7,
 			tmp8,
 			tmp9,
-		};
+		} Pivot;
 
 		typedef uint64_t DrawMode;
 		typedef uint64_t BlendMode;
