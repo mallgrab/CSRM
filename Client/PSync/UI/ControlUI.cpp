@@ -1,4 +1,5 @@
 #include "ControlUI.h"
+#include <DirectXMath.h>
 
 void ControlUI::RenderGUI() {
 	if (!init) return;
@@ -535,6 +536,8 @@ void ControlUI::KeyPress(WPARAM key) {
 extern float countdownOpacityPerc;
 extern float countdownGoTime;
 extern float countdownTme;
+extern DirectX::XMFLOAT4X3 modifiers;
+
 void ControlUI::DebugTab() {
 	if (ImGui::BeginTabItem("Debug"))
 	{
@@ -564,6 +567,21 @@ void ControlUI::DebugTab() {
 		ImGui::SameLine();
 		if (ImGui::Checkbox("Temporal SSAA", &cfg->TemporalSSAA))
 			SSAATweakable.SetTweakableStrValue(cfg->TemporalSSAA ? "1.0f" : "0.0f");
+
+		extern bool setActivate;
+		extern bool setForce;
+		ImGui::Checkbox("setActivate", &setActivate);
+		ImGui::Checkbox("setForce", &setForce);
+
+
+		// posScale
+		extern posNscale posScale;
+		ImGui::SliderFloat3("##pos", &posScale.pos.x, -1.0f, 1.0f, "%.3f");
+		ImGui::SliderFloat3("##scale", &posScale.scale.x, -1.0f, 1.0f, "%.3f");
+		ImGui::InputInt("mode draw", &posScale.draw, 1, 100, 0);
+		ImGui::InputInt("mode blend", &posScale.blend, 1, 100, 0);
+		ImGui::InputInt("mode depth", &posScale.depth, 1, 100, 0);
+		ImGui::InputInt("mode filter", &posScale.filter, 1, 100, 0);
 
 		ImGui::TextUnformatted("\n");
 		ImGui::TextUnformatted("Game settings:");
@@ -817,6 +835,7 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *c
 		Vector2 vec2_maxB_tmpB;
 		Vector2 vec2_maxB_tmpC;
 
+		/*
 		ImVec2 imvec_minA;
 		ImVec2 imvec_maxB;
 
@@ -827,6 +846,7 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *c
 		ImVec2 imvec_maxB_tmpA;
 		ImVec2 imvec_maxB_tmpB;
 		ImVec2 imvec_maxB_tmpC;
+		*/
 
 		if (!DXWorldToScreen(myViewMatrix, minA, screenWidth, screenHeight, vec2_minA)) continue;
 		if (!DXWorldToScreen(myViewMatrix, maxB, screenWidth, screenHeight, vec2_maxB)) continue;
@@ -838,7 +858,7 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *c
 		if (!DXWorldToScreen(myViewMatrix, maxB_tmpA, screenWidth, screenHeight, vec2_maxB_tmpA)) continue;
 		if (!DXWorldToScreen(myViewMatrix, maxB_tmpB, screenWidth, screenHeight, vec2_maxB_tmpB)) continue;
 		if (!DXWorldToScreen(myViewMatrix, maxB_tmpC, screenWidth, screenHeight, vec2_maxB_tmpC)) continue;
-
+		/*
 		imvec_minA.x = vec2_minA.x; imvec_minA.y = vec2_minA.y;
 		imvec_maxB.x = vec2_maxB.x; imvec_maxB.y = vec2_maxB.y;
 
@@ -849,7 +869,8 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *c
 		imvec_maxB_tmpA.x = vec2_maxB_tmpA.x; imvec_maxB_tmpA.y = vec2_maxB_tmpA.y;
 		imvec_maxB_tmpB.x = vec2_maxB_tmpB.x; imvec_maxB_tmpB.y = vec2_maxB_tmpB.y;
 		imvec_maxB_tmpC.x = vec2_maxB_tmpC.x; imvec_maxB_tmpC.y = vec2_maxB_tmpC.y;
-
+		*/
+		/*
 		drawList->AddLine(imvec_minA, imvec_minA_tmpA, triggerColor, 1.0f);
 		drawList->AddLine(imvec_minA_tmpB, imvec_minA_tmpC, triggerColor, 1.0f);
 		drawList->AddLine(imvec_minA, imvec_minA_tmpB, triggerColor, 1.0f);
@@ -862,9 +883,9 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *c
 
 		drawList->AddLine(imvec_maxB, imvec_minA_tmpC, triggerColor, 1.0f);
 		drawList->AddLine(imvec_maxB_tmpA, imvec_minA_tmpB, triggerColor, 1.0f);
-
 		drawList->AddLine(imvec_minA, imvec_maxB_tmpC, triggerColor, 1.0f);
 		drawList->AddLine(imvec_minA_tmpA, imvec_maxB_tmpB, triggerColor, 1.0f);
+		*/
 	}
 }
 

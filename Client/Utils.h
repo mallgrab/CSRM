@@ -96,7 +96,8 @@ struct Vector4 {
 
     Vector4(float v[4]) { x = v[0]; y = v[1]; z = v[2]; w = v[3]; }
 
-    Vector4(std::tuple<float, float, float, float> tuple) { x = std::get<0>(tuple); y = std::get<1>(tuple); z = std::get<2>(tuple); w = std::get<3>(tuple);
+    Vector4(std::tuple<float, float, float, float> tuple) {
+        x = std::get<0>(tuple); y = std::get<1>(tuple); z = std::get<2>(tuple); w = std::get<3>(tuple);
     }
 
     inline bool operator == (Vector4 other) {
@@ -161,6 +162,26 @@ public:
     inline Matrix4& operator*(const Matrix4& matrix);
 };
 
+class Matrix4x3 {
+public:
+    union
+    {
+        struct
+        {
+            float _00, _01, _02;
+            float _10, _11, _12;
+            float _20, _21, _22;
+            float _30, _31, _32;
+        };
+
+        float m[4][3];
+        float mm[12];
+    };
+
+    inline Matrix4x3 Transpose();
+    inline Matrix4x3& operator*(const Matrix4x3& matrix);
+};
+
 inline Matrix4& Matrix4::operator*(const Matrix4& matrix)
 {
     m[0][0] = m[0][0] * matrix.m[0][0] + m[1][0] * matrix.m[0][1] + m[2][0] * matrix.m[0][2] + m[3][0] * matrix.m[0][3];
@@ -182,6 +203,27 @@ inline Matrix4& Matrix4::operator*(const Matrix4& matrix)
     m[3][1] = m[0][1] * matrix.m[3][0] + m[1][1] * matrix.m[3][1] + m[2][1] * matrix.m[3][2] + m[3][1] * matrix.m[3][3];
     m[3][2] = m[0][2] * matrix.m[3][0] + m[1][2] * matrix.m[3][1] + m[2][2] * matrix.m[3][2] + m[3][2] * matrix.m[3][3];
     m[3][3] = m[0][3] * matrix.m[3][0] + m[1][3] * matrix.m[3][1] + m[2][3] * matrix.m[3][2] + m[3][3] * matrix.m[3][3];
+
+    return *this;
+}
+
+inline Matrix4x3& Matrix4x3::operator*(const Matrix4x3& matrix)
+{
+    m[0][0] = m[0][0] * matrix.m[0][0] + m[1][0] * matrix.m[0][1] + m[2][0] * matrix.m[0][2];
+    m[0][1] = m[0][1] * matrix.m[0][0] + m[1][1] * matrix.m[0][1] + m[2][1] * matrix.m[0][2];
+    m[0][2] = m[0][2] * matrix.m[0][0] + m[1][2] * matrix.m[0][1] + m[2][2] * matrix.m[0][2];
+
+    m[1][0] = m[0][0] * matrix.m[1][0] + m[1][0] * matrix.m[1][1] + m[2][0] * matrix.m[1][2];
+    m[1][1] = m[0][1] * matrix.m[1][0] + m[1][1] * matrix.m[1][1] + m[2][1] * matrix.m[1][2];
+    m[1][2] = m[0][2] * matrix.m[1][0] + m[1][2] * matrix.m[1][1] + m[2][2] * matrix.m[1][2];
+
+    m[2][0] = m[0][0] * matrix.m[2][0] + m[1][0] * matrix.m[2][1] + m[2][0] * matrix.m[2][2];
+    m[2][1] = m[0][1] * matrix.m[2][0] + m[1][1] * matrix.m[2][1] + m[2][1] * matrix.m[2][2];
+    m[2][2] = m[0][2] * matrix.m[2][0] + m[1][2] * matrix.m[2][1] + m[2][2] * matrix.m[2][2];
+
+    m[3][0] = m[0][0] * matrix.m[3][0] + m[1][0] * matrix.m[3][1] + m[2][0] * matrix.m[3][2];
+    m[3][1] = m[0][1] * matrix.m[3][0] + m[1][1] * matrix.m[3][1] + m[2][1] * matrix.m[3][2];
+    m[3][2] = m[0][2] * matrix.m[3][0] + m[1][2] * matrix.m[3][1] + m[2][2] * matrix.m[3][2];
 
     return *this;
 }
@@ -213,8 +255,8 @@ inline bool GLWorldToScreen(Matrix4* vMatrix, float* fov, Vector3& position, int
 
     glm::mat4 projection = glm::perspective((*fov) * -1.0f, aspect, nearPlane, farPlane);
     glm::mat4* model = reinterpret_cast<glm::mat4*>(vMatrix);
-   
-    auto res = glm::project(glm::vec3{position.x, position.y, position.z}, *model, projection, glm::vec4{ 0.0f, 0.0f, scrnWidth, scrnHeight });
+
+    auto res = glm::project(glm::vec3{ position.x, position.y, position.z }, *model, projection, glm::vec4{ 0.0f, 0.0f, scrnWidth, scrnHeight });
     scrnPosOut.x = res.x;
     scrnPosOut.y = res.y;
     return true;
@@ -224,6 +266,17 @@ inline Matrix4 Matrix4::Transpose()
 {
     Matrix4 transposed;
     for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            transposed.m[j][i] = m[i][j];
+        }
+    }
+    return transposed;
+}
+
+inline Matrix4x3 Matrix4x3::Transpose()
+{
+    Matrix4x3 transposed;
+    for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 4; ++j) {
             transposed.m[j][i] = m[i][j];
         }
@@ -242,3 +295,13 @@ inline ImColor Float3AToImColor(float array[3], float alpha) {
 inline ImColor Float4ToImColor(float array[4]) {
     return ImColor(array[0], array[1], array[2], array[3]);
 }
+
+
+struct posNscale {
+    Vector3 pos;
+    Vector3 scale;
+    int draw;
+    int blend;
+    int depth;
+    int filter;
+};

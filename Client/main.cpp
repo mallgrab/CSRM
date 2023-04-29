@@ -102,6 +102,22 @@ int stdio_common_vsprintf_s(uint64_t options, char* buffer, size_t bufferCount, 
 }
 #endif
 
+using ClientGameSession_t = void(__fastcall*)(void* a1, void* a2, void* a3, void* a4);
+ClientGameSession_t ClientGameSessionFunc;
+void ClientGameSession(void* a1, void* a2, void* a3, void* a4)
+{
+	printf("client session\n");
+	ClientGameSessionFunc(a1, a2, a3, a4);
+}
+
+using ServerGameSession_t = void(__fastcall*)(void* a1, void* a2, void* a3);
+ServerGameSession_t ServerGameSessionFunc;
+void ServerGameSession(void* a1, void* a2, void* a3)
+{
+	printf("server session\n");
+	ServerGameSessionFunc(a1, a2, a3);
+}
+
 DWORD WINAPI MainThread(LPVOID lpReserved) {
 	wchar_t path[FILENAME_MAX], filename[FILENAME_MAX];
 
@@ -138,6 +154,14 @@ DWORD WINAPI MainThread(LPVOID lpReserved) {
 		}
 	}
 #endif
+
+	void* ClientGameSessionPtr = (void*)GetProcAddress(GetModuleHandle(L"coregame_rmdwin7_f.dll"), "??0ClientGameSession@coregame@@QEAA@AEBVGameSessionParameters@1@AEBVNetworkAddress@net@@PEAVGameClientBase@1@@Z");
+	if (MH_CreateHook(ClientGameSessionPtr, &ClientGameSession, reinterpret_cast<LPVOID*>(&ClientGameSessionFunc)) != MH_OK) throw;
+	if (MH_EnableHook(ClientGameSessionPtr) != MH_OK) throw;
+
+	void* ServerGameSessionPtr = (void*)GetProcAddress(GetModuleHandle(L"coregame_rmdwin7_f.dll"), "??0ServerGameSession@coregame@@QEAA@AEBVGameSessionParameters@1@PEAVGameServerBase@1@@Z");
+	if (MH_CreateHook(ServerGameSessionPtr, &ServerGameSession, reinterpret_cast<LPVOID*>(&ServerGameSessionFunc)) != MH_OK) throw;
+	if (MH_EnableHook(ServerGameSessionPtr) != MH_OK) throw;
 
 	OcularDLLProxy::Init();
 
