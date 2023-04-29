@@ -1,5 +1,5 @@
 #include "GameData.h"
-#include <libloaderapi.h>
+#include <DirectXMath.h>
 
 using setAsPlayerOriginal_t = void(__stdcall*)(uint64_t* x, char y);
 setAsPlayerOriginal_t setAsPlayerOriginal;
@@ -27,6 +27,10 @@ isFreeCameraOn_t isFreeCameraOn;
 
 using setFreeCamera_t = void (__fastcall*)(ptr** inputManagerInstance, bool a2);
 setFreeCamera_t setFreeCamera;
+
+// tmp for compiler sake
+posNscale posScale;
+Vector3 pos;
 
 ptr** inputManagerInstance;
 ptr* playerController;
@@ -249,8 +253,28 @@ void setPresentInterval(void* RendererInterfaceInstance, uint64_t interval)
 	setPresentIntervalFunc(RendererInterfaceInstance, 0); //force disable vsync
 }
 
+bool setForce = false;
+bool setActivate = false;
+using addDecal_t = void(__fastcall*)(void* FlowUpdatePin, bool a2);
+addDecal_t addDecalFunc;
+void addDecal(void* FlowUpdatePin, bool a2)
+{
+	if (setForce)
+		a2 = setActivate;
+
+	addDecalFunc(FlowUpdatePin, a2);
+}
+
 void ControlGameData::InitGameData()
 {
+	posScale.pos.x = 0.0f;
+	posScale.pos.y = 1.0f;
+	posScale.pos.z = 0.0f;
+	
+	posScale.scale.x = 1.0f;
+	posScale.scale.y = 1.0f;
+	posScale.scale.z = 1.0f;
+
 	HMODULE coregameModule = GetModuleHandle(L"coregame_rmdwin7_f.dll");
 	HMODULE inputModule = GetModuleHandle(L"input_rmdwin7_f.dll");
 	HMODULE physicsModule = GetModuleHandle(L"physics_rmdwin7_f.dll");
@@ -264,6 +288,7 @@ void ControlGameData::InitGameData()
 	uint64_t rlDllAddr = reinterpret_cast<uint64_t>(rlModule);
 	ptrViewMatrixAddr = reinterpret_cast<ptr*>(renderDllAddr + 0x123B6A0);
 
+	// TODO: refactor this to use GetProcAddress instead
 	ptr* setPlayerFunctionAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x5d60);
 	ptr* getWorldSpaceAABBFunctionAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x80510);
 	ptr* startUnloadingLevelFunctionAddr = reinterpret_cast<ptr*>(coregameDllAddr + 0x3fe20);
@@ -289,20 +314,30 @@ void ControlGameData::InitGameData()
 	TriggerInstallHooks(coregameDllAddr);
 	TriggerInitialize();
 
+	ptr* addDecalPtr = (ptr*)GetProcAddress(rlModule, "?setEnabled@FlowUpdatePin@r@@QEAAX_N@Z");
+	if (MH_CreateHook(addDecalPtr, &addDecal, reinterpret_cast<LPVOID*>(&addDecalFunc)) != MH_OK) throw;
+	if (MH_EnableHook(addDecalPtr) != MH_OK) throw;
+
 	ptr* setPresentIntervalPtr = (ptr*)GetProcAddress(rendererModule, "?setPresentInterval@RendererInterfaceWrapper@rend@@QEAAXH@Z");
 	if (MH_CreateHook(setPresentIntervalPtr, &setPresentInterval, reinterpret_cast<LPVOID*>(&setPresentIntervalFunc)) != MH_OK) throw;
 	if (MH_EnableHook(setPresentIntervalPtr) != MH_OK) throw;
-
+	// TODO: refactor this to use GetProcAddress instead, move this into its own input class
 	inputManagerInstance = (ptr**)GetProcAddress(inputModule, "?sm_pInstance@InputManager@input@@0PEAV12@EA");
-	ptr* readDigitalPtr = (ptr*)GetProcAddress(inputModule, "?readDigital@InputManager@input@@QEAA_NH_N@Z");
 	ptr* isFreeCameraOnPtr = (ptr*)GetProcAddress(inputModule, "?isFreeCameraWithoutPlayerControlsOn@InputManager@input@@QEAA_NXZ");
 	ptr* setFreeCameraPtr = (ptr*)GetProcAddress(inputModule, "?setFreeCameraWithoutPlayerControls@InputManager@input@@QEAAX_N@Z");
+	ptr* readDigitalPtr = (ptr*)GetProcAddress(inputModule, "?readDigital@InputManager@input@@QEAA_NH_N@Z");
 
-	isFreeCameraOn = reinterpret_cast<isFreeCameraOn_t>(isFreeCameraOnPtr);
-	setFreeCamera = reinterpret_cast<setFreeCamera_t>(setFreeCameraPtr);
+	if (!readDigitalPtr)
+	{
+		if (MH_CreateHook(readDigitalPtr, &readDigitalHook, reinterpret_cast<LPVOID*>(&readDigitalFunc)) != MH_OK) throw;
+		if (MH_EnableHook(readDigitalPtr) != MH_OK) throw;
+	}
+	
+	if (!isFreeCameraOnPtr)
+		isFreeCameraOn = reinterpret_cast<isFreeCameraOn_t>(isFreeCameraOnPtr);
 
-	if (MH_CreateHook(readDigitalPtr, &readDigitalHook, reinterpret_cast<LPVOID*>(&readDigitalFunc)) != MH_OK) throw;
-	if (MH_EnableHook(readDigitalPtr) != MH_OK) throw;
+	if (!setFreeCameraPtr)
+		setFreeCamera = reinterpret_cast<setFreeCamera_t>(setFreeCameraPtr);
 
 	if (MH_CreateHook(setPlayerFunctionAddr, &setAsPlayerCharacter, reinterpret_cast<LPVOID*>(&setAsPlayerOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(setPlayerFunctionAddr) != MH_OK) throw;
@@ -398,9 +433,88 @@ void ControlGameData::SetPlayerPos(Vector3 newPos)
 	*z = newPos.z;
 }
 
+/*
+	DirectX::XMMATRIX tmp = DirectX::XMLoadFloat4x3(matrix);
+	DirectX::XMVECTOR empty = DirectX::XMVECTOR();
+
+	DirectX::XMVECTOR scale;
+	DirectX::XMVECTOR translation;
+	DirectX::XMVECTOR rotation;
+	DirectX::XMMatrixDecompose(&scale, &rotation, &translation, tmp);
+
+	// for rotation
+	auto rotationResultQuaternion = DirectX::XMQuaternionRotationAxis({ 0.0f, 1.0f, 0.0f, 0.0f }, DirectX::XMConvertToRadians((float)GetTickCount64()));
+	auto result = DirectX::XMQuaternionMultiply(rotation, rotationResultQuaternion);
+
+	translation.m128_f32[0] = GetPlayerPos().x;
+	translation.m128_f32[1] = GetPlayerPos().y;
+	translation.m128_f32[2] = GetPlayerPos().z;
+
+	//tmp = DirectX::XMMatrixAffineTransformation(scale, empty, result, translation);
+	tmp = DirectX::XMMatrixAffineTransformation(scale, empty, rotation, translation);
+
+	DirectX::XMStoreFloat4x3(matrix, tmp);
+*/
+
 Matrix4* ControlGameData::GetViewMatrix()
 {
+	if (GetPlayerPos() == nullptr)
+		return nullptr;
+
+	DirectX::XMFLOAT4X3 modifiers = DirectX::XMFLOAT4X3();
+	DirectX::XMMATRIX tmp = DirectX::XMMatrixIdentity();
+	DirectX::XMVECTOR empty = DirectX::XMVECTOR();
+
+	DirectX::XMVECTOR scale;
+	DirectX::XMVECTOR translation;
+	DirectX::XMVECTOR rotation;
+
+	DirectX::XMMatrixDecompose(&scale, &rotation, &translation, tmp);
+
+	translation.m128_f32[0] = GetPlayerPos()->x + posScale.pos.x;
+	translation.m128_f32[1] = GetPlayerPos()->y + posScale.pos.y;
+	translation.m128_f32[2] = GetPlayerPos()->z + posScale.pos.z;
+
+	/*
+	translation.m128_f32[0] = posScale.pos.x;
+	translation.m128_f32[1] = posScale.pos.y;
+	translation.m128_f32[2] = posScale.pos.z;
+	*/
+
+	scale.m128_f32[0] = posScale.scale.x;
+	scale.m128_f32[1] = posScale.scale.y;
+	scale.m128_f32[2] = posScale.scale.z;
+
+	DirectX::XMStoreFloat4x3(&modifiers, DirectX::XMMatrixAffineTransformation(scale, empty, rotation, translation));
+	
+	Vector3 texCoords[3] = {{ 0.1f, 0.1f, 0.0f }, { 0.1f, 0.1f, 0.0f }, { 0.1f, 0.1f, 0.0f }};
+	Vector3 posCoords[3] = {{-0.5f, -0.5f, 0.0f}, {0.5f, -0.5f, 0.0f}, {0.0f, 0.5f, 0.0f}};
+	Vector4 colors = { 1.0f, 0.0f, 1.0f, 0.5f };
 	viewMatrix = *reinterpret_cast<Matrix4*>(ptrViewMatrixAddr);
+
+	ShapeEngine::setTransform(ShapeEngine::getInstance(), viewMatrix);
+	//ShapeEngine::setViewportTransform(ShapeEngine::getInstance());
+	ShapeEngine::setColor(ShapeEngine::getInstance(), &colors);
+
+	// TODO:
+	// Add enums for the arguments you pass to setDepthmode / filter / etc
+
+	ShapeEngine::setDrawMode(ShapeEngine::getInstance(), posScale.draw);
+
+	if (posScale.blend > 5)
+		ShapeEngine::setBlendMode(ShapeEngine::getInstance(), 5);
+	else
+		ShapeEngine::setBlendMode(ShapeEngine::getInstance(), posScale.blend);
+
+	// setting to 1 lets it get clipped properly
+	// 0 is drawing it regardless
+	// draw mode has to be 0 tho for it to work
+	ShapeEngine::setDepthMode(ShapeEngine::getInstance(), posScale.depth);
+
+	ShapeEngine::setFilterMode(ShapeEngine::getInstance(), posScale.filter);
+	ShapeEngine::setTexture(ShapeEngine::getInstance(), nullptr);
+	ShapeEngine::drawTriangles(ShapeEngine::getInstance(), posCoords, texCoords, 3, &modifiers);
+
 	return &viewMatrix;
 }
 
