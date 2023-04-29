@@ -32,7 +32,7 @@ namespace OcularDLLProxy {
 
 	inline void Init() {
 		Result result = LoadOriginalDLLs();
-		if (result != Result::Success) {
+		if (result != Result::Success && result != Result::DLLFilenameNotRecognized) {
 			MessageBoxA(GetActiveWindow(), ("LoadOriginalDLLS Error: " + std::to_string(static_cast<int>(result))).c_str(), "OcularDLLProxy failed!", MB_OK);
 			//ExitProcess(0);
 		}
