@@ -73,7 +73,9 @@ stdio_common_vsnprintf_s_t stdio_common_vsnprintf_s_Func;
 int stdio_common_vsnprintf_s(uint64_t options, char* buffer, size_t bufferCount, size_t maxCount, char* format, _locale_t locale, va_list arglist)
 {
 	int result = stdio_common_vsnprintf_s_Func(options, buffer, bufferCount, maxCount, format, locale, arglist);
-	printf("%s\n", buffer);
+#if HOOK_PRINTF & 1
+	if (buffer && buffer[0] != '\0') printf("%s\n", buffer);
+#endif
 	return result;
 }
 
@@ -82,7 +84,9 @@ stdio_common_vsprintf_t stdio_common_vsprintf_Func;
 int stdio_common_vsprintf(uint64_t options, char* buffer, size_t bufferCount, void* format, void* locale, void* arglist)
 {
 	int result = stdio_common_vsprintf_Func(options, buffer, bufferCount, format, locale, arglist);
-	printf("%s\n", buffer);
+#if HOOK_PRINTF & 2
+	if (buffer && buffer[0] != '\0') printf("%s\n", buffer);
+#endif
 	return result;
 }
 
@@ -91,14 +95,15 @@ stdio_common_vsprintf_s_t stdio_common_vsprintf_s_Func;
 int stdio_common_vsprintf_s(uint64_t options, char* buffer, size_t bufferCount, void* format, void* locale, void* arglist)
 {
 	int result = stdio_common_vsprintf_s_Func(options, buffer, bufferCount, format, locale, arglist);
-	printf("%s\n", buffer);
+#if HOOK_PRINTF & 4
+	if (buffer && buffer[0] != '\0') printf("%s\n", buffer);
+#endif
 	return result;
 }
 #endif
 
 DWORD WINAPI MainThread(LPVOID lpReserved) {
-	wchar_t path[FILENAME_MAX];
-	wchar_t filename[FILENAME_MAX];
+	wchar_t path[FILENAME_MAX], filename[FILENAME_MAX];
 
 	ConsoleSetup();
 	MH_Initialize();

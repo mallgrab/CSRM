@@ -82,7 +82,6 @@ namespace OcularDLLProxy {
 				if ((dsound_lib = LoadLibraryW((std::wstring{ buffer } + L"\\dsound.dll").c_str())) == NULL) return Result::LoadLibraryWFailure;
 			}
 			else if (wcscmp(filename, L"OLE32") == 0 || wcscmp(filename, L"ole32") == 0) {
-				printf("ole32 asdasd");
 				if ((dsound_lib = LoadLibraryW((std::wstring{ buffer } + L"\\ole32.dll").c_str())) == NULL) return Result::LoadLibraryWFailure;
 			}
 			else {

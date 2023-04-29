@@ -171,7 +171,7 @@ bool ControlGameData::playerIsOnGround()
 	return *onGround;
 }
 
-// hack!!! rewrite this later once we figure out more about the gameclient instance
+// TODO: hack!!! rewrite this later once we figure out more about the gameclient instance
 // theres a function that lets us set the camera mode directly but requires hooking
 // the gameclient constructor since there isnt any exported function that gives us the instance
 using readDigital_t = bool(__fastcall*)(ptr** inputManagerInstance, int64_t num);
@@ -326,7 +326,7 @@ void ControlGameData::InitGameData()
 	if (MH_CreateHook(characterControllerMoveCapsuleAddr, &characterControllerMoveCapsule, reinterpret_cast<LPVOID*>(&characterControllerMoveCapsuleOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(characterControllerMoveCapsuleAddr) != MH_OK) throw;
 
-	printf("process physics: 0x%llx\n", processStartAddr);
+	printf("process physics: 0x%llx\n", (uint64_t)physicsDllAddr);
 	printf("setplayer: 0x%llx\n", (uint64_t)setPlayerFunctionAddr);
 	printf("getWorldSpaceAABB: 0x%llx\n", (uint64_t)getWorldSpaceAABBFunctionAddr);
 	printf("startUnloadingLevel: 0x%llx\n", (uint64_t)startUnloadingLevelFunctionAddr);
