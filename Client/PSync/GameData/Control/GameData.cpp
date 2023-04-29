@@ -246,8 +246,7 @@ using setPresentInterval_t = void(__fastcall*)(void* RendererInterfaceInstance, 
 setPresentInterval_t setPresentIntervalFunc;
 void setPresentInterval(void* RendererInterfaceInstance, uint64_t interval)
 {
-	interval = 0; //force disable vsync
-	setPresentIntervalFunc(RendererInterfaceInstance, interval);
+	setPresentIntervalFunc(RendererInterfaceInstance, 0); //force disable vsync
 }
 
 void ControlGameData::InitGameData()

@@ -25,13 +25,12 @@ void ConsoleSetup() {
 #endif
 }
 
-#define HOOK_DXGI_FLIP_DISCARD 1
+#if HOOK_DXGI_FLIP_DISCARD
 //hooks D3D11CreateDeviceAndSwapChain & overrides default presentation mode to use independent flip model
 //this improves performance & latency in windowed mode for DX11 games, Windows 10+ only
 //only doing this on Control as it's causing issues in Nier: Automata
+bool setDX11IndependentFlipModel = false;
 
-#if HOOK_DXGI_FLIP_DISCARD
-static bool setDX11IndependentFlipModel = false;
 typedef HRESULT(*D3D11CreateDeviceAndSwapChain_t)(
 	_In_opt_        IDXGIAdapter* pAdapter,
 	D3D_DRIVER_TYPE      DriverType,
@@ -51,10 +50,10 @@ D3D11CreateDeviceAndSwapChain_t imp_D3D11CreateDeviceAndSwapChain = NULL;
 
 HRESULT WINAPI hkD3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software, UINT Flags, const D3D_FEATURE_LEVEL* pFeatureLevels, UINT FeatureLevels, UINT SDKVersion, DXGI_SWAP_CHAIN_DESC* pSwapChainDesc, IDXGISwapChain** ppSwapChain, ID3D11Device** ppDevice, D3D_FEATURE_LEVEL* pFeatureLevel, ID3D11DeviceContext** ppImmediateContext)
 {
-	if (setDX11IndependentFlipModel && pSwapChainDesc && pSwapChainDesc->BufferCount != 1) //if (*ppSwapChain == nullptr)
+	if (setDX11IndependentFlipModel && pSwapChainDesc && pSwapChainDesc->BufferCount >= 2) //if (*ppSwapChain == nullptr)
 	{
-		pSwapChainDesc->Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-		pSwapChainDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		pSwapChainDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+		pSwapChainDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; //lower latency than sequential
 	}
 
 	HRESULT hResult = imp_D3D11CreateDeviceAndSwapChain(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
