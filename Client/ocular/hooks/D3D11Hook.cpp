@@ -132,6 +132,12 @@ HRESULT __stdcall D3D11Hook::hkPresent(IDXGISwapChain* pSwapChain, UINT SyncInte
 	pContext->OMSetRenderTargets(1, &mainRenderTargetView, NULL);
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
+#if HOOK_DXGI_FLIP_DISCARD
+	extern bool setDX11IndependentFlipModel;
+	if (setDX11IndependentFlipModel && SyncInterval == 0) {
+		Flags |= DXGI_PRESENT_ALLOW_TEARING;
+	}
+#endif
 	return oPresent(pSwapChain, SyncInterval, Flags);
 }
 

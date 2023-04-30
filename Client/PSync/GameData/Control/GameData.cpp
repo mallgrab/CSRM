@@ -250,8 +250,19 @@ using setPresentInterval_t = void(__fastcall*)(void* RendererInterfaceInstance, 
 setPresentInterval_t setPresentIntervalFunc;
 void setPresentInterval(void* RendererInterfaceInstance, uint64_t interval)
 {
-	interval = 0; //force disable vsync
-	setPresentIntervalFunc(RendererInterfaceInstance, interval);
+	setPresentIntervalFunc(RendererInterfaceInstance, 0); //force disable vsync
+}
+
+bool setForce = false;
+bool setActivate = false;
+using addDecal_t = void(__fastcall*)(void* FlowUpdatePin, bool a2);
+addDecal_t addDecalFunc;
+void addDecal(void* FlowUpdatePin, bool a2)
+{
+	if (setForce)
+		a2 = setActivate;
+
+	addDecalFunc(FlowUpdatePin, a2);
 }
 
 bool setForce = false;

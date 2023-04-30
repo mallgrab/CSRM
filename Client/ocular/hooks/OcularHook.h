@@ -7,6 +7,8 @@
 
 #include "../imgui/imgui.h"
 
+#define HOOK_DXGI_FLIP_DISCARD 1
+
 class OcularHook {
 private:
 	static std::vector<std::function<void()>> preframeFunctions;
