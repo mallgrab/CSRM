@@ -2,6 +2,8 @@
 #include "ocular/DLLProxy.h"
 #include "PSync/PSyncFactory.h"
 
+#include "PSync/GameData/Control/StartupString.h"
+
 FILE* stream;
 
 #define LOG_CONSOLE
@@ -57,8 +59,8 @@ HRESULT WINAPI hkD3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVE
 	}
 
 	HRESULT hResult = imp_D3D11CreateDeviceAndSwapChain(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+	
 	printf("made swapchain\n");
-
 	return hResult;
 }
 #endif
@@ -101,11 +103,34 @@ int stdio_common_vsprintf_s(uint64_t options, char* buffer, size_t bufferCount, 
 }
 #endif
 
+using StartupString_t = void(__fastcall*)(startupString* a1);
+StartupString_t StartupStringFunc;
+startupString* tmpString;
+void StartupString(startupString* a1)
+{
+	printf("startup string made: 0x%llx\n", (uint64_t)a1);
+	StartupStringFunc(a1);
+	tmpString = a1;
+
+	a1->devmode = true;
+	a1->skipIntro1 = true;
+	a1->skipIntro2 = true;
+	a1->startAutoJoinMultiplayerGame = false;
+}
+
+void earlyHooks()
+{
+	ConsoleSetup();
+
+
+	uint64_t processStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
+	byte* startupStringPtr = reinterpret_cast<byte*>(processStartAddr + 0x24FE20);
+	if (MH_CreateHook(startupStringPtr, &StartupString, reinterpret_cast<LPVOID*>(&StartupStringFunc)) != MH_OK) throw;
+	if (MH_EnableHook(startupStringPtr) != MH_OK) throw;
+}
+
 DWORD WINAPI MainThread(LPVOID lpReserved) {
 	wchar_t path[FILENAME_MAX], filename[FILENAME_MAX];
-
-	ConsoleSetup();
-	MH_Initialize();
 
 #if HOOK_PRINTF
 	ptr* stdio_common_vsnprintf_s_Ptr = (ptr*)GetProcAddress(GetModuleHandle(L"api-ms-win-crt-stdio-l1-1-0.dll"), "__stdio_common_vsnprintf_s");
@@ -153,6 +178,9 @@ BOOL WINAPI DllMain(HMODULE hMod, DWORD dwReason, LPVOID lpReserved) {
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
+		MH_Initialize();
+		earlyHooks();
+
 		DisableThreadLibraryCalls(hMod);
 		CreateThread(nullptr, 0, MainThread, hMod, 0, nullptr);
 		break;
