@@ -120,8 +120,8 @@ void StartupString(startupString* a1)
 
 void earlyHooks()
 {
+	MH_Initialize();
 	ConsoleSetup();
-
 
 	uint64_t processStartAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));
 	byte* startupStringPtr = reinterpret_cast<byte*>(processStartAddr + 0x24FE20);
@@ -178,7 +178,6 @@ BOOL WINAPI DllMain(HMODULE hMod, DWORD dwReason, LPVOID lpReserved) {
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-		MH_Initialize();
 		earlyHooks();
 
 		DisableThreadLibraryCalls(hMod);
