@@ -67,16 +67,13 @@ namespace ShapeEngine
 	drawSprite_t drawSpriteFunc;
 	drawSprite1_t drawSprite1Func;
 	drawText_t drawTextFunc;
-	drawTextW_t drawTextWFunc;
 	drawTriangles_t drawTrianglesFunc;
 	drawTriangles1_t drawTriangles1Func;
 	getTextLineHeight_t getTextLineHeightFunc;
 	getTextLineHeight1_t getTextLineHeight1Func;
 	getTextSize_t getTextSizeFunc;
-	getTextSizeW_t getTextSizeWFunc;
 	getTextSize2_t getTextSize2Func;
 	getTextSize3_t getTextSize3Func;
-	getTextSizeW2_t getTextSizeW2Func;
 	setColor_t setColorFunc;
 	setColor1_t setColor1Func;
 	setScissorRect_t setScissorRectFunc;
@@ -179,11 +176,6 @@ namespace ShapeEngine
 		drawTextFunc(shapeEngineInstance, pos, str, pivot);
 	}
 
-	void drawTextW(Vector2 *pos, wchar_t* wstr, rend::ShapeEngine::Pivot pivot)
-	{
-		drawTextWFunc(shapeEngineInstance, pos, wstr, pivot);
-	}
-
 	void drawTriangles(Vector2* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* a4)
 	{
 		drawTrianglesFunc(shapeEngineInstance, posCoords, texCoords, pointCount, a4);
@@ -209,11 +201,6 @@ namespace ShapeEngine
 		return getTextSizeFunc(shapeEngineInstance, str);
 	}
 
-	Vector2 getTextSizeW(wchar_t* wstr)
-	{
-		return getTextSizeWFunc(shapeEngineInstance, wstr);
-	}
-
 	float getTextSize()
 	{
 		return getTextSize2Func(shapeEngineInstance);
@@ -222,11 +209,6 @@ namespace ShapeEngine
 	void* getTextSize(void* a1, float a2, float a3, char* str)
 	{
 		return getTextSize3Func(shapeEngineInstance, a1, a2, a3, str);
-	}
-
-	void* getTextSizeW(void* a1, float a2, float a3, wchar_t* wstr)
-	{
-		return getTextSizeW2Func(shapeEngineInstance, a1, a2, a3, wstr);
 	}
 
 	void SetFont(void* instance, void* rendFont) //function we hook, must pass instance here
@@ -332,16 +314,13 @@ namespace ShapeEngine
 			drawSpriteFunc = (drawSprite_t)GetProcAddress(module, "?drawSprite@ShapeEngine@rend@@QEAAXAEBV?$Vector2Template@M@m@@0W4Pivot@12@MPEBV?$Vector3Template@M@4@AEBV64@3@Z");
 			drawSprite1Func = (drawSprite1_t)GetProcAddress(module, "?drawSprite@ShapeEngine@rend@@QEAAXAEBV?$Vector3Template@M@m@@AEBV?$Vector2Template@M@4@0W4Pivot@12@MPEBV34@00@Z");
 			drawTextFunc = (drawText_t)GetProcAddress(module, "?drawText@ShapeEngine@rend@@QEAAXAEBV?$Vector2Template@M@m@@PEBDW4Pivot@12@@Z");
-			drawTextWFunc = (drawTextW_t)GetProcAddress(module, "?drawText@ShapeEngine@rend@@QEAAXAEBV?$Vector2Template@M@m@@PEB_WW4Pivot@12@@Z");
 			drawTrianglesFunc = (drawTriangles_t)GetProcAddress(module, "?drawTriangles@ShapeEngine@rend@@QEAAXPEBV?$Vector2Template@M@m@@PEBV?$Vector3Template@M@4@HAEBV?$Matrix4x3Template@M@4@@Z");
 			drawTriangles1Func = (drawTriangles1_t)GetProcAddress(module, "?drawTriangles@ShapeEngine@rend@@QEAAXPEBV?$Vector3Template@M@m@@0HAEBV?$Matrix4x3Template@M@4@@Z");
 			getTextLineHeightFunc = (getTextLineHeight_t)GetProcAddress(module, "?getTextLineHeight@ShapeEngine@rend@@QEBAMXZ");
 			getTextLineHeight1Func = (getTextLineHeight1_t)GetProcAddress(module, "?getTextLineHeight@ShapeEngine@rend@@SAMPEAVFont@2@M@Z");
 			getTextSizeFunc = (getTextSize_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@QEBA?AV?$Vector2Template@M@m@@PEBD@Z");
-			getTextSizeWFunc = (getTextSizeW_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@QEBA?AV?$Vector2Template@M@m@@PEB_W@Z");
 			getTextSize2Func = (getTextSize2_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@QEBAMXZ");
 			getTextSize3Func = (getTextSize3_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@SA?AV?$Vector2Template@M@m@@PEAVFont@2@MMPEBD@Z");
-			getTextSizeW2Func = (getTextSizeW2_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@SA?AV?$Vector2Template@M@m@@PEAVFont@2@MMPEB_W@Z");
 			setColorFunc = (setColor_t)GetProcAddress(module, "?setColor@ShapeEngine@rend@@QEAAXAEBV?$Vector4Template@M@m@@@Z");
 			setColor1Func = (setColor1_t)GetProcAddress(module, "?setColor@ShapeEngine@rend@@QEAAXAEBVColor@g@@@Z");
 			setScissorRectFunc = (setScissorRect_t)GetProcAddress(module, "?setScissorRect@ShapeEngine@rend@@QEAAXAEBV?$Vector2Template@M@m@@0@Z");

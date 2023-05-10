@@ -252,9 +252,6 @@ namespace ShapeEngine
 	using drawText_t = void(__fastcall*)(void *ShapeEngineInstance, Vector2 *pos, const char* str, rend::ShapeEngine::Pivot pivot);
 	void drawText(Vector2 *pos, const char* str, rend::ShapeEngine::Pivot pivot);
 
-	using drawTextW_t = void(__fastcall*)(void *ShapeEngineInstance, Vector2 *pos, wchar_t* wstr, rend::ShapeEngine::Pivot pivot);
-	void drawTextW(Vector2 *pos, wchar_t* wstr, rend::ShapeEngine::Pivot pivot);
-
 	using drawTriangles_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* matrix);
 	void drawTriangles(Vector2* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* matrix);
 
@@ -270,17 +267,11 @@ namespace ShapeEngine
 	using getTextSize_t = Vector2(__fastcall*)(void* ShapeEngineInstance, char* str);
 	Vector2 getTextSize(char* str);
 
-	using getTextSizeW_t = Vector2(__fastcall*)(void* ShapeEngineInstance, wchar_t* wstr);
-	Vector2 getTextSizeW(wchar_t* wstr);
-
 	using getTextSize2_t = float(__fastcall*)(void* ShapeEngineInstance);
 	float getTextSize();
 
 	using getTextSize3_t = void* (__fastcall*)(void* ShapeEngineInstance, void* rendFont, float a2, float a3, char* str);
 	void* getTextSize(void* a1, float a2, float a3, char* str);
-
-	using getTextSizeW2_t = void* (__fastcall*)(void* ShapeEngineInstance, void* rendFont, float a2, float a3, wchar_t* wstr);
-	void* getTextSizeW(void* a1, float a2, float a3, wchar_t* wstr);
 
 	using setColor_t = void(__fastcall*)(void* ShapeEngineInstance, Vector4* color);
 	void setColor(Vector4* color);
