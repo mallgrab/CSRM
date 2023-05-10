@@ -99,6 +99,11 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 	const float speed = gameData->getPlayerPhysxSpeed();
 	//const float speed = gameData->getPlayerPosSpeed();
 
+	if (isnan(speed))
+		return;
+	else if (speed > 100) //assume it's reading some whacky value
+		return;
+
 	if (config->speedometerSize < 1.0f || config->speedometerSize > 10.0f) //shuoldn't need this anymore 
 		config->speedometerSize = 1.0f;
 
@@ -223,7 +228,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 	ImGui::PopFont();
 
 	textSize = ImGui::CalcTextSize(text);
-	pos = { (config->speedometerPos[0] - (textSize.x * 0.5f)), (config->speedometerPos[1] - (textSize.y * 0.5f))};
+	pos = { (config->speedometerPos[0] - (textSize.x * 0.5f)), (config->speedometerPos[1] - (textSize.y * 0.5f)) };
 	color = CSRM_SpeedColor(speed, config->speedometerColorSpeed);
 	ImDrawList *drawList = ImGui::GetForegroundDrawList();
 	ImGui_DrawStringWithDropShadow(drawList, pos, color, text);
