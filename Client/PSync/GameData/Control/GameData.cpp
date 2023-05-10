@@ -207,6 +207,16 @@ void ControlGameData::ToggleFreeCam()
 	toggleFreeCam = true;
 }
 
+extern startupString* tmpString;
+void ControlGameData::ToggleDeveloperMenus()
+{ //scuffed, should do this another way
+	if (!tmpString)
+		return;
+
+	tmpString->devmode = !tmpString->devmode;
+	printf("%s developer menus\n", tmpString->devmode ? "enabled" : "disabled");
+}
+#if 0
 void ControlGameData::EnableDeveloperMenus()
 { //scuffed, should do this another way
 	/* To restore the Mission select screen (Basically enables developer mode I guess?)
@@ -241,6 +251,7 @@ void ControlGameData::EnableDeveloperMenus()
 	*devModeAddr = 0x90; devModeAddr++;
 	*/
 }
+#endif
 
 using setPresentInterval_t = void(__fastcall*)(void* RendererInterfaceInstance, uint64_t interval);
 setPresentInterval_t setPresentIntervalFunc;
@@ -277,10 +288,6 @@ void ControlGameData::InitGameData()
 	ptr* singleInstanceAddr = reinterpret_cast<ptr*>(processStartAddr + 0x30aa08);
 	if ( (byte)*singleInstanceAddr == 0x75)
 		*singleInstanceAddr = 0xEB; //change JNZ to JMP (75->EB)
-#endif
-
-#ifdef _DEBUG //dev moed ?
-	EnableDeveloperMenus();
 #endif
 
 	ShapeEngine::InstallHooks(L"renderer_rmdwin7_f.dll");

@@ -112,9 +112,12 @@ void StartupString(startupString* a1)
 	StartupStringFunc(a1);
 	tmpString = a1;
 
+#if _DEBUG
 	a1->devmode = true;
-	a1->skipIntro1 = true;
-	a1->skipIntro2 = true;
+	a1->skipToMenu = true;
+#endif
+
+	a1->skipStartupLogos = true;
 	a1->startAutoJoinMultiplayerGame = false;
 }
 

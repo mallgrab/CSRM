@@ -621,7 +621,7 @@ void ControlUI::DebugTab() {
 		ImGui::TextUnformatted("Developer features:");
 		if (ImGui::Button("Toggle Freecam")) controlData->ToggleFreeCam();
 		ImGui::SameLine();
-		if (ImGui::Button("Enable developer menus")) controlData->EnableDeveloperMenus();
+		if (ImGui::Button("Toggle developer menus")) controlData->ToggleDeveloperMenus();
 
 		//ImGui::TextUnformatted("\n");
 		ImGui::TextUnformatted("\nDebug:");

@@ -7,6 +7,7 @@
 #include "ShapeEngine.h"
 #include "Trigger.h"
 #include "RemedyLib.h"
+#include "StartupString.h"
 
 struct Point {
 	Vector3 a;
@@ -33,5 +34,5 @@ public:
 	Vector3* GetPlayerPos_Real();
 	bool playerIsOnGround();
 	void ToggleFreeCam();
-	void EnableDeveloperMenus();
+	void ToggleDeveloperMenus();
 };

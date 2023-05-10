@@ -1,3 +1,4 @@
+#pragma once
 #pragma pack(1)
 struct  __declspec(align(2)) startupString
 {
@@ -17,16 +18,16 @@ struct  __declspec(align(2)) startupString
   char field_124gap[3];
   int gamewindowFlag1;
   int gamewindowFlag2;
-  char devmode;
+  bool devmode; // was char - enables QA missions menu, restart checkpoint button, and disables the game pausing when focus is lost
   char field_131;
   char field_132;
   char field_133;
   char field_134[3];
   char field_137;
   char dontAllowEnablingLoadoutMenu;
-  char skipIntro2;
+  bool skipStartupLogos; // was char - loads into splash screen, skipping startup logos
   char field_13A;
-  char skipIntro1;
+  bool skipToMenu; // was char - loads into menu, skipping startup logos and splash screen (does not need skipStartupLogos to work)
   char field_13C;
   char field_13Cgap[3];
   __int64 field_140;
