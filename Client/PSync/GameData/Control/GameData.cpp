@@ -370,10 +370,9 @@ Vector3* ControlGameData::GetPlayerPos_Real()
 	playerPos.z = *z;
 
 	bool static printOnlyOnce = false;
-
 	if (!printOnlyOnce)
 	{
-		printf("playerPos: 0x%llx\n", (ptr*)&playerPos.x);
+		printf("playerPos: 0x%llx\n", (uint64_t)physx3characterkinematic + 63);
 		printOnlyOnce = true;
 	}
 

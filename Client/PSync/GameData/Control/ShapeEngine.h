@@ -16,30 +16,36 @@ namespace rend
 	namespace ShapeEngine
 	{
 		typedef enum
-		{
-			tmp1,
-			tmp2,
-			tmp3,
-			tmp4,
-			tmp5,
-			tmp6,
-			tmp7,
-			tmp8,
+		{ //need to do more thorough investigation as to how these work
+			tmp1, //unknown? doesn't show..?
+			tmp2, //top left?
+			tmp3, //also top left?
+			tmp4, //left aligned?
+			tmp5, //center aligned?
+			tmp6, //right aligned?
+			tmp7, //center right?
+			tmp8, //lower left?
 			tmp9,
 		} Pivot;
 
-		typedef uint64_t DrawMode;
-		typedef uint64_t BlendMode;
-		typedef uint64_t CubeSamplingMode;
-		typedef uint64_t DepthMode;
-		typedef uint64_t FilterMode;
-		typedef uint64_t TextureMode;
+		typedef uint64_t DrawMode, BlendMode, CubeSamplingMode, DepthMode, FilterMode, TextureMode;
 	}
 }
 
 // Code example for drawing a triangle at the player's location
 // posScale is just a temporary struct with int's inside, any draw modes variables are regular int's, no enums were defined.
 /*
+struct posNscale {
+	Vector3 pos;
+	Vector3 scale;
+	int draw;
+	int blend;
+	int depth;
+	int filter;
+};
+posNScale posScale = {0};
+
+//below tested in GetViewMatrix
 	DirectX::XMFLOAT4X3 modifiers = DirectX::XMFLOAT4X3();
 	DirectX::XMMATRIX tmp = DirectX::XMMatrixIdentity();
 	DirectX::XMVECTOR empty = DirectX::XMVECTOR();
@@ -101,30 +107,30 @@ namespace ShapeEngine
 {
 	extern void* rendFontPtr;
 
-	using clearBuffers_t = void(__fastcall*)();
-	using createGlobalResources_t = void(__fastcall*)();
-	using deleteGlobalResources_t = void(__fastcall*)();
-	using drawCircle_t = void(__fastcall*)(Vector2 a1, float a2, float a3, float a4, float a5, Vector2 a6);
-	using drawRectangle_t = void(__fastcall*)(Vector2 a1, Vector2 a2);
-	using drawSpriteWithFilmGrain_t = void(__fastcall*)(Vector2 a1, Vector2 a2, rend::ShapeEngine::Pivot a3, float a4, Vector3* a5, Vector3 a6, Vector3 a7);
-	using drawUser_t = void(__fastcall*)(void* a1);
-	using empty_t = bool(__fastcall*)();
-	using freeRenderTarget_t = void(__fastcall*)(void* d3dTexture2D);
-	using getAspectRatio_t = float(__fastcall*)();
-	using getBlendMode_t = int64_t /*enum*/(__fastcall*)();
-	using getColor_t = uint64_t(__fastcall*)();
-	using getDepthMode_t = int64_t /*enum*/(__fastcall*)();
-	using getDrawMode_t = int64_t /*enum*/(__fastcall*)();
-	using getDropShadow_t = bool(__fastcall*)();
-	using getFilterMode_t = int64_t /*enum*/(__fastcall*)();
-	using getFont_t = void*(__fastcall*)();
+	using clearBuffers_t = void(__fastcall*)(void* ShapeEngineInstance);
+	using createGlobalResources_t = void(__fastcall*)(void* ShapeEngineInstance);
+	using deleteGlobalResources_t = void(__fastcall*)(void* ShapeEngineInstance);
+	using drawCircle_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2 a1, float a2, float a3, float a4, float a5, Vector2 a6);
+	using drawRectangle_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2 a1, Vector2 a2);
+	using drawSpriteWithFilmGrain_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2 a1, Vector2 a2, rend::ShapeEngine::Pivot pivot, float a4, Vector3* a5, Vector3 a6, Vector3 a7);
+	using drawUser_t = void(__fastcall*)(void* ShapeEngineInstance, void* a1);
+	using empty_t = bool(__fastcall*)(void* ShapeEngineInstance);
+	using freeRenderTarget_t = void(__fastcall*)(void* ShapeEngineInstance, void* d3dTexture2D);
+	using getAspectRatio_t = float(__fastcall*)(void* ShapeEngineInstance);
+	using getBlendMode_t = int64_t /*enum*/(__fastcall*)(void* ShapeEngineInstance);
+	using getColor_t = uint64_t(__fastcall*)(void* ShapeEngineInstance);
+	using getDepthMode_t = int64_t /*enum*/(__fastcall*)(void* ShapeEngineInstance);
+	using getDrawMode_t = int64_t /*enum*/(__fastcall*)(void* ShapeEngineInstance);
+	using getDropShadow_t = bool(__fastcall*)(void* ShapeEngineInstance);
+	using getFilterMode_t = int64_t /*enum*/(__fastcall*)(void* ShapeEngineInstance);
+	using getFont_t = void*(__fastcall*)(void* ShapeEngineInstance);
 	using getInstance_t = void* (__fastcall*)();
-	using getTextAreaLineHeight_t = float(__fastcall*)(void* a1, float a2);
-	using getTexture_t = void*(__fastcall*)();
-	using getTextureMode_t = int64_t /*enum*/(__fastcall*)();
-	using hasInstance_t = bool(__fastcall*)();
+	using getTextAreaLineHeight_t = float(__fastcall*)(void* ShapeEngineInstance, void* a1, float a2);
+	using getTexture_t = void*(__fastcall*)(void* ShapeEngineInstance);
+	using getTextureMode_t = int64_t /*enum*/(__fastcall*)(void* ShapeEngineInstance);
+	using hasInstance_t = bool(__fastcall*)(void* ShapeEngineInstance);
 	using isRendererAdministered_t = bool(__fastcall*)(void* ShapeEngineInstance, r::ThreadID a1);
-	using postEffectInit_t = void(__fastcall*)();
+	using postEffectInit_t = void(__fastcall*)(void* ShapeEngineInstance);
 	using pushToRenderer_t = void(__fastcall*)(void* ShapeEngineInstance, r::ThreadID a1);
 	using registerGlobalInstance_t = void(__fastcall*)(void* ShapeEngineInstance);
 	using render_t = void(__fastcall*)(void* ShapeEngineInstance, rend::ShapeEngine::DrawMode a1);
@@ -189,110 +195,110 @@ namespace ShapeEngine
 	extern setViewportTransform_t setViewportTransform;
 	extern unregisterGlobalInstance_t unregisterGlobalInstance;
 
-	using ShapeEngine_t = void(__fastcall*)(unsigned int a1, unsigned int a2);
+	using ShapeEngine_t = void(__fastcall*)(void* ShapeEngineInstance, unsigned int a1, unsigned int a2);
 	void ShapeEngine(unsigned int a1, unsigned int a2);
 
-	using ShapeEngine1_t = void(__fastcall*)();
+	using ShapeEngine1_t = void(__fastcall*)(void* ShapeEngineInstance);
 	void ShapeEngine();
 
-	using drawInstancedLines_t = void(__fastcall*)(unsigned __int64 a1, Vector2* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
+	using drawInstancedLines_t = void(__fastcall*)(void* ShapeEngineInstance, unsigned __int64 a1, Vector2* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
 	void drawInstancedLines(unsigned __int64 a1, Vector2* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
 
-	using drawInstancedLines1_t = void(__fastcall*)(unsigned __int64 a1, Vector3* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
+	using drawInstancedLines1_t = void(__fastcall*)(void* ShapeEngineInstance, unsigned __int64 a1, Vector3* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
 	void drawInstancedLines(unsigned __int64 a1, Vector3* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
 
-	using drawInstancedTriangles_t = void(__fastcall*)(unsigned __int64 a1, Vector2* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
+	using drawInstancedTriangles_t = void(__fastcall*)(void* ShapeEngineInstance, unsigned __int64 a1, Vector2* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
 	void drawInstancedTriangles(unsigned __int64 a1, Vector2* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
 
-	using drawInstancedTriangles1_t = void(__fastcall*)(unsigned __int64 a1, Vector3* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
+	using drawInstancedTriangles1_t = void(__fastcall*)(void* ShapeEngineInstance, unsigned __int64 a1, Vector3* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
 	void drawInstancedTriangles(unsigned __int64 a1, Vector3* a2, int a3, XMFLOAT4X3 a4, Vector4 a5);
 
-	using drawLine_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2* a1, Vector2* a2);
-	void drawLine(void* ShapeEngineInstance, Vector2* a1, Vector2* a2);
+	using drawLine_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2* start, Vector2* end);
+	void drawLine(Vector2* start, Vector2* end);
 
-	using drawLine1_t = void(__fastcall*)(void* ShapeEngineInstance, Vector3 a1, Vector3 a2);
-	void drawLine(void* ShapeEngineInstance, Vector3 a1, Vector3 a2);
+	using drawLine1_t = void(__fastcall*)(void* ShapeEngineInstance, Vector3* start, Vector3* end);
+	void drawLine(Vector3* start, Vector3* end);
 
-	using drawLine2_t = void(__fastcall*)(void* ShapeEngineInstance, Vector4 a1, Vector4 a2);
-	void drawLine(void* ShapeEngineInstance, Vector4 a1, Vector4 a2);
+	using drawLine2_t = void(__fastcall*)(void* ShapeEngineInstance, Vector4* start, Vector4* end);
+	void drawLine(Vector4* start, Vector4* end);
 
 	using drawLines_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2* lineData, int lineCount, XMFLOAT4X3* matrix);
-	void drawLines(void* ShapeEngineInstance, Vector2* lineData, int lineCount, XMFLOAT4X3* matrix);
+	void drawLines(Vector2* lineData, int lineCount, XMFLOAT4X3* matrix);
 
 	using drawLines1_t = void(__fastcall*)(void* ShapeEngineInstance, Vector3* lineData, int lineCount, XMFLOAT4X3* matrix);
-	void drawLines(void* ShapeEngineInstance, Vector3* a1, int a2, XMFLOAT4X3* a3);
+	void drawLines(Vector3* lineData, int lineCount, XMFLOAT4X3* matrix);
 
-	using drawPoint_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2* a1);
-	void drawPoint(void* ShapeEngineInstance, Vector2* a1);
+	using drawPoint_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2* point);
+	void drawPoint(Vector2* point);
 
-	using drawPoint1_t = void(__fastcall*)(void* ShapeEngineInstance, Vector3* a1);
-	void drawPoint(void* ShapeEngineInstance, Vector3* a1);
+	using drawPoint1_t = void(__fastcall*)(void* ShapeEngineInstance, Vector3* point);
+	void drawPoint(Vector3* point);
 
 	using drawPolygon_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2* a1, int a2, Vector3* a3, uint64_t* a4);
-	void drawPolygon(void* ShapeEngineInstance, Vector2* a1, int a2, Vector3* a3, uint64_t* a4);
+	void drawPolygon(Vector2* a1, int a2, Vector3* a3, uint64_t* a4);
 
-	using drawPolygon1_t = void(__fastcall*)(Vector3* a1, int a2, Vector3* a3, uint64_t* a4);
+	using drawPolygon1_t = void(__fastcall*)(void* ShapeEngineInstance, Vector3* a1, int a2, Vector3* a3, uint64_t* a4);
 	void drawPolygon(Vector3* a1, int a2, Vector3* a3, uint64_t* a4);
 
-	using drawPolygon2_t = void(__fastcall*)(Vector4* a1, int a2, Vector3* a3, uint64_t* a4);
+	using drawPolygon2_t = void(__fastcall*)(void* ShapeEngineInstance, Vector4* a1, int a2, Vector3* a3, uint64_t* a4);
 	void drawPolygon(Vector4* a1, int a2, Vector3* a3, uint64_t* a4);
 
-	using drawSprite_t = void(__fastcall*)(Vector2 a1, Vector2 a2, rend::ShapeEngine::Pivot a3, float a4, Vector3* a5, Vector3 a6, Vector3 a7);
-	void drawSprite(Vector2 a1, Vector2 a2, rend::ShapeEngine::Pivot a3, float a4, Vector3* a5, Vector3 a6, Vector3 a7);
+	using drawSprite_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2 a1, Vector2 a2, rend::ShapeEngine::Pivot pivot, float a4, Vector3* a5, Vector3 a6, Vector3 a7);
+	void drawSprite(Vector2 a1, Vector2 a2, rend::ShapeEngine::Pivot pivot, float a4, Vector3* a5, Vector3 a6, Vector3 a7);
 
-	using drawSprite1_t = void(__fastcall*)(Vector3 a1, Vector2 a2, Vector3 a3, rend::ShapeEngine::Pivot a4, float a5, Vector3* a6, Vector3 a7, Vector3 a8);
-	void drawSprite(Vector3 a1, Vector2 a2, Vector3 a3, rend::ShapeEngine::Pivot a4, float a5, Vector3* a6, Vector3 a7, Vector3 a8);
+	using drawSprite1_t = void(__fastcall*)(void* ShapeEngineInstance, Vector3 a1, Vector2 a2, Vector3 a3, rend::ShapeEngine::Pivot pivot, float a5, Vector3* a6, Vector3 a7, Vector3 a8);
+	void drawSprite(Vector3 a1, Vector2 a2, Vector3 a3, rend::ShapeEngine::Pivot pivot, float a5, Vector3* a6, Vector3 a7, Vector3 a8);
 
-	using drawText_t = void(__fastcall*)(Vector2 a1, char* a2, rend::ShapeEngine::Pivot a3);
-	void drawText(Vector2 a1, char* a2, rend::ShapeEngine::Pivot a3);
+	using drawText_t = void(__fastcall*)(void *ShapeEngineInstance, Vector2 *pos, const char* str, rend::ShapeEngine::Pivot pivot);
+	void drawText(Vector2 *pos, const char* str, rend::ShapeEngine::Pivot pivot);
 
-	using drawText1_t = void(__fastcall*)(Vector2 a1, wchar_t* a2, rend::ShapeEngine::Pivot a3);
-	void drawText(Vector2 a1, wchar_t* a2, rend::ShapeEngine::Pivot a3);
+	using drawTextW_t = void(__fastcall*)(void *ShapeEngineInstance, Vector2 *pos, wchar_t* wstr, rend::ShapeEngine::Pivot pivot);
+	void drawTextW(Vector2 *pos, wchar_t* wstr, rend::ShapeEngine::Pivot pivot);
 
-	using drawTriangles_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* a4);
-	void drawTriangles(void* ShapeEngineInstance, Vector2* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* a4);
+	using drawTriangles_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* matrix);
+	void drawTriangles(Vector2* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* matrix);
 
-	using drawTriangles1_t = void(__fastcall*)(void* ShapeEngineInstance, Vector3* a1, Vector3* a2, int pointCount, XMFLOAT4X3* a4);
-	void drawTriangles(void* ShapeEngineInstance, Vector3* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* a4);
+	using drawTriangles1_t = void(__fastcall*)(void* ShapeEngineInstance, Vector3* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* matrix);
+	void drawTriangles(Vector3* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* matrix);
 
-	using getTextLineHeight_t = float(__fastcall*)();
+	using getTextLineHeight_t = float(__fastcall*)(void* ShapeEngineInstance);
 	float getTextLineHeight();
-
-	using getTextLineHeight1_t = float(__fastcall*)(void* a1, float a2);
+	
+	using getTextLineHeight1_t = float(__fastcall*)(void* ShapeEngineInstance, void* a1, float a2);
 	float getTextLineHeight(void* a1, float a2);
 
-	using getTextSize_t = Vector2(__fastcall*)(char* a1);
-	Vector2 getTextSize(char* a1);
+	using getTextSize_t = Vector2(__fastcall*)(void* ShapeEngineInstance, char* str);
+	Vector2 getTextSize(char* str);
 
-	using getTextSize1_t = Vector2(__fastcall*)(wchar_t* a1);
-	Vector2 getTextSize(wchar_t* a1);
+	using getTextSizeW_t = Vector2(__fastcall*)(void* ShapeEngineInstance, wchar_t* wstr);
+	Vector2 getTextSizeW(wchar_t* wstr);
 
-	using getTextSize2_t = float(__fastcall*)();
+	using getTextSize2_t = float(__fastcall*)(void* ShapeEngineInstance);
 	float getTextSize();
 
-	using getTextSize3_t = void* (__fastcall*)(void* rendFont, float a2, float a3, char* a4);
-	void* getTextSize(void* a1, float a2, float a3, char* a4);
+	using getTextSize3_t = void* (__fastcall*)(void* ShapeEngineInstance, void* rendFont, float a2, float a3, char* str);
+	void* getTextSize(void* a1, float a2, float a3, char* str);
 
-	using getTextSize4_t = void* (__fastcall*)(void* rendFont, float a2, float a3, wchar_t* a4);
-	void* getTextSize(void* a1, float a2, float a3, wchar_t* a4);
+	using getTextSizeW2_t = void* (__fastcall*)(void* ShapeEngineInstance, void* rendFont, float a2, float a3, wchar_t* wstr);
+	void* getTextSizeW(void* a1, float a2, float a3, wchar_t* wstr);
 
-	using setColor_t = void(__fastcall*)(void* ShapeEngineInstance, Vector4* a1);
-	void setColor(void* ShapeEngineInstance, Vector4* a1);
+	using setColor_t = void(__fastcall*)(void* ShapeEngineInstance, Vector4* color);
+	void setColor(Vector4* color);
 
-	using setColor1_t = void(__fastcall*)(void* ShapeEngineInstance, uint64_t a1);
-	void setColor(void* ShapeEngineInstance, uint64_t a1);
+	using setColor1_t = void(__fastcall*)(void* ShapeEngineInstance, uint64_t icolor);
+	void setColor(uint64_t icolor);
 
-	using setScissorRect_t = void(__fastcall*)(Vector2 a1, Vector2 a2);
+	using setScissorRect_t = void(__fastcall*)(void* ShapeEngineInstance, Vector2 a1, Vector2 a2);
 	void setScissorRect(Vector2 a1, Vector2 a2);
 
-	using setScissorRect1_t = void(__fastcall*)(int a1, int a2, int a3, int a4);
+	using setScissorRect1_t = void(__fastcall*)(void* ShapeEngineInstance, int a1, int a2, int a3, int a4);
 	void setScissorRect(int a1, int a2, int a3, int a4);
 
 	using setStroke_t = void(__fastcall*)(void* ShapeEngineInstance, bool a1, float a2, Vector4* a3);
-	void setStroke(void* ShapeEngineInstance, bool a1, float a2, Vector4* a3);
+	void setStroke(bool a1, float a2, Vector4* a3);
 
 	using setStroke1_t = void(__fastcall*)(void* ShapeEngineInstance, bool a1, float a2, uint64_t* a3);
-	void setStroke(void* ShapeEngineInstance, bool a1, float a2, uint64_t* a3);
+	void setStroke(bool a1, float a2, uint64_t* a3);
 
 	void InstallHooks(LPCWSTR dllName);
 }

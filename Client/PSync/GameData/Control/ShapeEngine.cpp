@@ -1,5 +1,6 @@
 #include "ShapeEngine.h"
 
+#define shapeEngineInstance getInstance() //change to a class pointer that caches the instance pointer?
 namespace ShapeEngine
 {
 	void* rendFontPtr = nullptr;
@@ -66,16 +67,16 @@ namespace ShapeEngine
 	drawSprite_t drawSpriteFunc;
 	drawSprite1_t drawSprite1Func;
 	drawText_t drawTextFunc;
-	drawText1_t drawText1Func;
+	drawTextW_t drawTextWFunc;
 	drawTriangles_t drawTrianglesFunc;
 	drawTriangles1_t drawTriangles1Func;
 	getTextLineHeight_t getTextLineHeightFunc;
 	getTextLineHeight1_t getTextLineHeight1Func;
 	getTextSize_t getTextSizeFunc;
-	getTextSize1_t getTextSize1Func;
+	getTextSizeW_t getTextSizeWFunc;
 	getTextSize2_t getTextSize2Func;
 	getTextSize3_t getTextSize3Func;
-	getTextSize4_t getTextSize4Func;
+	getTextSizeW2_t getTextSizeW2Func;
 	setColor_t setColorFunc;
 	setColor1_t setColor1Func;
 	setScissorRect_t setScissorRectFunc;
@@ -85,189 +86,188 @@ namespace ShapeEngine
 
 	void ShapeEngine(unsigned int a1, unsigned int a2)
 	{
-		ShapeEngineFunc(a1, a2);
+		ShapeEngineFunc(shapeEngineInstance, a1, a2);
 	}
 
 	void ShapeEngine()
 	{
-		ShapeEngine1Func();
+		ShapeEngine1Func(shapeEngineInstance);
 	}
 
 	void drawInstancedLines(unsigned __int64 a1, Vector2* a2, int a3, XMFLOAT4X3 a4, Vector4 a5)
 	{
-		drawInstancedLinesFunc(a1, a2, a3, a4, a5);
+		drawInstancedLinesFunc(shapeEngineInstance, a1, a2, a3, a4, a5);
 	}
 
 	void drawInstancedLines(unsigned __int64 a1, Vector3* a2, int a3, XMFLOAT4X3 a4, Vector4 a5)
 	{
-		drawInstancedLines1Func(a1, a2, a3, a4, a5);
+		drawInstancedLines1Func(shapeEngineInstance, a1, a2, a3, a4, a5);
 	}
 
 	void drawInstancedTriangles(unsigned __int64 a1, Vector2* a2, int a3, XMFLOAT4X3 a4, Vector4 a5)
 	{
-		drawInstancedTrianglesFunc(a1, a2, a3, a4, a5);
+		drawInstancedTrianglesFunc(shapeEngineInstance, a1, a2, a3, a4, a5);
 	}
 
 	void drawInstancedTriangles(unsigned __int64 a1, Vector3* a2, int a3, XMFLOAT4X3 a4, Vector4 a5)
 	{
-		drawInstancedTriangles1Func(a1, a2, a3, a4, a5);
+		drawInstancedTriangles1Func(shapeEngineInstance, a1, a2, a3, a4, a5);
 	}
 
-	void drawLine(void* ShapeEngineInstance, Vector2* a1, Vector2* a2)
+	void drawLine(Vector2* start, Vector2* end)
 	{
-		drawLineFunc(ShapeEngineInstance, a1, a2);
+		drawLineFunc(shapeEngineInstance, start, end);
 	}
 
-	void drawLine(void* ShapeEngineInstance, Vector3 a1, Vector3 a2)
+	void drawLine(Vector3* start, Vector3* end)
 	{
-		drawLine1Func(ShapeEngineInstance, a1, a2);
+		drawLine1Func(shapeEngineInstance, start, end);
 	}
 
-	void drawLine(void* ShapeEngineInstance, Vector4 a1, Vector4 a2)
+	void drawLine(Vector4* start, Vector4* end)
 	{
-		drawLine2Func(ShapeEngineInstance, a1, a2);
+		drawLine2Func(shapeEngineInstance, start, end);
 	}
 
-	void drawLines(void* ShapeEngineInstance, Vector2* lineData, int lineCount, XMFLOAT4X3* matrix)
+	void drawLines(Vector2* lineData, int lineCount, XMFLOAT4X3* matrix)
 	{
-		drawLinesFunc(ShapeEngineInstance, lineData, lineCount, matrix);
+		drawLinesFunc(shapeEngineInstance, lineData, lineCount, matrix);
 	}
 
-	void drawLines(void* ShapeEngineInstance, Vector3* a1, int a2, XMFLOAT4X3* a3)
+	void drawLines(Vector3* lineData, int lineCount, XMFLOAT4X3* matrix)
 	{
-		drawLines1Func(ShapeEngineInstance, a1, a2, a3);
+		drawLines1Func(shapeEngineInstance, lineData, lineCount, matrix);
 	}
 
-	void drawPoint(void* ShapeEngineInstance, Vector2* a1)
+	void drawPoint(Vector2* point)
 	{
-		drawPointFunc(ShapeEngineInstance, a1);
+		drawPointFunc(shapeEngineInstance, point);
 	}
 
-	void drawPoint(void* ShapeEngineInstance, Vector3* a1)
+	void drawPoint(Vector3* point)
 	{
-		drawPoint1Func(ShapeEngineInstance, a1);
+		drawPoint1Func(shapeEngineInstance, point);
 	}
 
-	void drawPolygon(void* ShapeEngineInstance, Vector2* a1, int a2, Vector3* a3, uint64_t* a4)
+	void drawPolygon(Vector2* a1, int a2, Vector3* a3, uint64_t* a4)
 	{
-		drawPolygonFunc(ShapeEngineInstance, a1, a2, a3, a4);
+		drawPolygonFunc(shapeEngineInstance, a1, a2, a3, a4);
 	}
 
 	void drawPolygon(Vector3* a1, int a2, Vector3* a3, uint64_t* a4)
 	{
-		drawPolygon1Func(a1, a2, a3, a4);
+		drawPolygon1Func(shapeEngineInstance, a1, a2, a3, a4);
 	}
 
 	void drawPolygon(Vector4* a1, int a2, Vector3* a3, uint64_t* a4)
 	{
-		drawPolygon2Func(a1, a2, a3, a4);
+		drawPolygon2Func(shapeEngineInstance, a1, a2, a3, a4);
 	}
 
-	void drawSprite(Vector2 a1, Vector2 a2, rend::ShapeEngine::Pivot a3, float a4, Vector3* a5, Vector3 a6, Vector3 a7)
+	void drawSprite(Vector2 a1, Vector2 a2, rend::ShapeEngine::Pivot pivot, float a4, Vector3* a5, Vector3 a6, Vector3 a7)
 	{
-		drawSpriteFunc(a1, a2, a3, a4, a5, a6, a7);
+		drawSpriteFunc(shapeEngineInstance, a1, a2, pivot, a4, a5, a6, a7);
 	}
 
-	void drawSprite(Vector3 a1, Vector2 a2, Vector3 a3, rend::ShapeEngine::Pivot a4, float a5, Vector3* a6, Vector3 a7, Vector3 a8)
+	void drawSprite(Vector3 a1, Vector2 a2, Vector3 a3, rend::ShapeEngine::Pivot pivot, float a5, Vector3* a6, Vector3 a7, Vector3 a8)
 	{
-		drawSprite1Func(a1, a2, a3, a4, a5, a6, a7, a8);
+		drawSprite1Func(shapeEngineInstance, a1, a2, a3, pivot, a5, a6, a7, a8);
 	}
 
-	void drawText(Vector2 a1, char* a2, rend::ShapeEngine::Pivot a3)
+	void drawText(Vector2 *pos, const char *str, rend::ShapeEngine::Pivot pivot)
 	{
-		drawTextFunc(a1, a2, a3);
+		drawTextFunc(shapeEngineInstance, pos, str, pivot);
 	}
 
-	void drawText(Vector2 a1, wchar_t* a2, rend::ShapeEngine::Pivot a3)
+	void drawTextW(Vector2 *pos, wchar_t* wstr, rend::ShapeEngine::Pivot pivot)
 	{
-		drawText1Func(a1, a2, a3);
+		drawTextWFunc(shapeEngineInstance, pos, wstr, pivot);
 	}
 
-	void drawTriangles(void* ShapeEngineInstance, Vector2* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* a4)
+	void drawTriangles(Vector2* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* a4)
 	{
-		drawTrianglesFunc(ShapeEngineInstance, posCoords, texCoords, pointCount, a4);
+		drawTrianglesFunc(shapeEngineInstance, posCoords, texCoords, pointCount, a4);
 	}
 
-	void drawTriangles(void* ShapeEngineInstance, Vector3* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* a4)
+	void drawTriangles(Vector3* posCoords, Vector3* texCoords, int pointCount, XMFLOAT4X3* a4)
 	{
-		drawTriangles1Func(ShapeEngineInstance, posCoords, texCoords, pointCount, a4);
+		drawTriangles1Func(shapeEngineInstance, posCoords, texCoords, pointCount, a4);
 	}
 
 	float getTextLineHeight()
 	{
-		return getTextLineHeightFunc();
+		return getTextLineHeightFunc(shapeEngineInstance);
 	}
 
 	float getTextLineHeight(void* a1, float a2)
 	{
-		return getTextLineHeight1Func(a1, a2);
+		return getTextLineHeight1Func(shapeEngineInstance, a1, a2);
 	}
 
-	Vector2 getTextSize(char* a1)
+	Vector2 getTextSize(char* str)
 	{
-		return getTextSizeFunc(a1);
+		return getTextSizeFunc(shapeEngineInstance, str);
 	}
 
-	Vector2 getTextSize(wchar_t* a1)
+	Vector2 getTextSizeW(wchar_t* wstr)
 	{
-		return getTextSize1Func(a1);
+		return getTextSizeWFunc(shapeEngineInstance, wstr);
 	}
 
 	float getTextSize()
 	{
-		return getTextSize2Func();
+		return getTextSize2Func(shapeEngineInstance);
 	}
 
-	void* getTextSize(void* a1, float a2, float a3, char* a4)
+	void* getTextSize(void* a1, float a2, float a3, char* str)
 	{
-		return getTextSize3Func(a1, a2, a3, a4);
+		return getTextSize3Func(shapeEngineInstance, a1, a2, a3, str);
 	}
 
-	void* getTextSize(void* a1, float a2, float a3, wchar_t* a4)
+	void* getTextSizeW(void* a1, float a2, float a3, wchar_t* wstr)
 	{
-		return getTextSize4Func(a1, a2, a3, a4);
+		return getTextSizeW2Func(shapeEngineInstance, a1, a2, a3, wstr);
 	}
 
-	void setColor(void* ShapeEngineInstance, Vector4* a1)
-	{
-		setColorFunc(ShapeEngineInstance, a1);
-	}
-
-	void SetFont(void* instance, void* rendFont)
+	void SetFont(void* instance, void* rendFont) //function we hook, must pass instance here
 	{
 		rendFontPtr = rendFont;
 		setFontFunc(instance, rendFont);
 	}
 
-	void setColor(void* ShapeEngineInstance, uint64_t a1)
+	void setColor(Vector4* color)
 	{
-		setColor1Func(ShapeEngineInstance, a1);
+		setColorFunc(shapeEngineInstance, color);
+	}
+
+	void setColor(uint64_t icolor)
+	{
+		setColor1Func(shapeEngineInstance, icolor);
 	}
 
 	void setScissorRect(Vector2 a1, Vector2 a2)
 	{
-		setScissorRectFunc(a1, a2);
+		setScissorRectFunc(shapeEngineInstance, a1, a2);
 	}
 
 	void setScissorRect(int a1, int a2, int a3, int a4)
 	{
-		setScissorRect1Func(a1, a2, a3, a4);
+		setScissorRect1Func(shapeEngineInstance, a1, a2, a3, a4);
 	}
 
-	void setStroke(void* ShapeEngineInstance, bool a1, float a2, Vector4* a3)
+	void setStroke(bool a1, float a2, Vector4* a3)
 	{
-		setStrokeFunc(ShapeEngineInstance, a1, a2, a3);
+		setStrokeFunc(shapeEngineInstance, a1, a2, a3);
 	}
 
-	void setStroke(void* ShapeEngineInstance, bool a1, float a2, uint64_t* a3)
+	void setStroke(bool a1, float a2, uint64_t* a3)
 	{
-		setStroke1Func(ShapeEngineInstance, a1, a2, a3);
+		setStroke1Func(shapeEngineInstance, a1, a2, a3);
 	}
 
 	void InstallHooks(LPCWSTR dllName)
 	{
 		HINSTANCE module = GetModuleHandle(dllName);
-
 		if (module != NULL)
 		{
 			clearBuffers = (clearBuffers_t)GetProcAddress(module, "?clearBuffers@ShapeEngine@rend@@QEAAXXZ");
@@ -332,16 +332,16 @@ namespace ShapeEngine
 			drawSpriteFunc = (drawSprite_t)GetProcAddress(module, "?drawSprite@ShapeEngine@rend@@QEAAXAEBV?$Vector2Template@M@m@@0W4Pivot@12@MPEBV?$Vector3Template@M@4@AEBV64@3@Z");
 			drawSprite1Func = (drawSprite1_t)GetProcAddress(module, "?drawSprite@ShapeEngine@rend@@QEAAXAEBV?$Vector3Template@M@m@@AEBV?$Vector2Template@M@4@0W4Pivot@12@MPEBV34@00@Z");
 			drawTextFunc = (drawText_t)GetProcAddress(module, "?drawText@ShapeEngine@rend@@QEAAXAEBV?$Vector2Template@M@m@@PEBDW4Pivot@12@@Z");
-			drawText1Func = (drawText1_t)GetProcAddress(module, "?drawText@ShapeEngine@rend@@QEAAXAEBV?$Vector2Template@M@m@@PEB_WW4Pivot@12@@Z");
+			drawTextWFunc = (drawTextW_t)GetProcAddress(module, "?drawText@ShapeEngine@rend@@QEAAXAEBV?$Vector2Template@M@m@@PEB_WW4Pivot@12@@Z");
 			drawTrianglesFunc = (drawTriangles_t)GetProcAddress(module, "?drawTriangles@ShapeEngine@rend@@QEAAXPEBV?$Vector2Template@M@m@@PEBV?$Vector3Template@M@4@HAEBV?$Matrix4x3Template@M@4@@Z");
 			drawTriangles1Func = (drawTriangles1_t)GetProcAddress(module, "?drawTriangles@ShapeEngine@rend@@QEAAXPEBV?$Vector3Template@M@m@@0HAEBV?$Matrix4x3Template@M@4@@Z");
 			getTextLineHeightFunc = (getTextLineHeight_t)GetProcAddress(module, "?getTextLineHeight@ShapeEngine@rend@@QEBAMXZ");
 			getTextLineHeight1Func = (getTextLineHeight1_t)GetProcAddress(module, "?getTextLineHeight@ShapeEngine@rend@@SAMPEAVFont@2@M@Z");
 			getTextSizeFunc = (getTextSize_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@QEBA?AV?$Vector2Template@M@m@@PEBD@Z");
-			getTextSize1Func = (getTextSize1_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@QEBA?AV?$Vector2Template@M@m@@PEB_W@Z");
+			getTextSizeWFunc = (getTextSizeW_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@QEBA?AV?$Vector2Template@M@m@@PEB_W@Z");
 			getTextSize2Func = (getTextSize2_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@QEBAMXZ");
 			getTextSize3Func = (getTextSize3_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@SA?AV?$Vector2Template@M@m@@PEAVFont@2@MMPEBD@Z");
-			getTextSize4Func = (getTextSize4_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@SA?AV?$Vector2Template@M@m@@PEAVFont@2@MMPEB_W@Z");
+			getTextSizeW2Func = (getTextSizeW2_t)GetProcAddress(module, "?getTextSize@ShapeEngine@rend@@SA?AV?$Vector2Template@M@m@@PEAVFont@2@MMPEB_W@Z");
 			setColorFunc = (setColor_t)GetProcAddress(module, "?setColor@ShapeEngine@rend@@QEAAXAEBV?$Vector4Template@M@m@@@Z");
 			setColor1Func = (setColor1_t)GetProcAddress(module, "?setColor@ShapeEngine@rend@@QEAAXAEBVColor@g@@@Z");
 			setScissorRectFunc = (setScissorRect_t)GetProcAddress(module, "?setScissorRect@ShapeEngine@rend@@QEAAXAEBV?$Vector2Template@M@m@@0@Z");
