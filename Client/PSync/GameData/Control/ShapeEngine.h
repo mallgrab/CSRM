@@ -16,17 +16,17 @@ namespace rend
 	namespace ShapeEngine
 	{
 		typedef enum
-		{ //need to do more thorough investigation as to how these work
-			tmp1, //unknown? doesn't show..?
-			tmp2, //top left?
-			tmp3, //also top left?
-			tmp4, //left aligned?
-			tmp5, //center aligned?
-			tmp6, //right aligned?
-			tmp7, //center right?
-			tmp8, //lower left?
-			tmp9,
-		} Pivot;
+		{ //relative to the text size
+			CENTER, //centered, absolute
+			CENTER_TOP, //top center
+			CENTER_LOWER, //no actually bottom center
+			LEFT_CENTER, //left center
+			RIGHT_CENTER, //right center
+			UPPER_LEFT, //top left
+			UPPER_RIGHT, //top right
+			LEFT_LOWER, //bottom left
+			RIGHT_LOWER, //bottom right
+		} Pivot; //this is how the text will align to the position you set
 
 		typedef uint64_t DrawMode, BlendMode, CubeSamplingMode, DepthMode, FilterMode, TextureMode;
 	}
