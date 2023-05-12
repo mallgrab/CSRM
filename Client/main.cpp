@@ -130,6 +130,10 @@ void earlyHooks()
 	byte* startupStringPtr = reinterpret_cast<byte*>(processStartAddr + 0x24FE20);
 	if (MH_CreateHook(startupStringPtr, &StartupString, reinterpret_cast<LPVOID*>(&StartupStringFunc)) != MH_OK) throw;
 	if (MH_EnableHook(startupStringPtr) != MH_OK) throw;
+
+#if defined(LOG_CONSOLE) && !defined(_DEBUG)
+	ShowWindow(GetConsoleWindow(), SW_MINIMIZE); //minimize console window on startup
+#endif
 }
 
 DWORD WINAPI MainThread(LPVOID lpReserved) {
