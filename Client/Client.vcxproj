@@ -88,7 +88,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>D:\games\Control\Control</OutDir>
+    <OutDir>E:\games\Control\</OutDir>
     <IncludePath>$(ProjectDir)enet\include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(DXSDK_DIR)Lib\x64</LibraryPath>
     <TargetName>xinput1_4</TargetName>

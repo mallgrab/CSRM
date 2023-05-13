@@ -265,18 +265,6 @@ void addDecal(void* FlowUpdatePin, bool a2)
 	addDecalFunc(FlowUpdatePin, a2);
 }
 
-bool setForce = false;
-bool setActivate = false;
-using addDecal_t = void(__fastcall*)(void* FlowUpdatePin, bool a2);
-addDecal_t addDecalFunc;
-void addDecal(void* FlowUpdatePin, bool a2)
-{
-	if (setForce)
-		a2 = setActivate;
-
-	addDecalFunc(FlowUpdatePin, a2);
-}
-
 void ControlGameData::InitGameData()
 {
 	posScale.pos.x = 0.0f;
