@@ -569,6 +569,9 @@ void ControlUI::DebugTab() {
 		ImGui::SameLine();
 		if (ImGui::Checkbox("Temporal SSAA", &cfg->TemporalSSAA))
 			SSAATweakable.SetTweakableStrValue(cfg->TemporalSSAA ? "1.0f" : "0.0f");
+		//ImGui::SameLine();
+		//if (ImGui::Checkbox("Pause on focus lost", &cfg->pauseOnFocusLost))
+		//	controlData->UpdateStartupStringValues(cfg);
 
 		ImGui::TextUnformatted("\n");
 		ImGui::TextUnformatted("Game settings:");
@@ -906,6 +909,13 @@ void ControlUI::Init()
 	}
 
 	if (init) return; //really don't need the ImGUI mousecursor at all with how input works rn
+
+	MotionBlurTweakable.SetTweakableStrValue(cfg->motionBlur ? "0.4f" : "0.0f");
+	SSAATweakable.SetTweakableStrValue(cfg->TemporalSSAA ? "1.0f" : "0.0f");
+
+	ControlGameData *controlData = (ControlGameData *)data;
+	controlData->UpdateStartupStringValues(cfg);
+
 	BaseUI::Init();
 }
 

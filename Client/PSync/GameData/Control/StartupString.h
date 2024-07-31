@@ -65,7 +65,7 @@ struct  __declspec(align(2)) startupString
   char enableLazyGarbageCollection2;
   char enableLazyGarbageCollection1;
   char unused5;
-  char alwaysInFocus;
+  bool alwaysInFocus; //add config setting?
   char unused8;
   char field408gap[7];
   __int64 *unused9;
@@ -193,4 +193,4 @@ struct  __declspec(align(2)) startupString
   char fieldAB9;
   char fieldABA;
 };
-#pragma pack(0)
+//#pragma pack(0)

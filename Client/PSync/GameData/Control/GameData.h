@@ -2,6 +2,7 @@
 #define _WINSOCKAPI_
 #include <Windows.h>
 #include "../BaseGameData.h"
+#include "../../Config/ControlConfig.h"
 #include "../ocular/kiero/minhook/include/MinHook.h"
 #include "BaseTweakable.h"
 #include "ShapeEngine.h"
@@ -35,4 +36,5 @@ public:
 	bool playerIsOnGround();
 	void ToggleFreeCam();
 	void ToggleDeveloperMenus();
+	void UpdateStartupStringValues(ControlConfig *cfg);
 };

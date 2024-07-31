@@ -253,6 +253,10 @@ void ControlGameData::EnableDeveloperMenus()
 }
 #endif
 
+void ControlGameData::UpdateStartupStringValues(ControlConfig *cfg) {
+	tmpString->alwaysInFocus = cfg->pauseOnFocusLost;
+}
+
 using setPresentInterval_t = void(__fastcall*)(void* RendererInterfaceInstance, uint64_t interval);
 setPresentInterval_t setPresentIntervalFunc;
 void setPresentInterval(void* RendererInterfaceInstance, uint64_t interval)

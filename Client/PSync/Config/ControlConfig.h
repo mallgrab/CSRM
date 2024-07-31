@@ -32,6 +32,8 @@ public:
 	bool TemporalSSAA = false; //original game would have this enabled, but i hate it!!!
 	bool disableLevitation = false;
 
+	bool pauseOnFocusLost = true;
+
 protected:
 	inline void ReadExtraConfig(std::fstream& file) {
 		//readFromIni(file, "drawTriggers", drawTriggers);
