@@ -112,7 +112,7 @@ void StartupString(startupString* a1)
 	StartupStringFunc(a1);
 	tmpString = a1;
 
-#if _DEBUG
+#ifdef _DEBUG
 	a1->devmode = true;
 	a1->skipToMenu = true;
 #endif
@@ -131,6 +131,7 @@ void earlyHooks()
 	if (MH_CreateHook(startupStringPtr, &StartupString, reinterpret_cast<LPVOID*>(&StartupStringFunc)) != MH_OK) throw;
 	if (MH_EnableHook(startupStringPtr) != MH_OK) throw;
 
+	SetConsoleTitle(TEXT("CSRM"));
 #if defined(LOG_CONSOLE) && !defined(_DEBUG)
 	ShowWindow(GetConsoleWindow(), SW_MINIMIZE); //minimize console window on startup
 #endif
