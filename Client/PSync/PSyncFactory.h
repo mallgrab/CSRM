@@ -219,11 +219,13 @@ public:
             oHook.BindRenderFunction(std::function<void()>(std::bind(&ControlUI::RenderOSD, &ui)));
             oHook.BindRenderFunction(std::function<void()>(std::bind(&ControlUI::RenderGUI, &ui)));
 
+#ifndef _DEBUG
             if (config.connectOnStart) {
                 unsigned int playerColour = ImGui::ColorConvertFloat4ToU32(Float3AToImColor(config.myColour, 1.0f));
                 unsigned int playerTrailColour = ImGui::ColorConvertFloat4ToU32(Float3AToImColor(config.myTrailColour, 1.0f));
                 client.StartClient(config.serverIP, atoi(config.serverPort), config.nickname, playerColour, playerTrailColour);
             }
+#endif
         }
         else {
             std::wcout << "Executable filename not recognized: " << filename << std::endl;
