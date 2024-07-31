@@ -291,5 +291,7 @@ namespace ShapeEngine
 	using setStroke1_t = void(__fastcall*)(void* ShapeEngineInstance, bool a1, float a2, uint64_t* a3);
 	void setStroke(bool a1, float a2, uint64_t* a3);
 
+	void SetFont(void* instance, void* rendFont);
+
 	void InstallHooks(LPCWSTR dllName);
 }

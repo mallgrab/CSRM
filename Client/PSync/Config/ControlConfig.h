@@ -13,6 +13,7 @@ public:
 	bool saveLoadPosition = true;
 
 	bool drawFPS = false;
+	int drawFPSPos = 1;
 	bool showPos = false;
 
 	// Speedometer

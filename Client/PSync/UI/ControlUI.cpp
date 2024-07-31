@@ -325,33 +325,106 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 #undef GROUND_SPEED
 #endif
 
+#define DRAWFPS_SHAPEENGINE 1 //still a little fucked cuz we're drawing the FPS reported by ImGui, but ist fine i suppose
 static void CSRM_DrawFPS(ControlGameData *gameData, ControlConfig *config, ControlUI *ui, ImGuiIO *io) {
 	char text[16];
+	int cornerPos = config->drawFPSPos;
+#if DRAWFPS_SHAPEENGINE
+	void *instance = ShapeEngine::getInstance();
+	Vector2 pos, textSize;
+	rend::ShapeEngine::Pivot pivot;
+#else
 	const ImVec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	ImVec2 pos, textSize;
 	ImFont *font;
+#endif
 
+	if (config->playerListEnabled && cornerPos == config->playerListPos && ui->client->IsRunning() && ui->client->GetUserCount() > 0)
+	{ //move to another corner so we don't cover up the player list
+		switch (config->playerListPos)
+		{ //this is kinda bloat ngl
+			default:
+			case PLAYERLIST_TOPLEFT:
+			case PLAYERLIST_BOTTOMLEFT:
+			case PLAYERLIST_BOTTOMRIGHT:
+				cornerPos = PLAYERLIST_TOPRIGHT; break;
+			case PLAYERLIST_TOPRIGHT:
+				cornerPos = PLAYERLIST_BOTTOMRIGHT; break;
+		}
+	}
+
+#if 0
+	int len = sprintf_s(text, sizeof(text), "%.0ffps", io->Framerate);
+	len += sprintf_s(text+len, sizeof(text)-len, " %.2fms", io->DeltaTime*1000.0f);
+#else
 	sprintf_s(text, sizeof(text), "%.0ffps", io->Framerate);
+#endif
+
+#if DRAWFPS_SHAPEENGINE
+	if (instance == nullptr || ShapeEngine::rendFontPtr == nullptr)
+		return;
+
+	ShapeEngine::SetFont(instance, ShapeEngine::rendFontPtr);
+	//textSize = ShapeEngine::getTextSize(text); //crashes 4 som reason
+	textSize = { 0.04f, ShapeEngine::getTextLineHeight() };
+
+	switch (cornerPos) {
+		case PLAYERLIST_TOPLEFT:
+			pivot = rend::ShapeEngine::Pivot::UPPER_LEFT;
+			pos = { 0, 0 };
+			break;
+		default:
+		case PLAYERLIST_TOPRIGHT:
+			pivot = rend::ShapeEngine::Pivot::UPPER_RIGHT;
+			pos = { 1.0f, 0.0f };
+			break;
+		case PLAYERLIST_BOTTOMLEFT:
+			pivot = rend::ShapeEngine::Pivot::LEFT_LOWER;
+			pos = { 0, (1.0f - textSize.y - 0.04f) };
+			pos = { 0, 1.0f - 0.005f };
+			break;
+		case PLAYERLIST_BOTTOMRIGHT:
+			pivot = rend::ShapeEngine::Pivot::RIGHT_LOWER;
+			pos = { 1.0f - 0.005f, 1.0f - 0.005f };
+			break;
+	}
+
+	ShapeEngine::drawText(&pos, text, pivot);
+#else
 	font = ImGui::GetFont();
 	font->Scale = 2.0f;
 	ImGui::PushFont(font);
 	ImGui::PopFont();
 
 	textSize = ImGui::CalcTextSize(text);
-	if (config->playerListEnabled && config->playerListPos == PLAYERLIST_TOPRIGHT && ui->client->IsRunning() && ui->client->GetUserCount() > 0)
-		pos = { io->DisplaySize.x - textSize.x - 4.0f, io->DisplaySize.y - textSize.y - 4.0f }; //move to bottom right corner if player list is being shown
-	else
-		pos = { io->DisplaySize.x - textSize.x - 4.0f, 4.0f };
+
+	switch (cornerPos) {
+		case PLAYERLIST_TOPLEFT:
+			pos = ImVec2(0, 0);
+			break;
+		default:
+		case PLAYERLIST_TOPRIGHT:
+			pos = ImVec2(io->DisplaySize.x - textSize.x - 4.0f, 4.0f);
+			break;
+		case PLAYERLIST_BOTTOMLEFT:
+			pos = ImVec2(0, io->DisplaySize.y - textSize.y - 4.0f);
+			break;
+		case PLAYERLIST_BOTTOMRIGHT:
+			pos = ImVec2(io->DisplaySize.x - textSize.x - 4.0f, io->DisplaySize.y - textSize.y - 4.0f);
+			break;
+	}
+
 	ImGui_DrawStringWithDropShadow(pos, color, text);
 
 	//reset font scale
 	font->Scale = 1.0f;
 	ImGui::PushFont(font);
 	ImGui::PopFont();
+#endif
 }
 
 static void CSRM_DrawPos(ControlGameData *gameData, ControlConfig *config, ImGuiIO *io) {
-#if 0 //fixme: add camera/player angle
+#if 1 //fixme: add camera/player angle
 	int len = 0;
 	char text[512];
 	const ImVec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -374,7 +447,23 @@ static void CSRM_DrawPos(ControlGameData *gameData, ControlConfig *config, ImGui
 
 	len += sprintf_s(text+len, sizeof(text)-len,
 					 "vel:  %.02f\n", speed);
+					 //"vel:  \xb5: %.02f\n", speed);
 
+#if 1
+	if (ShapeEngine::getInstance() == nullptr || ShapeEngine::rendFontPtr == nullptr)
+		return;
+
+	Vector2 pos2 = { 0.75f, 0.05f };
+
+	//ShapeEngine::setFont(ShapeEngine::getInstance(), ShapeEngine::rendFontPtr);
+	ShapeEngine::drawText(&pos2, text, rend::ShapeEngine::Pivot::CENTER_TOP);
+	//
+	font = ImGui::GetFont();
+	textSize = ImGui::CalcTextSize(text);
+	pos = { ((io->DisplaySize.x * 0.75f) - (textSize.x*0.5f)), 0.0f };
+	ImGui_DrawStringWithDropShadow(pos, color, text);
+	//
+#else
 	font = ImGui::GetFont();
 	//font->Scale = 1.0f;
 	//ImGui::PushFont(font);
@@ -388,6 +477,7 @@ static void CSRM_DrawPos(ControlGameData *gameData, ControlConfig *config, ImGui
 	//font->Scale = 1.0f;
 	//ImGui::PushFont(font);
 	//ImGui::PopFont();
+#endif
 #endif
 }
 
@@ -581,8 +671,12 @@ void ControlUI::DebugTab() {
 
 		ImGui::TextUnformatted("\nHUD:");
 		ImGui::Checkbox("Draw FPS", &cfg->drawFPS);
-		//ImGui::SameLine();
-		//ImGui::Checkbox("Show Pos", &cfg->showPos);
+		ImGui::SameLine();
+		if (cfg->drawFPS) {
+			ImGui::Combo("##FPSPosFields", &cfg->drawFPSPos,
+						 "Top left\0Top right\0Bottom left\0Bottom right\0\0");
+		}
+		ImGui::Checkbox("Show Pos", &cfg->showPos);
 
 		ImGui::TextUnformatted("Speedometer:");
 		ImGui::Checkbox("Draw Speedometer", &cfg->drawSpeedometer);

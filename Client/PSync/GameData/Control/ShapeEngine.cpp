@@ -197,7 +197,7 @@ namespace ShapeEngine
 	}
 
 	Vector2 getTextSize(char* str)
-	{
+	{ //this is crashing for som reason
 		return getTextSizeFunc(shapeEngineInstance, str);
 	}
 
