@@ -88,17 +88,17 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>D:\games\Control\Control</OutDir>
+    <OutDir>I:\Control\</OutDir>
     <IncludePath>$(ProjectDir)enet\include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(DXSDK_DIR)Lib\x64</LibraryPath>
-    <TargetName>xinput1_4</TargetName>
+    <TargetName>CSRM</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)enet\include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(DXSDK_DIR)Lib\x64</LibraryPath>
-    <OutDir>D:\games\Control\Control</OutDir>
-    <TargetName>xinput1_4</TargetName>
+    <OutDir>I:\Control\</OutDir>
+    <TargetName>CSRM</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -155,7 +155,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;PSYNC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;PSYNC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
