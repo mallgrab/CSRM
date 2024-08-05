@@ -10,7 +10,7 @@
 #include <dxgi1_3.h>
 #include <d3d9.h>
 #include <dsound.h>
-
+/*
 namespace OcularDLLProxy {
 	HMODULE dinput_lib;
 	HMODULE xinput_lib;
@@ -172,8 +172,8 @@ namespace OcularDLLProxy {
 				pUnkOuter);
 		
 		}
-		*/
-		#endif
+		//#endif
 		
 	}
 }
+*/

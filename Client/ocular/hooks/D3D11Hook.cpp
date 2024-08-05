@@ -7,6 +7,9 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam
 static HWND window;
 static WNDPROC oWndProc;
 
+HWND window_DX11;
+WNDPROC oWndProc_DX11;
+
 ID3D11Device* pDevice = NULL;
 ID3D11DeviceContext* pContext = NULL;
 ID3D11RenderTargetView* mainRenderTargetView;
@@ -78,6 +81,10 @@ HRESULT __stdcall hkResizeBuffers(IDXGISwapChain* pThis, UINT BufferCount, UINT 
 		pThis->GetDesc(&sd);
 		window = sd.OutputWindow;
 		(WNDPROC)SetWindowLongPtrA(window, GWLP_WNDPROC, (LONG_PTR)D3D11Hook::WndProc);
+		//oWndProc = (WNDPROC)SetWindowLongPtrA(window, GWLP_WNDPROC, (LONG_PTR)D3D11Hook::WndProc);
+
+		window_DX11 = window;
+		oWndProc_DX11 = oWndProc;
 		
 		std::cout << "[Ocular][D3D11 Hook] Recreated WndProc." << std::endl;
 	}
@@ -100,11 +107,13 @@ HRESULT __stdcall D3D11Hook::hkPresent(IDXGISwapChain* pSwapChain, UINT SyncInte
 			SetupRenderTargets(pSwapChain);
 			oWndProc = (WNDPROC)SetWindowLongPtrA(window, GWLP_WNDPROC, (LONG_PTR)WndProc);
 
+			window_DX11 = window;
+			oWndProc_DX11 = oWndProc;
+
 			InitImGui();
 			init = true;
 			std::cout << "[Ocular][D3D11 Hook] ImGui implementation initialized!" << std::endl;
 		}
-
 		else
 			return oPresent(pSwapChain, SyncInterval, Flags);
 	}
@@ -147,6 +156,14 @@ D3D11Hook::D3D11Hook() {
 	std::cout << "[Ocular] Kiero bound D3D11 Present." << std::endl;
 	if (kiero::bind(13, (void**)&oResizeBuffers, hkResizeBuffers) != kiero::Status::Success) return;
 	std::cout << "[Ocular] Kiero bound D3D11 ResizeBuffers." << std::endl;
+
 	hooked = true;
 	std::cout << "[Ocular] Hooked!" << std::endl;
+}
+
+void D3D11Hook::D3D11UnHook()
+{
+	kiero::unbind(8);
+	kiero::unbind(13);
+	printf("unbinding kiero\n");
 }

@@ -8,6 +8,8 @@
 #endif
 #include "hooks/D3D11Hook.h"
 
+extern D3D11Hook oHook;
+
 namespace Ocular {
 	OcularHook Init();
 	void Shutdown();

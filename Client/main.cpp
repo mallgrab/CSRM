@@ -171,13 +171,11 @@ DWORD WINAPI MainThread(LPVOID lpReserved) {
 	}
 #endif
 
-	OcularDLLProxy::Init();
-
+	//OcularDLLProxy::Init();
 	OcularHook oHook = Ocular::Init();
+	
 	PSyncFactory psync;
-
 	psync.PSyncMod(oHook, path, filename);
-
 
 	return TRUE;
 }
@@ -186,15 +184,23 @@ BOOL WINAPI DllMain(HMODULE hMod, DWORD dwReason, LPVOID lpReserved) {
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-		earlyHooks();
-
 		DisableThreadLibraryCalls(hMod);
+		earlyHooks();
+		
+		//OcularDLLProxy::Init();
 		CreateThread(nullptr, 0, MainThread, hMod, 0, nullptr);
 		break;
 	case DLL_PROCESS_DETACH:
+		printf("deatach called\n");
 		fflush(stdout);
-		fclose(stream);
+
 		Ocular::Shutdown();
+		MH_RemoveHook(MH_ALL_HOOKS);
+		MH_Uninitialize();
+		oHook.D3D11UnHook();
+		
+		SetWindowLongPtrA(window_DX11, GWLP_WNDPROC, (LONG_PTR)oWndProc_DX11);
+
 		break;
 	}
 	return TRUE;
