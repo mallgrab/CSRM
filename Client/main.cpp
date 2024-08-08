@@ -7,6 +7,7 @@
 FILE* stream;
 
 #define LOG_CONSOLE
+//#define LOG_NOTHING
 
 void ConsoleSetup() {
 #if defined(LOG_CONSOLE)

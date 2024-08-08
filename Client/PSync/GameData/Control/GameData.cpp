@@ -254,7 +254,9 @@ void ControlGameData::EnableDeveloperMenus()
 #endif
 
 void ControlGameData::UpdateStartupStringValues(ControlConfig *cfg) {
-	tmpString->alwaysInFocus = cfg->pauseOnFocusLost;
+	// On unloading we crash here because we don't know where the startup string is in memory
+	if (tmpString != nullptr)
+		tmpString->alwaysInFocus = cfg->pauseOnFocusLost;
 }
 
 using setPresentInterval_t = void(__fastcall*)(void* RendererInterfaceInstance, uint64_t interval);
@@ -262,6 +264,176 @@ setPresentInterval_t setPresentIntervalFunc;
 void setPresentInterval(void* RendererInterfaceInstance, uint64_t interval)
 {
 	setPresentIntervalFunc(RendererInterfaceInstance, 0); //force disable vsync
+}
+
+// TODO: clean up after ourselves we dont need all this junk
+struct GenericEntityState
+{
+	uint64_t* vtable;
+	char tmp[0x60];
+	uint64_t* componentsPtr;
+	uint32_t amountOfComponents;
+};
+
+using ItemComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
+ItemComponentState_GetTypeIDStatic_t ItemComponentState_GetTypeIDStatic;
+using ItemDescriptionComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
+ItemDescriptionComponentState_GetTypeIDStatic_t ItemDescriptionComponentState_GetTypeIDStatic;
+using AddToInventoryComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
+AddToInventoryComponentState_GetTypeIDStatic_t AddToInventoryComponentState_GetTypeIDStatic;
+using LootDropItemComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
+LootDropItemComponentState_GetTypeIDStatic_t LootDropItemComponentState_GetTypeIDStatic;
+using ItemStackComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
+ItemStackComponentState_GetTypeIDStatic_t ItemStackComponentState_GetTypeIDStatic;
+
+using GameObjectState_GetComponentByTypeId_t = uint64_t(__fastcall*)(uint64_t Component, uint32_t TypeIDStatic);
+GameObjectState_GetComponentByTypeId_t GameObjectState_GetComponentByTypeId;
+
+using DynamicEntitySpawnerSpawnAt_t = GenericEntityState *(__fastcall*)(__int64* a1, __int64* a2, __int64 a3, __int64 a4);
+DynamicEntitySpawnerSpawnAt_t DynamicEntitySpawnerSpawnAtOrig;
+GenericEntityState* DynamicEntitySpawnerSpawnAt(__int64* a1, __int64* a2, __int64 a3, __int64 a4)
+{
+	GenericEntityState* result = DynamicEntitySpawnerSpawnAtOrig(a1, a2, a3, a4);
+
+	uint32_t itemComponentTypeID = ItemComponentState_GetTypeIDStatic();
+	uint64_t itemComponent = GameObjectState_GetComponentByTypeId((uint64_t)result, itemComponentTypeID);
+
+	uint32_t itemDescriptionComponentTypeID = ItemDescriptionComponentState_GetTypeIDStatic();
+	uint64_t itemDescriptionComponent = GameObjectState_GetComponentByTypeId((uint64_t)result, itemDescriptionComponentTypeID);
+
+	uint32_t addToInventoryComponentTypeID = AddToInventoryComponentState_GetTypeIDStatic();
+	uint64_t addToInventoryComponent = GameObjectState_GetComponentByTypeId((uint64_t)result, addToInventoryComponentTypeID);
+
+	uint32_t lootDropItemComponentTypeID = LootDropItemComponentState_GetTypeIDStatic();
+	uint64_t lootDropItemComponent = GameObjectState_GetComponentByTypeId((uint64_t)result, lootDropItemComponentTypeID);
+
+	uint32_t itemStackComponentTypeID = ItemStackComponentState_GetTypeIDStatic();
+	uint64_t itemStackComponent = GameObjectState_GetComponentByTypeId((uint64_t)result, itemStackComponentTypeID);
+	
+	uint64_t processStartAddr = (uint64_t)(GetModuleHandle(nullptr));
+	uint64_t gameInventoryComponent = (uint64_t)*(char**)(*(char**)(0x1111108 + processStartAddr + 0x8) + 0x38);
+	uint64_t inventory = (uint64_t)*(char**)(gameInventoryComponent + 0x40);
+	uint32_t inventoryAmountOfItems = (uint32_t)*(char*)(gameInventoryComponent + 0x48);
+	uint64_t lastInventoryGlobalID = (uint64_t)*(char**)((uint64_t*)inventory + inventoryAmountOfItems * 2);
+
+	// TODO: Figure out what impacts the type
+
+	/*
+		itemArray = *(GameInventoryComponentState + 0x40);// items array
+		endOfItemArray = &itemArray[2 * *(GameInventoryComponentState + 0x48)];// amount of items
+	
+		itemGlobalID = *itemArray;
+		ItemEntityFromGlobalID = GetItemEntityFromGlobalID(&itemGlobalID);
+		
+		TypeIDStatic = LootDropItemComponentState::getTypeIDStatic();
+		LootDropItemComponentState = r::GameObjectState::getComponentByTypeId(ItemEntityFromGlobalID, TypeIDStatic);
+	*/
+
+	/*
+		LootDropSingletonTypeID = LootDropSingletonComponentState::getTypeIDStatic();
+		charactermanager?
+		r::GameObjectState::getComponentByTypeId
+	*/
+
+	if (itemDescriptionComponent != NULL)
+		printf("item description %s\n", *(char**)(*(char**)(itemDescriptionComponent + 0x38) + 0x10));
+
+	if (itemStackComponent != NULL)
+	{
+		uint64_t* counter = (uint64_t*)(char*)(itemStackComponent + 0x40);
+		*counter = -10000;
+	}
+
+	return result;
+}
+
+/*
+	a2 + 0x28 contains a counter that gets decremented, its used to go down the current droptable
+	a2 + 0x2c contains the max counter from the current droptable
+
+	with the counter it will pull a number out of the array at a1 + 0x18 (dereferenced)
+	that number gets returned
+
+	it will then pull out a globalid from the array at a2 + 0x38
+	which it then uses to get a pointer to with r::GlobalIDMap::getPointer
+
+	swapping that globalid out with the one from the globalid item list will result in us getting different items
+
+	material drops only require one globalid call
+	weapon/character mods need 3, each call is a different globalid (iirc)
+
+	TODO: get a ptr or something to the globalid item list
+*/ 
+
+struct currentDropTable
+{
+	char tmp1[0x28];
+	uint32_t counter;
+	uint32_t maxCounter;
+	char tmp2[0x8];
+	uint64_t* globalIDPtr;
+	uint32_t globalIDCounter; // uncertain... could be something else
+	uint32_t globalIDMaxCounter;
+};
+
+using GlobalIDMap_GetPointer_t = uint64_t*(__fastcall*)(uint64_t* a1, uint64_t* a2);
+GlobalIDMap_GetPointer_t GlobalIDMap_GetPointer;
+uint64_t* sm_pInstance = nullptr;
+
+using decrementDropTableCounter_ReturnOffsetCounter_t = uint64_t(__fastcall*)(uint64_t a1, currentDropTable* a2);
+decrementDropTableCounter_ReturnOffsetCounter_t decrementDropTableCounter_ReturnOffsetCounterOrig;
+uint64_t decrementDropTableCounter_ReturnOffsetCounter(uint64_t a1, currentDropTable* a2)
+{
+	uint64_t processStartAddr = (uint64_t)(GetModuleHandle(nullptr));
+	char* globalIDDataPool = *(char**)(processStartAddr + 0x01166FC0);
+	char* globalIDItems = *(char**)(globalIDDataPool + 0x540); // found with CE ptr finder
+	
+	uint32_t amountOfGlobalIDItems = *(uint32_t*)(char*)(globalIDDataPool + 0x548);
+	uint64_t* globalIDItem = (uint64_t*)globalIDItems;
+
+	std::vector<uint64_t> items;
+	for (int i = 0; i < amountOfGlobalIDItems; i++)
+	{
+		items.push_back(*(uint64_t*)globalIDItem);
+		uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)globalIDItem);
+
+		globalIDItem++;
+	}
+
+	uint64_t result = decrementDropTableCounter_ReturnOffsetCounterOrig(a1,a2);
+	printf("material result %llx\n", result);
+	
+	char* globalIDFromDropTable = (char*)a2->globalIDPtr + (result * 0x18);
+	uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)globalIDFromDropTable);
+	ptr++;
+	if (strstr(*(char**)ptr, "_Nothing") != nullptr)
+		memcpy(globalIDFromDropTable, &items[26], sizeof(uint64_t));
+
+	// overwrite drop with what we want
+	// TODO: find a way to restore it after the drop
+	// memcpy(globalIDFromDropTable, &items[272], sizeof(uint64_t));
+	
+	return result;
+}
+
+// for later when we want to know what the globalid arrays contain for items
+/*
+	r::GlobalIDMap::getPointer(r::GlobalIDMap::sm_pInstance, a1, &v4));
+
+	?getPointer@GlobalIDMap@r@@QEBAPEAXAEBVGlobalID@2@AEAI@Z	rl_rmdwin7_f
+	?getPointer@GlobalIDMap@r@@QEBAPEAXAEBVGlobalID@2@@Z		rl_rmdwin7_f
+	?sm_pInstance@GlobalIDMap@r@@0PEAV12@EA						rl_rmdwin7_f
+
+*/
+
+using EncounterDirectorCtor_t  = uint64_t(__fastcall*)(uint64_t a1);
+EncounterDirectorCtor_t EncounterDirectorCtorOrig;
+uint64_t EncounterDirectorCtor(uint64_t a1)
+{
+	uint64_t result = EncounterDirectorCtorOrig(a1);
+	printf("encount director %llx\n", result);
+
+	return result;
 }
 
 void ControlGameData::InitGameData()
@@ -311,6 +483,28 @@ void ControlGameData::InitGameData()
 
 	isFreeCameraOn = reinterpret_cast<isFreeCameraOn_t>(isFreeCameraOnPtr);
 	setFreeCamera = reinterpret_cast<setFreeCamera_t>(setFreeCameraPtr);
+
+	GameObjectState_GetComponentByTypeId = (GameObjectState_GetComponentByTypeId_t)GetProcAddress(rlModule, "?getComponentByTypeId@GameObjectState@r@@QEBAPEAVComponentStateBase@2@I@Z");
+	GlobalIDMap_GetPointer = (GlobalIDMap_GetPointer_t)GetProcAddress(rlModule, "?getPointer@GlobalIDMap@r@@QEBAPEAXAEBVGlobalID@2@@Z");
+	sm_pInstance = (uint64_t*)GetProcAddress(rlModule, "?sm_pInstance@GlobalIDMap@r@@0PEAV12@EA");
+	
+	ItemComponentState_GetTypeIDStatic = (ItemComponentState_GetTypeIDStatic_t)GetProcAddress(coregameModule, "?getTypeIDStatic@ItemComponentState@coregame@@SAIXZ");
+	ItemDescriptionComponentState_GetTypeIDStatic = (ItemDescriptionComponentState_GetTypeIDStatic_t)(char*)(processStartAddr + 0x177D90);
+	AddToInventoryComponentState_GetTypeIDStatic = (AddToInventoryComponentState_GetTypeIDStatic_t)(char*)(processStartAddr + 0xF6BC0);
+	LootDropItemComponentState_GetTypeIDStatic = (LootDropItemComponentState_GetTypeIDStatic_t)(char*)(processStartAddr + 0x3DCD00);
+	ItemStackComponentState_GetTypeIDStatic = (LootDropItemComponentState_GetTypeIDStatic_t)(char*)(processStartAddr + 0x14D410);
+
+	char* DynamicEntitySpawnerSpawnAtAddr = (char*)coregameDllAddr+0x771F0;
+	if (MH_CreateHook(DynamicEntitySpawnerSpawnAtAddr, &DynamicEntitySpawnerSpawnAt, reinterpret_cast<LPVOID*>(&DynamicEntitySpawnerSpawnAtOrig)) != MH_OK) throw;
+	if (MH_EnableHook(DynamicEntitySpawnerSpawnAtAddr) != MH_OK) throw;
+
+	char* decrementDropTableCounter_ReturnOffsetCounterAddr = (char*)processStartAddr + 0x29B610;
+	if (MH_CreateHook(decrementDropTableCounter_ReturnOffsetCounterAddr, &decrementDropTableCounter_ReturnOffsetCounter, reinterpret_cast<LPVOID*>(&decrementDropTableCounter_ReturnOffsetCounterOrig)) != MH_OK) throw;
+	if (MH_EnableHook(decrementDropTableCounter_ReturnOffsetCounterAddr) != MH_OK) throw;
+
+	char* EncounterDirectorCtorAddr = (char*)processStartAddr + 0x296460;
+	if (MH_CreateHook(EncounterDirectorCtorAddr, &EncounterDirectorCtor, reinterpret_cast<LPVOID*>(&EncounterDirectorCtorOrig)) != MH_OK) throw;
+	if (MH_EnableHook(EncounterDirectorCtorAddr) != MH_OK) throw;
 
 	if (MH_CreateHook(readDigitalPtr, &readDigitalHook, reinterpret_cast<LPVOID*>(&readDigitalFunc)) != MH_OK) throw;
 	if (MH_EnableHook(readDigitalPtr) != MH_OK) throw;
