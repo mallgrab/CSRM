@@ -413,6 +413,7 @@ uint64_t decrementDropTableCounter_ReturnOffsetCounter(uint64_t a1, currentDropT
 	printf("material result %llx\n", result);
 	
 	// Examples!!!
+	// ControlConfig *cfg = ((ControlConfig*)config);
 	
 	// modify the current drop that we are suppose to get with our own selection
 	/*
@@ -420,13 +421,15 @@ uint64_t decrementDropTableCounter_ReturnOffsetCounter(uint64_t a1, currentDropT
 	uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)globalIDFromDropTable);
 	ptr++;
 	if (strstr(*(char**)ptr, "_Nothing") != nullptr)
-		memcpy(globalIDFromDropTable, &lootTableItemGlobalIDs[26], sizeof(uint64_t));
+		if (cfg->lootTableIndex != -1)
+			memcpy(globalIDFromDropTable, &lootTableItemGlobalIDs[cfg->lootTableIndex], sizeof(uint64_t));
 	*/
 
 	// overwrite drop with what we want
 	/*
 	TODO: find a way to restore it after the drop
-	memcpy(globalIDFromDropTable, &lootTableItemGlobalIDs[272], sizeof(uint64_t));
+	if (cfg->lootTableIndex != -1)
+		memcpy(globalIDFromDropTable, &lootTableItemGlobalIDs[cfg->lootTableIndex], sizeof(uint64_t));
 	*/
 	
 	return result;
