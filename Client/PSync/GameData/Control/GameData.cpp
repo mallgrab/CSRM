@@ -361,8 +361,6 @@ GenericEntityState* DynamicEntitySpawnerSpawnAt(__int64* a1, __int64* a2, __int6
 
 	material drops only require one globalid call
 	weapon/character mods need 3, each call is a different globalid (iirc)
-
-	TODO: get a ptr or something to the globalid item list
 */ 
 
 struct currentDropTable
@@ -384,47 +382,55 @@ using decrementDropTableCounter_ReturnOffsetCounter_t = uint64_t(__fastcall*)(ui
 decrementDropTableCounter_ReturnOffsetCounter_t decrementDropTableCounter_ReturnOffsetCounterOrig;
 uint64_t decrementDropTableCounter_ReturnOffsetCounter(uint64_t a1, currentDropTable* a2)
 {
-	uint64_t processStartAddr = (uint64_t)(GetModuleHandle(nullptr));
-	char* globalIDDataPool = *(char**)(processStartAddr + 0x01166FC0);
-	char* globalIDItems = *(char**)(globalIDDataPool + 0x540); // found with CE ptr finder
-	
-	uint32_t amountOfGlobalIDItems = *(uint32_t*)(char*)(globalIDDataPool + 0x548);
-	uint64_t* globalIDItem = (uint64_t*)globalIDItems;
+	// TODO: try printing the current drop table that we are interacting with
+	// with globalIDPtr and globalIDCounter
 
-	std::vector<uint64_t> items;
-	for (int i = 0; i < amountOfGlobalIDItems; i++)
+	// TODO: do this when globalIDDataPool + 0x540 gets filled up by whatever constructor
+	static bool firstTime = true;
+	if (firstTime)
 	{
-		items.push_back(*(uint64_t*)globalIDItem);
-		uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)globalIDItem);
+		uint64_t processStartAddr = (uint64_t)(GetModuleHandle(nullptr));
+		char* globalIDDataPool = *(char**)(processStartAddr + 0x01166FC0);
+		char* globalIDItems = *(char**)(globalIDDataPool + 0x540); // found with CE ptr finder
+		
+		uint32_t amountOfGlobalIDItems = *(uint32_t*)(char*)(globalIDDataPool + 0x548);
+		uint64_t* globalIDItem = (uint64_t*)globalIDItems;
 
-		globalIDItem++;
+		for (int i = 0; i < amountOfGlobalIDItems; i++)
+		{
+			uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)globalIDItem);
+			ptr++; // the second ptr contains the string
+			lootTableItemNames.push_back((char*)ptr);
+
+			lootTableItemGlobalIDs.push_back(*(uint64_t*)globalIDItem);
+			globalIDItem++;
+		}
+
+		firstTime = false;
 	}
 
 	uint64_t result = decrementDropTableCounter_ReturnOffsetCounterOrig(a1,a2);
 	printf("material result %llx\n", result);
 	
+	// Examples!!!
+	
+	// modify the current drop that we are suppose to get with our own selection
+	/*
 	char* globalIDFromDropTable = (char*)a2->globalIDPtr + (result * 0x18);
 	uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)globalIDFromDropTable);
 	ptr++;
 	if (strstr(*(char**)ptr, "_Nothing") != nullptr)
-		memcpy(globalIDFromDropTable, &items[26], sizeof(uint64_t));
+		memcpy(globalIDFromDropTable, &lootTableItemGlobalIDs[26], sizeof(uint64_t));
+	*/
 
 	// overwrite drop with what we want
-	// TODO: find a way to restore it after the drop
-	// memcpy(globalIDFromDropTable, &items[272], sizeof(uint64_t));
+	/*
+	TODO: find a way to restore it after the drop
+	memcpy(globalIDFromDropTable, &lootTableItemGlobalIDs[272], sizeof(uint64_t));
+	*/
 	
 	return result;
 }
-
-// for later when we want to know what the globalid arrays contain for items
-/*
-	r::GlobalIDMap::getPointer(r::GlobalIDMap::sm_pInstance, a1, &v4));
-
-	?getPointer@GlobalIDMap@r@@QEBAPEAXAEBVGlobalID@2@AEAI@Z	rl_rmdwin7_f
-	?getPointer@GlobalIDMap@r@@QEBAPEAXAEBVGlobalID@2@@Z		rl_rmdwin7_f
-	?sm_pInstance@GlobalIDMap@r@@0PEAV12@EA						rl_rmdwin7_f
-
-*/
 
 using EncounterDirectorCtor_t  = uint64_t(__fastcall*)(uint64_t a1);
 EncounterDirectorCtor_t EncounterDirectorCtorOrig;

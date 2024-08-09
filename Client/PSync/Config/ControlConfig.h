@@ -33,6 +33,11 @@ public:
 	bool TemporalSSAA = false; //original game would have this enabled, but i hate it!!!
 	bool disableLevitation = false;
 
+	// LootTable
+	uint64_t lootTableIndex = -1;
+	std::vector<char*> lootTableItemNames;
+	std::vector<uint64_t> lootTableItemGlobalIDs;
+
 	bool pauseOnFocusLost = true;
 
 protected:
