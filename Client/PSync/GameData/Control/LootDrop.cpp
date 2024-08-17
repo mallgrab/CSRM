@@ -258,6 +258,9 @@ using decrementDropTableCounter_ReturnOffsetCounter_t = uint64_t(__fastcall*)(ui
 decrementDropTableCounter_ReturnOffsetCounter_t decrementDropTableCounter_ReturnOffsetCounterOrig;
 uint64_t decrementDropTableCounter_ReturnOffsetCounter(uint64_t a1, currentDropTable* a2)
 {
+	if (!lootdropSingletonExists)
+		decrementDropTableCounter_ReturnOffsetCounterOrig(a1, a2);
+
 	if (!modifyLootDropsCheat)
 		return decrementDropTableCounter_ReturnOffsetCounterOrig(a1, a2);
 
@@ -280,6 +283,10 @@ DataPoolCtor_t DataPoolCtorOrig;
 uint64_t DataPoolCtor(uint64_t a1)
 {
 	uint64_t result = DataPoolCtorOrig(a1);
+
+	// clear so we get new datapool, highly unlikely that it will happen but it could
+	if (cfg->lootTableItemNames.size() != 0)
+		cfg->lootTableItemNames.clear();
 
 	uint64_t processStartAddr = (uint64_t)(GetModuleHandle(nullptr));
 
@@ -398,6 +405,9 @@ GenericEntityState* createItemDrop(__int64 a1, uint64_t* a2, float a3, __int64 a
 {
 	GenericEntityState* result = createItemDropOrig(a1,a2,a3,a4);
 	//printf("lootdrop entity %llx\n", result);
+
+	if (!lootdropSingletonExists)
+		return result;
 
 	if (result != nullptr)
 	{
