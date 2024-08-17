@@ -73,10 +73,6 @@ uint64_t* __fastcall getWorldSpaceAABB(uint64_t x, uint64_t* y) {
 
 ptr* playerCharacterController = nullptr;
 uint64_t* __fastcall characterControllerCtor(uint64_t* x, uint64_t* y, uint64_t* z, int a4) {
-#ifdef _DEBUG
-	printf("character controller constructor, 0x%llx, 0x%llx, 0x%llx, %d\n", x, y, z, a4);
-#endif
-
 	if (a4 == 1)
 		playerCharacterController = x;
 
