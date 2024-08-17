@@ -19,6 +19,7 @@ void ControlUI::RenderGUI() {
 	if (ImGui::BeginTabBar("Tabs", tab_bar_flags))
 	{
 		DebugTab();
+		LootDropTab();
 		ConnectionTab();
 		CustomizationTab();
 		ConfigTab();
@@ -625,6 +626,30 @@ void ControlUI::KeyPress(WPARAM key) {
 	}
 
 	BaseUI::KeyPress(key);
+}
+
+void ControlUI::LootDropTab() {
+	if (ImGui::BeginTabItem("LootDrop")) 
+	{
+		ImGui::Text("Replace _Nothing globalID with loot\n");
+
+		// we can use lootTableIndex as a way to pick items from the dropdown list to replace the current drop
+		// no idea how to restore the drop table globalid changes if we do this
+		// maybe the pointer is the same until the game reloads? could just keep it in memory then
+		ControlConfig *cfg = ((ControlConfig*)config);
+
+		ImGui::Checkbox("Dream Seed Generator", &modifyLootDropsCheat);
+
+		if (cfg->lootTableItemNames.size() != 0)
+			ImGui::Combo("##LootDropCombo", &cfg->lootTableIndex, &cfg->lootTableItemNames[0], cfg->lootTableItemNames.size());
+		else
+			ImGui::Text("lootdroptable has not been constructed yet\n");
+		
+		// TODO: try modifying the globalid table instead of the droptable and see if that changes things
+		// we can atleast restore changes from that table 
+
+		ImGui::EndTabItem();
+	}
 }
 
 extern float countdownOpacityPerc;

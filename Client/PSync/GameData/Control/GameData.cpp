@@ -299,6 +299,7 @@ void ControlGameData::InitGameData()
 	BaseTweakableInitialize();
 	TriggerInstallHooks(coregameDllAddr);
 	TriggerInitialize();
+	initLootDropHooks(processStartAddr, rlModule, coregameDllAddr);
 
 	ptr* setPresentIntervalPtr = (ptr*)GetProcAddress(rendererModule, "?setPresentInterval@RendererInterfaceWrapper@rend@@QEAAXH@Z");
 	if (MH_CreateHook(setPresentIntervalPtr, &setPresentInterval, reinterpret_cast<LPVOID*>(&setPresentIntervalFunc)) != MH_OK) throw;

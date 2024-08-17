@@ -9,6 +9,7 @@
 #include "Trigger.h"
 #include "RemedyLib.h"
 #include "StartupString.h"
+#include "LootDrop.h"
 
 struct Point {
 	Vector3 a;

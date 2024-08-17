@@ -237,6 +237,7 @@
     <ClInclude Include="PSync\GameData\BaseGameData.h" />
     <ClInclude Include="PSync\GameData\Control\BaseTweakable.h" />
     <ClInclude Include="PSync\GameData\Control\GameData.h" />
+    <ClInclude Include="PSync\GameData\Control\LootDrop.h" />
     <ClInclude Include="PSync\GameData\Control\RemedyLib.h" />
     <ClInclude Include="PSync\GameData\Control\ShapeEngine.h" />
     <ClInclude Include="PSync\GameData\Control\Trigger.h" />
@@ -273,9 +274,11 @@
     <ClCompile Include="ocular\ocular.cpp" />
     <ClCompile Include="PSync\Client\BaseClient.cpp" />
     <ClCompile Include="PSync\Config\BaseConfig.cpp" />
+    <ClCompile Include="PSync\Config\ControlConfig.cpp" />
     <ClCompile Include="PSync\Fonts\RodinProM.cpp" />
     <ClCompile Include="PSync\GameData\Control\BaseTweakable.cpp" />
     <ClCompile Include="PSync\GameData\Control\GameData.cpp" />
+    <ClCompile Include="PSync\GameData\Control\LootDrop.cpp" />
     <ClCompile Include="PSync\GameData\Control\ShapeEngine.cpp" />
     <ClCompile Include="PSync\GameData\Control\Trigger.cpp" />
     <ClCompile Include="PSync\UI\BaseUI.cpp" />

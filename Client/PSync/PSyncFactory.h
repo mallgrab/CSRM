@@ -212,6 +212,8 @@ public:
             data.InitGameData();
             config.ReadConfig();
 
+            cfg = &config;
+
             oHook.SetImGuiWndProcHandlerToggle(&data.uiToggle);
 
             oHook.BindPreframeFunction(std::bind(&ControlUI::Init, &ui));
