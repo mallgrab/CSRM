@@ -262,6 +262,18 @@ void setPresentInterval(void* RendererInterfaceInstance, uint64_t interval)
 	setPresentIntervalFunc(RendererInterfaceInstance, 0); //force disable vsync
 }
 
+// TODO: print the timer when encounters are going to start
+using EncounterDirectorCtor_t  = uint64_t(__fastcall*)(uint64_t a1);
+EncounterDirectorCtor_t EncounterDirectorCtorOrig;
+uint64_t EncounterDirectorCtor(uint64_t a1)
+{
+	uint64_t result = EncounterDirectorCtorOrig(a1);
+	printf("encount director %llx\n", result);
+	printf("lootdropsingletoncomponentstate director %llx\n\n", result-0x100);
+
+	return result;
+}
+
 void ControlGameData::InitGameData()
 {
 	HMODULE coregameModule = GetModuleHandle(L"coregame_rmdwin7_f.dll");
@@ -310,6 +322,12 @@ void ControlGameData::InitGameData()
 
 	isFreeCameraOn = reinterpret_cast<isFreeCameraOn_t>(isFreeCameraOnPtr);
 	setFreeCamera = reinterpret_cast<setFreeCamera_t>(setFreeCameraPtr);
+
+	// (char*)processStartAddr + 0x507050
+
+	char* encounterDirectorCtorAddr = (char*)processStartAddr + 0x296460;
+	if (MH_CreateHook(encounterDirectorCtorAddr, &EncounterDirectorCtor, reinterpret_cast<LPVOID*>(&EncounterDirectorCtorOrig)) != MH_OK) throw;
+	if (MH_EnableHook(encounterDirectorCtorAddr) != MH_OK) throw;
 
 	if (MH_CreateHook(readDigitalPtr, &readDigitalHook, reinterpret_cast<LPVOID*>(&readDigitalFunc)) != MH_OK) throw;
 	if (MH_EnableHook(readDigitalPtr) != MH_OK) throw;
