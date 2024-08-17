@@ -250,7 +250,9 @@ void ControlGameData::EnableDeveloperMenus()
 #endif
 
 void ControlGameData::UpdateStartupStringValues(ControlConfig *cfg) {
-	tmpString->alwaysInFocus = cfg->pauseOnFocusLost;
+	// On unloading we crash here because we don't know where the startup string is in memory
+	if (tmpString != nullptr)
+		tmpString->alwaysInFocus = cfg->pauseOnFocusLost;
 }
 
 using setPresentInterval_t = void(__fastcall*)(void* RendererInterfaceInstance, uint64_t interval);
