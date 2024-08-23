@@ -320,7 +320,7 @@ uint64_t completeObjective(uint64_t a1, uint64_t a2, uint64_t a3)
 {
 	static bool derefNextStackPtr = false;
 
-	if (derefNextStackPtr && a3 != 1 && a3 != 4)
+	if (derefNextStackPtr && a3 > 0x5000)
 	{
 		uint64_t objectiveHash = *(uint64_t*)a3;
 
