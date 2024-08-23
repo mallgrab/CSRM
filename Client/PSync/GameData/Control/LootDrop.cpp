@@ -134,7 +134,6 @@ void modifyLootDrops(currentDropTable* a2)
 		if (!modDropList[i].isActivated && skipModDropModification)
 			continue;
 
-		// set both to false once we dropped and gathered the mod/material
 		modDropList[i].isActivated = true;
 
 		// backup index array from the lootdrop table we are about to modify
@@ -175,7 +174,6 @@ void restoreLootDropIndexArrayPointers()
 	if (!lootdropSingletonExists)
 		return;
 
-	// TODO: restore lootdrop index back to normal
 	for (int i = 0; i < lootDropRestore.size(); i++)
 	{
 		memcpy(lootDropRestore[i].indexPtr, lootDropRestore[i].indexArray, sizeof(uint32_t) * lootDropRestore[i].indexMaxCount);
@@ -206,8 +204,7 @@ void checkPlayerInventory()
 		uint32_t modDescriptionTypeID = ModDescriptionComponentState_GetTypeIDStatic();
 		ModDescription* modDescription = (ModDescription*)GameObjectState_GetComponentByTypeId((uint64_t)ptr, modDescriptionTypeID);
 		
-		// TODO: do the same thing for materials here, we have to keep track of the count tho
-		if (itemDescription != nullptr)
+		if (itemDescription != nullptr && modDescription == nullptr)
 		{
 			//printf("%s\n", itemDescription->component->itemName);
 
@@ -227,14 +224,14 @@ void checkPlayerInventory()
 
 				uint32_t itemStackTypeID = ItemStackComponentState_GetTypeIDStatic();
 				uint64_t itemStackAddr = GameObjectState_GetComponentByTypeId((uint64_t)ptr, itemStackTypeID);
-				uint64_t itemCount = *(uint64_t*)(char*)(itemStackAddr+0x40);
+				uint32_t itemCount = *(uint32_t*)(char*)(itemStackAddr+0x40);
 
 				if (itemCount >= modDropList[v].materialCounter)
 				{
 					modDropList[v].isActivated = false;
 					modDropList[v].isCollected = true;
 
-					printf("collected the item\n");
+					printf("collected material\n", modDropList[v].dropName, itemCount);
 					restoreLootDropIndexArrayPointers();
 				}
 			}
@@ -257,7 +254,7 @@ void checkPlayerInventory()
 				modDropList[v].isActivated = false;
 				modDropList[v].isCollected = true;
 
-				printf("collected the item\n");
+				printf("collected mod\n", modDropList[v].dropName);
 				restoreLootDropIndexArrayPointers();
 			}
 		}
@@ -339,12 +336,39 @@ uint64_t completeObjective(uint64_t a1, uint64_t a2, uint64_t a3)
 				char* stringPtr = *(char**)((char*)globalIDPtr + 0x10);
 
 				// don't include side objectives
-				if (strstr(stringPtr, "BA_") == nullptr)
+				if (strstr(stringPtr, "BA_") == nullptr && strstr(stringPtr, "SM_") == nullptr)
 				{
-					currentObjectiveHash = objectiveHash;
+ 					currentObjectiveHash = objectiveHash;
 
-					//printf("objective %s\n", stringPtr);
-					//printf("objective hash %llx\n", objectiveHash);
+					// TODO: hack we can always reset all the moddroplist elements to false
+					// theres a bug where if a current moddroplist is activated and the user goes past the objective hash
+					// and he didnt get the drop, the moddroplist element will always be active which stops it from activating the other drops
+					// since we are checking if theres a drop thats currently active
+					size_t modDropListSize = sizeof(modDropList) / sizeof(dropManipulation);
+					for (int i = 0; i < modDropListSize; i++)
+					{
+						modDropList[i].isActivated = false;
+						modDropList[i].isCollected = false;
+					}
+
+					// start of a new game, restore the lootdrop table
+					/*
+					if (currentObjectiveHash == 0x80c6da414868051)
+					{
+						printf("resetting moddroplist\n");
+						size_t modDropListSize = sizeof(modDropList) / sizeof(dropManipulation);
+
+						// check if we are already waiting for a drop modification to finish
+						for (int i = 0; i < modDropListSize; i++)
+						{
+							modDropList[i].isActivated = false;
+							modDropList[i].isCollected = false;
+						}
+					}
+					*/
+
+					printf("objective %s\n", stringPtr);
+					printf("objective hash %llx\n", objectiveHash);
 				}
 			}
 		}
@@ -371,19 +395,6 @@ uint64_t completeMission(uint64_t a1, uint64_t a2, uint8_t a3)
 		//printf("mission hash %llx\n", hash);
 
 		currentMissionHash = hash;
-
-		// start of a new game, restore the lootdrop table
-		if (currentMissionHash == 0x80c6da414868051)
-		{
-			size_t modDropListSize = sizeof(modDropList) / sizeof(dropManipulation);
-
-			// check if we are already waiting for a drop modification to finish
-			for (int i = 0; i < modDropListSize; i++)
-			{
-				modDropList[i].isActivated = false;
-				modDropList[i].isCollected = false;
-			}
-		}
 	}
 
 	return result;
@@ -430,14 +441,27 @@ GenericEntityState* createItemDrop(__int64 a1, uint64_t* a2, float a3, __int64 a
 
 		size_t modDropListSize = sizeof(modDropList) / sizeof(dropManipulation);
 
+		uint32_t itemStackTypeID = ItemStackComponentState_GetTypeIDStatic();
+		uint64_t itemStackAddr = GameObjectState_GetComponentByTypeId((uint64_t)result, itemStackTypeID);
+
+		uint32_t modDescriptionTypeID = ModDescriptionComponentState_GetTypeIDStatic();
+		ModDescription* modDescription = (ModDescription*)GameObjectState_GetComponentByTypeId((uint64_t)result, modDescriptionTypeID);
+
 		for (int i = 0; i < modDropListSize; i++)
 		{
-			if (modDropList[i].isActivated && modDropList[i].modifyAttribute)
+			if (modDropList[i].isActivated)
 			{
-				if (relativeValueAddr != NULL)
+				if (relativeValueAddr != NULL && modDropList[i].modifyAttribute)
 				{
 					float* relativeValue = (float*)(relativeValueAddr + 0x40);
 					*relativeValue = modDropList[i].attributeRating;
+				}
+
+				// modify the drop rate regardless
+				if (itemStackAddr != NULL && modDescription == nullptr)
+				{
+					uint32_t* itemstackValue = (uint32_t*)(char*)(itemStackAddr + 0x40);
+					*itemstackValue = 4;
 				}
 			}
 		}
