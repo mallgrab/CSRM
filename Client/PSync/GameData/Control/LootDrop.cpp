@@ -77,18 +77,22 @@ uint64_t objectiveMissionHashes[] = {
 		objective hash 3996910a8aad4051
 */
 
-
 dropManipulation modDropList[] = {
-	//{0xDEADA55, 0x5b57da04e4e0054, 0, "LOOT_ITEM_MOD_COMMON_DEATH_FEEDER", 0.0f, false, false, false, false},
-	//{0xDEADA55, 0x5b57da04e4e0054, 0, "LOOT_ITEM_MOD_COMMON_DEATH_FEEDER", 0.0f, false, false, false, false},
-
+/*
+	{0xDEADBEEF, 0x5b57da04e4e0054, 0, "LOOT_ITEM_MOD_COMMON_DEATH_FEEDER", 0.0f, false, false, false, false},
+	{0xDEADBEEF, 0xf72884f35910054, 0, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS", 0.0f, false, false, false, false},
+*/
 	{0x10469758bd9f0051, 0x5b57da04e4e0054, 0, "LOOT_ITEM_MOD_COMMON_DEATH_FEEDER", 0.0f, false, false, false, false},
 	{0x10469758bd9f0051, 0xf72884f35910054, 0, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS", 0.0f, false, false, false, false},
 
+	{0x31689a1f87650051, 0x33257ce200bbc054, 12, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
+	{0x31689a1f87650051, 0x2c6b227fef64054, 6, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
 	{0x2507179ee174c051, 0x33257ce200bbc054, 12, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
 	{0x2507179ee174c051, 0x2c6b227fef64054, 6, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
-	{0x2507179ee174c051, 0x30dfea3a43960054, 0, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT", 12.0f, true, false, false, false},
-	{0x2507179ee174c051, 0x251d4ccb1aaf8054, 0, "LOOT_ITEM_MOD_UNCOMMON_DAMAGE", 0.0f, false, false, false, false},
+	{0x2202525bea888051, 0x30dfea3a43960054, 0, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT", 12.0f, true, false, false, false},
+	{0x2202525bea888051, 0x251d4ccb1aaf8054, 0, "LOOT_ITEM_MOD_UNCOMMON_DAMAGE", 0.0f, false, false, false, false},
+	{0x13e456183f2a4051, 0x30dfea3a43960054, 0, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT", 12.0f, true, false, false, false},
+	{0x13e456183f2a4051, 0x251d4ccb1aaf8054, 0, "LOOT_ITEM_MOD_UNCOMMON_DAMAGE", 0.0f, false, false, false, false},
 };
 
 // TODO: make this not work on boxes
