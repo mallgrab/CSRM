@@ -155,9 +155,16 @@ void modifyLootDrops(currentDropTable* a2)
 		memcpy(globalIDFromDropTable, &modDropList[i].objectID, sizeof(uint64_t));
 		//memcpy(globalIDFromDropTable, &cfg->lootTableItemGlobalIDs[cfg->lootTableIndex], sizeof(uint64_t));
 
-		// TODO: modify lootdrop index table, subtract backwards and add our index every 2nd, 3rd time
-		for (int v=0; v < a2->lootDropArrayMaxCounter; v++)
-			a2->lootDropArray[v] = 2;
+		memset(a2->lootDropArray, 0, sizeof(a2->lootDropArrayMaxCounter) * sizeof(uint32_t));
+
+		int counter = 0;
+		for (int v = 0; v < a2->lootDropArrayMaxCounter; v++)
+		{
+			if (counter % 3)
+				a2->lootDropArray[v] = 2;
+
+			counter++;
+		}
 
 		printf("done\n");
 	}
