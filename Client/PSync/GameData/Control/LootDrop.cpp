@@ -1,5 +1,4 @@
 #include "LootDrop.h"
-#include <libloaderapi.h>
 
 using GlobalIDMap_GetPointer_t = uint64_t * (__fastcall*)(uint64_t* a1, uint64_t* a2);
 GlobalIDMap_GetPointer_t GlobalIDMap_GetPointer;
