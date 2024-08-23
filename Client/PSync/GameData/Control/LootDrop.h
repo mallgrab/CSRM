@@ -9,6 +9,7 @@
 #include "Trigger.h"
 #include "RemedyLib.h"
 #include "StartupString.h"
+#include "GameData.h"
 
 #define IGNORE_MAX_INT 0xFFFFFFFFFFFF
 #define LOOT_TABLE_GAP 0x18
