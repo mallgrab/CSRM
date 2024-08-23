@@ -159,7 +159,7 @@ void modifyLootDrops(currentDropTable* a2)
 		int counter = 0;
 		for (int v = 0; v < a2->lootDropArrayMaxCounter; v++)
 		{
-			if (counter % 3)
+			if (counter % 3 == 0)
 				a2->lootDropArray[v] = 2;
 
 			counter++;
