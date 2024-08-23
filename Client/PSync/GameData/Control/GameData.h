@@ -28,7 +28,6 @@ public:
 	void InitGameData() override;
 	Vector3* GetPlayerPos() override;
 	Matrix4* GetViewMatrix() override;
-	bool GetMapIsLoaded();
 	float* getPlayerCapsuleSpeed();
 	float getPlayerPhysxSpeed();
 	float getPlayerPosSpeed();
@@ -39,3 +38,5 @@ public:
 	void ToggleDeveloperMenus();
 	void UpdateStartupStringValues(ControlConfig *cfg);
 };
+
+extern bool mapIsLoaded;

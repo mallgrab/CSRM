@@ -30,7 +30,7 @@ setFreeCamera_t setFreeCamera;
 
 ptr** inputManagerInstance;
 ptr* playerController;
-bool mapIsLoaded;
+bool mapIsLoaded = false;
 
 void __stdcall setAsPlayerCharacter(uint64_t* pointer, char isPlayer) {
 	if (isPlayer == 1) {
@@ -429,9 +429,4 @@ Matrix4* ControlGameData::GetViewMatrix()
 {
 	viewMatrix = *reinterpret_cast<Matrix4*>(ptrViewMatrixAddr);
 	return &viewMatrix;
-}
-
-bool ControlGameData::GetMapIsLoaded()
-{
-	return mapIsLoaded;
 }

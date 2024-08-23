@@ -94,7 +94,7 @@ static void CSRM_Speedometer(ControlGameData *gameData, ControlConfig *config, I
 	ImVec2 pos, textSize;
 	ImFont *font;
 
-	if (!gameData->GetMapIsLoaded())
+	if (!mapIsLoaded)
 		return; //don't draw if map isn't loaded
 
 	const float speed = gameData->getPlayerPhysxSpeed();
@@ -487,7 +487,7 @@ static void CSRM_DrawHUD(ControlGameData *gameData, ControlConfig *config, Contr
 		CSRM_DrawFPS(gameData, config, ui, io);
 	}
 
-	if (!gameData->GetMapIsLoaded()) {
+	if (!mapIsLoaded) {
 		return;
 	}
 
@@ -511,7 +511,7 @@ static void CSRM_SavePosition(int slot, ControlGameData *gameData, ControlUI *ui
 	if (!gameData || !ui)
 		return;
 
-	if (!gameData->GetMapIsLoaded())
+	if (!mapIsLoaded)
 		return;
 
 	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
@@ -536,7 +536,7 @@ static void CSRM_LoadPosition(int slot, ControlGameData *gameData, ControlUI *ui
 	if (!gameData || !ui)
 		return;
 
-	if (!gameData->GetMapIsLoaded())
+	if (!mapIsLoaded)
 		return;
 
 	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
@@ -903,7 +903,7 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *c
 	if (!myViewMatrix)
 		return;
 
-	if (!gameData->GetMapIsLoaded() || !TriggerGetVector().size())
+	if (!mapIsLoaded || !TriggerGetVector().size())
 		return;
 
 	//Vector3 playerPos = *gameData->GetPlayerPos();
