@@ -431,7 +431,7 @@ GenericEntityState* createItemDrop(__int64 a1, uint64_t* a2, float a3, __int64 a
 		return result;
 
 	// in case we are loading, we don't want to modify the inventory when the player spawns in
-	if (mapIsLoaded)
+	if (!mapIsLoaded)
 		return result;
 
 	if (result != nullptr)
