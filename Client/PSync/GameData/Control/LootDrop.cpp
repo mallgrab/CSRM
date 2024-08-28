@@ -60,8 +60,8 @@ std::vector<lootDropRestore_t> lootDropRestore = {};
 */
 
 dropManipulation modDropList[] = {
-	{0x10469758bd9f0051, 0x5b57da04e4e0054, 0, 3, "LOOT_ITEM_MOD_COMMON_DEATH_FEEDER", 0.0f, false, false, false, false},
-	{0x10469758bd9f0051, 0xf72884f35910054, 0, 3, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS", 0.0f, false, false, false, false},
+	{0x10469758bd9f0051, 0x5b57da04e4e0054, 0, 3, "LOOT_ITEM_MOD_COMMON_DEATH_FEEDER", 15.0f, false, false, false, false}, //for some reason, this is the only one that doesn't have a relative value, we can't override this one in the inventory
+	{0x10469758bd9f0051, 0xf72884f35910054, 0, 3, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS", 21.0f, true, false, false, false},
 
 	{0x31689a1f87650051, 0x33257ce200bbc054, 12,	3, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
 	{0x31689a1f87650051, 0x2c6b227fef64054, 6,		3, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
@@ -450,12 +450,15 @@ GenericEntityState* createItemDrop(__int64 a1, uint64_t* a2, float a3, __int64 a
 
 		for (int i = 0; i < modDropListSize; i++)
 		{
-			// TODO: find a proper way of setting the relative value so it saves
+			// TODO HACKHACKHACK: find a proper way of setting the relative value so it saves
 			// as of now it somehow either gets the value from the FlowConnectionManager or ahead of time
 			// Control_DX11.exe+0x34DD4F
-			if (modDescription != nullptr)
-				if (strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT") != nullptr)
-					isModWeModify = true;
+			if (modDescription != nullptr &&
+				strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT") != nullptr ||
+				strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS") != nullptr)
+			{
+				isModWeModify = true;
+			}
 
 			if (relativeValueAddr != NULL && modDropList[i].modifyAttribute && isModWeModify)
 			{
