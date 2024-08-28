@@ -13,7 +13,9 @@ void ControlUI::RenderGUI() {
 	ImGuiIO& io = ImGui::GetIO();
 
 	ImGui::SetNextWindowSizeConstraints(ImVec2(520.0f, 150.0f), io.DisplaySize);
-	if (!ImGui::Begin("Prac", &data->uiToggle, 0)) { ImGui::End(); return; }
+	if (!ImGui::Begin("CSRM", &data->uiToggle, 0)) { ImGui::End(); return; }
+	//Show build date, would've liked this in the title bar but doing so would bloat the imgui.ini file with every compile.
+	ImGui::Text(__DATE__ " - " __TIME__);
 	
 	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 	if (ImGui::BeginTabBar("Tabs", tab_bar_flags))
@@ -641,7 +643,7 @@ void ControlUI::LootDropTab() {
 		ImGui::Checkbox("Dream Seed Generator", &modifyLootDropsCheat);
 
 		if (cfg->lootTableItemNames.size() != 0)
-			ImGui::Combo("##LootDropCombo", &cfg->lootTableIndex, &cfg->lootTableItemNames[0], cfg->lootTableItemNames.size());
+			ImGui::Combo("##LootDropCombo", &cfg->lootTableIndex, &cfg->lootTableItemNames[0], (int)cfg->lootTableItemNames.size());
 		else
 			ImGui::Text("lootdroptable has not been constructed yet\n");
 		
