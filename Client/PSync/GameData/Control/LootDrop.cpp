@@ -226,7 +226,7 @@ void checkPlayerInventory()
 					modDropList[v].isActivated = false;
 					modDropList[v].isCollected = true;
 
-					printf("collected material\n", modDropList[v].dropName, itemCount);
+					printf("collected material %s %i\n", modDropList[v].dropName, itemCount);
 					restoreLootDropIndexArrayPointers();
 				}
 			}
@@ -249,7 +249,7 @@ void checkPlayerInventory()
 				modDropList[v].isActivated = false;
 				modDropList[v].isCollected = true;
 
-				printf("collected mod\n", modDropList[v].dropName);
+				printf("collected mod %s\n", modDropList[v].dropName);
 				restoreLootDropIndexArrayPointers();
 			}
 		}
