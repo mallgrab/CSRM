@@ -48,6 +48,7 @@ struct dropManipulation {
 	uint64_t objectiveHash;
 	uint64_t objectID;
 	uint64_t materialCounter;
+	uint64_t dropRate;
 	char dropName[500];
 	float attributeRating;
 	bool modifyAttribute;

@@ -22,28 +22,10 @@ uint64_t* sm_pInstance = nullptr;
 bool lootdropSingletonExists = false;
 bool modifyLootDropsCheat = false;
 
-//uint64_t currentObjectiveHash = 0xDEADA55;
 uint64_t currentObjectiveHash = 0x0;
-uint64_t currentMissionHash = 0x0;
+// uint64_t currentMissionHash = 0x0; // not in use
 
 std::vector<lootDropRestore_t> lootDropRestore = {};
-
-uint64_t objectiveMissionHashes[] = {
-	0x10469758bd9f0051,
-	0x367a9559d4a9c051,
-	0x363675f1bcf28051,
-	0x9acfc98a58b8050,
-	0x2ca177693eb94051,
-	0x31689a1f87650051,
-	0x2507179ee174c051,
-	0x13e456183f2a4051,
-	0x1c7478e81fa9c051,
-	0x2202525bea888051,
-	0x3bd1d7e0cbaf4051,
-	0x37dfc5865122c051,
-	0x12f8db6bbd0a0051,
-	0x3996910a8aad4051,
-};
 
 /*
 	LOOT_ITEM_MOD_COMMON_DEATH_FEEDER
@@ -78,21 +60,26 @@ uint64_t objectiveMissionHashes[] = {
 */
 
 dropManipulation modDropList[] = {
-/*
-	{0xDEADBEEF, 0x5b57da04e4e0054, 0, "LOOT_ITEM_MOD_COMMON_DEATH_FEEDER", 0.0f, false, false, false, false},
-	{0xDEADBEEF, 0xf72884f35910054, 0, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS", 0.0f, false, false, false, false},
-*/
-	{0x10469758bd9f0051, 0x5b57da04e4e0054, 0, "LOOT_ITEM_MOD_COMMON_DEATH_FEEDER", 0.0f, false, false, false, false},
-	{0x10469758bd9f0051, 0xf72884f35910054, 0, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS", 0.0f, false, false, false, false},
+	{0x10469758bd9f0051, 0x5b57da04e4e0054, 0, 3, "LOOT_ITEM_MOD_COMMON_DEATH_FEEDER", 0.0f, false, false, false, false},
+	{0x10469758bd9f0051, 0xf72884f35910054, 0, 3, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS", 0.0f, false, false, false, false},
 
-	{0x31689a1f87650051, 0x33257ce200bbc054, 12, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
-	{0x31689a1f87650051, 0x2c6b227fef64054, 6, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
-	{0x2507179ee174c051, 0x33257ce200bbc054, 12, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
-	{0x2507179ee174c051, 0x2c6b227fef64054, 6, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
-	{0x2202525bea888051, 0x30dfea3a43960054, 0, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT", 12.0f, true, false, false, false},
-	{0x2202525bea888051, 0x251d4ccb1aaf8054, 0, "LOOT_ITEM_MOD_UNCOMMON_DAMAGE", 0.0f, false, false, false, false},
-	{0x13e456183f2a4051, 0x30dfea3a43960054, 0, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT", 12.0f, true, false, false, false},
-	{0x13e456183f2a4051, 0x251d4ccb1aaf8054, 0, "LOOT_ITEM_MOD_UNCOMMON_DAMAGE", 0.0f, false, false, false, false},
+	{0x31689a1f87650051, 0x33257ce200bbc054, 12,	3, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
+	{0x31689a1f87650051, 0x2c6b227fef64054, 6,		3, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
+	{0x2507179ee174c051, 0x33257ce200bbc054, 12,	3, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
+	{0x2507179ee174c051, 0x2c6b227fef64054, 6,		3, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
+	{0x2202525bea888051, 0x33257ce200bbc054, 12,	3, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
+	{0x2202525bea888051, 0x2c6b227fef64054, 6,		3, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
+	{0x13e456183f2a4051, 0x33257ce200bbc054, 12,	3, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
+	{0x13e456183f2a4051, 0x2c6b227fef64054, 6,		3, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
+	{0x3bd1d7e0cbaf4051, 0x33257ce200bbc054, 12,	3, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
+	{0x3bd1d7e0cbaf4051, 0x2c6b227fef64054, 6,		3, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
+	{0x1c7478e81fa9c051, 0x33257ce200bbc054, 12,	3, "LOOT_ITEM_RESOURCE_COMMON_INSTRUCTIVE_PATTERN_TITLE", 0.0f, false, false, false, false},
+	{0x1c7478e81fa9c051, 0x2c6b227fef64054, 6,		3, "LOOT_ITEM_RESOURCE_UNCOMMON_ASTRAL_BLIP_TITLE", 0.0f, false, false, false, false},
+	
+	{0x2202525bea888051, 0x30dfea3a43960054, 0, 6, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT", -12.0f, true, false, false, false},
+	{0x2202525bea888051, 0x251d4ccb1aaf8054, 0, 6, "LOOT_ITEM_MOD_UNCOMMON_DAMAGE", 0.0f, false, false, false, false},
+	{0x13e456183f2a4051, 0x30dfea3a43960054, 0, 6, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT", -12.0f, true, false, false, false},
+	{0x13e456183f2a4051, 0x251d4ccb1aaf8054, 0, 6, "LOOT_ITEM_MOD_UNCOMMON_DAMAGE", 0.0f, false, false, false, false},
 };
 
 // TODO: make this not work on boxes
@@ -159,7 +146,15 @@ void modifyLootDrops(currentDropTable* a2)
 		int counter = 0;
 		for (int v = 0; v < a2->lootDropArrayMaxCounter; v++)
 		{
-			if (counter % 3 == 0)
+			// so we dont divide by 0
+			if (modDropList[i].dropRate == 0)
+			{
+				a2->lootDropArray[v] = 2;
+				counter++;
+				continue;
+			}
+
+			if (counter % modDropList[i].dropRate == 0)
 				a2->lootDropArray[v] = 2;
 
 			counter++;
@@ -322,9 +317,12 @@ using completeObjective_t = uint64_t(__fastcall*)(uint64_t a1, uint64_t a2, uint
 completeObjective_t completeObjectiveOrig;
 uint64_t completeObjective(uint64_t a1, uint64_t a2, uint64_t a3)
 {
+	if (!modifyLootDropsCheat)
+		return completeObjectiveOrig(a1, a2, a3);
+
 	static bool derefNextStackPtr = false;
 
-	if (derefNextStackPtr && a3 > 0x5000)
+	if (derefNextStackPtr && a3 > 0x20000) // a3 sometimes isnt a pointer and we will crash if we try to read from it
 	{
 		uint64_t objectiveHash = *(uint64_t*)a3;
 
@@ -383,6 +381,7 @@ uint64_t completeObjective(uint64_t a1, uint64_t a2, uint64_t a3)
 	return result;
 }
 
+/*
 using completeMission_t = uint64_t(__fastcall*)(uint64_t a1, uint64_t a2, uint8_t a3);
 completeMission_t completeMissionOrig;
 uint64_t completeMission(uint64_t a1, uint64_t a2, uint8_t a3)
@@ -399,6 +398,7 @@ uint64_t completeMission(uint64_t a1, uint64_t a2, uint8_t a3)
 
 	return result;
 }
+*/
 
 using LootDropSingletonCtor_t = uint64_t(__fastcall*)(uint64_t a1);
 LootDropSingletonCtor_t LootDropSingletonCtorOrig;
@@ -427,11 +427,10 @@ GenericEntityState* createItemDrop(__int64 a1, uint64_t* a2, float a3, __int64 a
 	GenericEntityState* result = createItemDropOrig(a1,a2,a3,a4);
 	//printf("lootdrop entity %llx\n", result);
 
-	if (!lootdropSingletonExists)
+	if (!modifyLootDropsCheat)
 		return result;
 
-	// in case we are loading, we don't want to modify the inventory when the player spawns in
-	if (!mapIsLoaded)
+	if (!lootdropSingletonExists)
 		return result;
 
 	if (result != nullptr)
@@ -446,17 +445,27 @@ GenericEntityState* createItemDrop(__int64 a1, uint64_t* a2, float a3, __int64 a
 
 		uint32_t modDescriptionTypeID = ModDescriptionComponentState_GetTypeIDStatic();
 		ModDescription* modDescription = (ModDescription*)GameObjectState_GetComponentByTypeId((uint64_t)result, modDescriptionTypeID);
+		
+		bool isModWeModify = false;
 
 		for (int i = 0; i < modDropListSize; i++)
 		{
-			if (modDropList[i].isActivated)
-			{
-				if (relativeValueAddr != NULL && modDropList[i].modifyAttribute)
-				{
-					float* relativeValue = (float*)(relativeValueAddr + 0x40);
-					*relativeValue = modDropList[i].attributeRating;
-				}
+			// TODO: find a proper way of setting the relative value so it saves
+			// as of now it somehow either gets the value from the FlowConnectionManager or ahead of time
+			// Control_DX11.exe+0x34DD4F
+			if (modDescription != nullptr)
+				if (strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT") != nullptr)
+					isModWeModify = true;
 
+			if (relativeValueAddr != NULL && modDropList[i].modifyAttribute && isModWeModify)
+			{
+				float* relativeValue = (float*)(relativeValueAddr + 0x40);
+				*relativeValue = modDropList[i].attributeRating;
+				isModWeModify = false;
+			}
+
+			if (modDropList[i].isActivated && mapIsLoaded)
+			{
 				// modify the drop rate regardless
 				if (itemStackAddr != NULL && modDescription == nullptr)
 				{
@@ -505,7 +514,9 @@ void initLootDropHooks(uint64_t processStartAddr, HMODULE rlModule, uint64_t cor
 	if (MH_CreateHook(completeObjectiveAddr, &completeObjective, reinterpret_cast<LPVOID*>(&completeObjectiveOrig)) != MH_OK) throw;
 	if (MH_EnableHook(completeObjectiveAddr) != MH_OK) throw;
 
+	/*
 	char* completeMissionAddr = (char*)processStartAddr + 0x3F0F50;
 	if (MH_CreateHook(completeMissionAddr, &completeMission, reinterpret_cast<LPVOID*>(&completeMissionOrig)) != MH_OK) throw;
 	if (MH_EnableHook(completeMissionAddr) != MH_OK) throw;
+	*/
 }
