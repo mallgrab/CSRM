@@ -454,8 +454,8 @@ GenericEntityState* createItemDrop(__int64 a1, uint64_t* a2, float a3, __int64 a
 			// as of now it somehow either gets the value from the FlowConnectionManager or ahead of time
 			// Control_DX11.exe+0x34DD4F
 			if (modDescription != nullptr &&
-				strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT") != nullptr ||
-				strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS") != nullptr)
+				(strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT") != nullptr /*||
+				strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS") != nullptr*/))
 			{
 				isModWeModify = true;
 			}
