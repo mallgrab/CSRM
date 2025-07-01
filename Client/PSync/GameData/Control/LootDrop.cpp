@@ -20,7 +20,7 @@ GameObjectState_GetComponentByTypeId_t GameObjectState_GetComponentByTypeId;
 
 uint64_t* sm_pInstance = nullptr;
 bool lootdropSingletonExists = false;
-bool modifyLootDropsCheat = false;
+bool modifyLootDropsCheat = true; // temp, set to false once we are done
 
 uint64_t currentObjectiveHash = 0x0;
 // uint64_t currentMissionHash = 0x0; // not in use
@@ -322,9 +322,15 @@ uint64_t completeObjective(uint64_t a1, uint64_t a2, uint64_t a3)
 
 	static bool derefNextStackPtr = false;
 
-	if (derefNextStackPtr && a3 > 0x20000) // a3 sometimes isnt a pointer and we will crash if we try to read from it
+	uint64_t z = *(uint64_t*)_AddressOfReturnAddress();
+	auto baseAddr = reinterpret_cast<uint64_t>(GetModuleHandle(nullptr));	
+	auto offset = z - baseAddr;
+
+	//if (derefNextStackPtr && a3 > 0x20000) // a3 sometimes isnt a pointer and we will crash if we try to read from it
+	if (derefNextStackPtr && (offset == 0x3efda5 || offset == 0x3f0010))
 	{
-		uint64_t objectiveHash = *(uint64_t*)a3;
+		printf("correct %llx\n", offset);
+ 		uint64_t objectiveHash = *(uint64_t*)a3;
 
 		if (objectiveHash > IGNORE_MAX_INT)
 		{
@@ -453,7 +459,7 @@ GenericEntityState* createItemDrop(__int64 a1, uint64_t* a2, float a3, __int64 a
 			// TODO HACKHACKHACK: find a proper way of setting the relative value so it saves
 			// as of now it somehow either gets the value from the FlowConnectionManager or ahead of time
 			// Control_DX11.exe+0x34DD4F
-			if (modDescription != nullptr &&
+			if (modDescription != nullptr && modDescription->component->description != nullptr &&
 				(strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_UNCOMMON_LIGHT_FOOT") != nullptr /*||
 				strstr(modDescription->component->description->modName, "LOOT_ITEM_MOD_COMMON_MENTAL_FOCUS") != nullptr*/))
 			{

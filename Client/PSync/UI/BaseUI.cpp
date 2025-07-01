@@ -783,7 +783,7 @@ void BaseUI::DrawCountdown(ImGuiIO io, ImDrawList* drawList, float width, float 
 
 		countdownRemainingTime -= io.DeltaTime;
 		if (countdownRemainingTime <= 0) {
-			PlaySound(TEXT("SystemAsterisk"), NULL, SND_ALIAS | SND_ASYNC);
+			//PlaySound(TEXT("SystemAsterisk"), NULL, SND_ALIAS | SND_ASYNC);
 		}
 	}
 	else if (countdownGoTime > 0) {

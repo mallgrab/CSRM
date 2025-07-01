@@ -40,3 +40,4 @@ public:
 };
 
 extern bool mapIsLoaded;
+extern bool doWeExist;

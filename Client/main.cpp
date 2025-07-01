@@ -6,14 +6,21 @@
 
 FILE* stream;
 
-#define LOG_CONSOLE
+// dumb bug if we alloc console too early and run through the launcher we get a second console
+#ifdef _DEBUG
+	#define LOG_CONSOLE
+#else
+	#define LOG_FILE
+#endif
 
 void ConsoleSetup() {
 #if defined(LOG_CONSOLE)
+/*
 	AllocConsole();
 	freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
 	freopen_s((FILE**)stdout, "CONOUT$", "w", stderr);
 	freopen_s((FILE**)stdout, "CONOUT$", "r", stdin);
+*/
 #elif defined(LOG_FILE)
 	freopen_s(&stream, "log.txt", "w", stdout);
 	freopen_s(&stream, "log.txt", "w", stderr);
@@ -138,6 +145,7 @@ void earlyHooks()
 }
 
 DWORD WINAPI MainThread(LPVOID lpReserved) {
+	printf("start of mainthread\n");
 	wchar_t path[FILENAME_MAX], filename[FILENAME_MAX];
 
 #if HOOK_PRINTF
@@ -172,8 +180,10 @@ DWORD WINAPI MainThread(LPVOID lpReserved) {
 #endif
 
 	//OcularDLLProxy::Init();
+	printf("start of ocular init\n");
 	OcularHook oHook = Ocular::Init();
 	
+	printf("start of psync\n");
 	PSyncFactory psync;
 	psync.PSyncMod(oHook, path, filename);
 
@@ -185,9 +195,11 @@ BOOL WINAPI DllMain(HMODULE hMod, DWORD dwReason, LPVOID lpReserved) {
 	{
 	case DLL_PROCESS_ATTACH:
 		DisableThreadLibraryCalls(hMod);
+		printf("start of earlyhooks\n");
 		earlyHooks();
 		
 		//OcularDLLProxy::Init();
+		printf("start of CreateThread MainThread\n");
 		CreateThread(nullptr, 0, MainThread, hMod, 0, nullptr);
 		break;
 	case DLL_PROCESS_DETACH:

@@ -33,6 +33,12 @@ public:
 	bool TemporalSSAA = false; //original game would have this enabled, but i hate it!!!
 	bool disableLevitation = false;
 
+	// Encounter
+	float encounterProtectionTimer = 0.0f;
+	float encounterTimer = 0.0f;
+	bool disableEncounters = false;
+	bool forceEncounters = false;
+
 	// LootTable
 	int lootTableIndex = -1;
 	std::vector<char*> lootTableItemNames;

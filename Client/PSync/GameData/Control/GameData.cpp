@@ -16,8 +16,11 @@ startLoadingLevel_t startLoadingLevelOriginal;
 using notifyClientLevelLoadingComplete_t = void(__fastcall*)(uint64_t* x, const int64_t* y);
 notifyClientLevelLoadingComplete_t notifyClientLevelLoadingCompleteOriginal;
 
-using characterControllerCtor_t = uint64_t * (__fastcall*)(uint64_t* x, uint64_t* y, uint64_t* z, int a4);
-characterControllerCtor_t characterControllerOriginal;
+using characterControllerCtor_t = uint64_t* (__fastcall*)(uint64_t* x, uint64_t* y, uint64_t* z, int a4);
+characterControllerCtor_t characterControllerCtorOriginal;
+
+using characterControllerDtor_t = uint64_t* (__fastcall*)(uint64_t* x, uint64_t* y);
+characterControllerDtor_t characterControllerDtorOriginal;
 
 using characterControllerMoveRelative_t = void(__fastcall*)(uint64_t* x, float* y, float z, float w);
 characterControllerMoveRelative_t characterControllerMoveCapsuleOriginal;
@@ -31,6 +34,7 @@ setFreeCamera_t setFreeCamera;
 ptr** inputManagerInstance;
 ptr* playerController;
 bool mapIsLoaded = false;
+bool doWeExist = false;
 
 void __stdcall setAsPlayerCharacter(uint64_t* pointer, char isPlayer) {
 	if (isPlayer == 1) {
@@ -74,10 +78,24 @@ uint64_t* __fastcall getWorldSpaceAABB(uint64_t x, uint64_t* y) {
 ptr* playerCharacterController = nullptr;
 uint64_t* __fastcall characterControllerCtor(uint64_t* x, uint64_t* y, uint64_t* z, int a4) {
 	if (a4 == 1)
+	{
 		playerCharacterController = x;
+		doWeExist = true;
+	}
 
-	characterControllerOriginal(x, y, z, a4);
+	characterControllerCtorOriginal(x, y, z, a4);
 	return x;
+}
+
+void __fastcall characterControllerDtor(uint64_t* x, uint64_t* y) {
+
+	if (x == playerCharacterController)
+	{
+		printf("we are gone\n");
+		doWeExist = false;
+	}
+
+	characterControllerDtorOriginal(x,y);
 }
 
 float speedOfPlayer[4];
@@ -262,17 +280,71 @@ void setPresentInterval(void* RendererInterfaceInstance, uint64_t interval)
 	setPresentIntervalFunc(RendererInterfaceInstance, 0); //force disable vsync
 }
 
-// TODO: print the timer when encounters are going to start
-using EncounterDirectorCtor_t  = uint64_t(__fastcall*)(uint64_t a1);
+struct EncounterManager {
+	void* vtable;
+	char tmp[0xE0];
+	uint32_t encounterType; // ?
+	uint32_t _padding;
+	float encounterTimer;
+	uint32_t tmp2;
+	uint32_t tmp3;
+	uint32_t tmp4;
+	uint32_t tmp5;
+	uint32_t tmp6;
+	uint32_t protectionType; // ?
+	float protectionTimer;
+};
+EncounterManager* EncounterDirector = NULL;
+
+using EncounterDirectorCtor_t  = uint64_t(__fastcall*)(EncounterManager* a1);
 EncounterDirectorCtor_t EncounterDirectorCtorOrig;
-uint64_t EncounterDirectorCtor(uint64_t a1)
+uint64_t EncounterDirectorCtor(EncounterManager* a1)
 {
 	uint64_t result = EncounterDirectorCtorOrig(a1);
 	printf("encount director %llx\n", result);
 	printf("lootdropsingletoncomponentstate director %llx\n\n", result-0x100);
 
+	EncounterDirector = (EncounterManager*)result;
+
 	return result;
 }
+
+// 0x296720
+using EncounterDirectorDtor_t = uint64_t(__fastcall*)(EncounterManager* a1);
+EncounterDirectorDtor_t EncounterDirectorDtorOrig;
+uint64_t EncounterDirectorDtor(EncounterManager* a1)
+{
+	EncounterDirector = nullptr;
+
+	printf("encount director dtor\n");
+	return EncounterDirectorDtorOrig(a1);
+}
+
+// 0x298510
+using EncounterDirectorDecrementTimer_t = uint64_t(__fastcall*)(uint64_t a1);
+EncounterDirectorDecrementTimer_t EncounterDirectorDecrementTimerOrig;
+uint64_t EncounterDirectorDecrementTimer(uint64_t a1)
+{
+	cfg->encounterTimer = EncounterDirector->encounterTimer;
+	cfg->encounterProtectionTimer = EncounterDirector->protectionTimer;
+
+	if (cfg->forceEncounters)
+	{
+		cfg->disableEncounters = false;
+		EncounterDirector->encounterTimer = 0.0f;
+		EncounterDirector->protectionTimer = 0.0f;
+	}
+
+	if (cfg->disableEncounters)
+	{
+		EncounterDirector->encounterTimer = 30.0f;
+		EncounterDirector->protectionTimer = 10.0f;
+		return 0;
+	}
+
+	return EncounterDirectorDecrementTimerOrig(a1);
+}
+
 
 void ControlGameData::InitGameData()
 {
@@ -295,7 +367,9 @@ void ControlGameData::InitGameData()
 	ptr* startLoadingLevelFunctionAddr = reinterpret_cast<ptr*>(coregameDllAddr + 0x19db90);
 	ptr* notifyClientLevelLoadingCompleteFunctionAddr = reinterpret_cast<ptr*>(coregameDllAddr + 0x19e4b0);
 	ptr* characterControllerCtorAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x5d80);
+	ptr* characterControllerDtorAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x5e70);
 	ptr* characterControllerMoveCapsuleAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x7540);
+
 
 #if 0 //not early enough
 	//patch out single instance check
@@ -323,11 +397,18 @@ void ControlGameData::InitGameData()
 	isFreeCameraOn = reinterpret_cast<isFreeCameraOn_t>(isFreeCameraOnPtr);
 	setFreeCamera = reinterpret_cast<setFreeCamera_t>(setFreeCameraPtr);
 
-	// (char*)processStartAddr + 0x507050
-
 	char* encounterDirectorCtorAddr = (char*)processStartAddr + 0x296460;
 	if (MH_CreateHook(encounterDirectorCtorAddr, &EncounterDirectorCtor, reinterpret_cast<LPVOID*>(&EncounterDirectorCtorOrig)) != MH_OK) throw;
 	if (MH_EnableHook(encounterDirectorCtorAddr) != MH_OK) throw;
+
+	char* encounterDirectorDtorAddr = (char*)processStartAddr + 0x296720;
+	if (MH_CreateHook(encounterDirectorDtorAddr, &EncounterDirectorDtor, reinterpret_cast<LPVOID*>(&EncounterDirectorDtorOrig)) != MH_OK) throw;
+	if (MH_EnableHook(encounterDirectorDtorAddr) != MH_OK) throw;
+
+	char* EncounterDirectorDecrementTimerAddr = (char*)processStartAddr + 0x298510;
+	if (MH_CreateHook(EncounterDirectorDecrementTimerAddr, &EncounterDirectorDecrementTimer, reinterpret_cast<LPVOID*>(&EncounterDirectorDecrementTimerOrig)) != MH_OK) throw;
+	if (MH_EnableHook(EncounterDirectorDecrementTimerAddr) != MH_OK) throw;
+
 
 	if (MH_CreateHook(readDigitalPtr, &readDigitalHook, reinterpret_cast<LPVOID*>(&readDigitalFunc)) != MH_OK) throw;
 	if (MH_EnableHook(readDigitalPtr) != MH_OK) throw;
@@ -347,8 +428,11 @@ void ControlGameData::InitGameData()
 	if (MH_CreateHook(notifyClientLevelLoadingCompleteFunctionAddr, &notifyClientLevelLoadingComplete, reinterpret_cast<LPVOID*>(&notifyClientLevelLoadingCompleteOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(notifyClientLevelLoadingCompleteFunctionAddr) != MH_OK) throw;
 
-	if (MH_CreateHook(characterControllerCtorAddr, &characterControllerCtor, reinterpret_cast<LPVOID*>(&characterControllerOriginal)) != MH_OK) throw;
+	if (MH_CreateHook(characterControllerCtorAddr, &characterControllerCtor, reinterpret_cast<LPVOID*>(&characterControllerCtorOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(characterControllerCtorAddr) != MH_OK) throw;
+
+	if (MH_CreateHook(characterControllerDtorAddr, &characterControllerDtor, reinterpret_cast<LPVOID*>(&characterControllerDtorOriginal)) != MH_OK) throw;
+	if (MH_EnableHook(characterControllerDtorAddr) != MH_OK) throw;
 
 	if (MH_CreateHook(characterControllerMoveCapsuleAddr, &characterControllerMoveCapsule, reinterpret_cast<LPVOID*>(&characterControllerMoveCapsuleOriginal)) != MH_OK) throw;
 	if (MH_EnableHook(characterControllerMoveCapsuleAddr) != MH_OK) throw;
@@ -382,7 +466,7 @@ Vector3 *ControlGameData::GetPlayerPos()
 
 Vector3* ControlGameData::GetPlayerPos_Real()
 { //this is causing crashes during fast travel
-	if (!playerController || !playerCharacterController || !mapIsLoaded)
+	if (!playerController || !playerCharacterController || !mapIsLoaded || !doWeExist)
 		return nullptr;
 
 	ptr* physx3characterkinematic = *(ptr**)(playerCharacterController + 12);

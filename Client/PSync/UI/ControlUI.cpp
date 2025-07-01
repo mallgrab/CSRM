@@ -550,6 +550,9 @@ static void CSRM_LoadPosition(int slot, ControlGameData *gameData, ControlUI *ui
 	//if (gameData->getPlayerPhysxSpeed() > 0) //for some reason, the new position doesn't stay if we set our position while moving
 	//	return;
 
+	if (gameData->GetPlayerPos_Real() == nullptr)
+		return;
+
 	if (savedPositions[slot] == *gameData->GetPlayerPos_Real()) //don't set it if we're already there
 		return; //(this is just so the print message doesn't pop up)
 
@@ -689,6 +692,13 @@ void ControlUI::DebugTab() {
 		//ImGui::SameLine();
 		//if (ImGui::Checkbox("Pause on focus lost", &cfg->pauseOnFocusLost))
 		//	controlData->UpdateStartupStringValues(cfg);
+
+		ImGui::TextUnformatted("\n");
+		ImGui::TextUnformatted("Encounter Director:");
+		ImGui::Checkbox("Disable Encounters", &cfg->disableEncounters);
+		ImGui::Checkbox("Force Encounters", &cfg->forceEncounters);
+		ImGui::Text("Protection Timer: %f", cfg->encounterProtectionTimer);
+		ImGui::Text("Encounter Timer: %f", cfg->encounterTimer);
 
 		ImGui::TextUnformatted("\n");
 		ImGui::TextUnformatted("Game settings:");

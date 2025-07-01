@@ -191,6 +191,9 @@
     <ClInclude Include="PSync\GameData\Control\LootDrop.h">
       <Filter>PSync\GameData\Control</Filter>
     </ClInclude>
+    <ClInclude Include="DebugPanel.h">
+      <Filter>PSync\GameData\Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -286,6 +289,9 @@
     </ClCompile>
     <ClCompile Include="PSync\Config\ControlConfig.cpp">
       <Filter>PSync\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugPanel.cpp">
+      <Filter>PSync\GameData\Control</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

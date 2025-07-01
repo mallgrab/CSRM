@@ -43,7 +43,7 @@ struct posNscale {
 	int depth;
 	int filter;
 };
-posNScale posScale = {0};
+posNscale posScale = {0};
 
 //below tested in GetViewMatrix
 	DirectX::XMFLOAT4X3 modifiers = DirectX::XMFLOAT4X3();

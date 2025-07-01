@@ -1,4 +1,7 @@
 #include <Windows.h>
+#include <Shlwapi.h>
+#include <iostream>
+#include <filesystem>
 
 #pragma region Proxy
 struct XInput1_4_dll {
@@ -28,6 +31,7 @@ extern "C" {
 }
 
 void setupFunctions() {
+	printf("setup functions start\n");
 	XInput1_4.oDllMain = GetProcAddress(XInput1_4.dll, "DllMain");
 	XInput1_4.oXInputEnable = GetProcAddress(XInput1_4.dll, "XInputEnable");
 	XInput1_4.oXInputGetAudioDeviceIds = GetProcAddress(XInput1_4.dll, "XInputGetAudioDeviceIds");
@@ -36,6 +40,7 @@ void setupFunctions() {
 	XInput1_4.oXInputGetKeystroke = GetProcAddress(XInput1_4.dll, "XInputGetKeystroke");
 	XInput1_4.oXInputGetState = GetProcAddress(XInput1_4.dll, "XInputGetState");
 	XInput1_4.oXInputSetState = GetProcAddress(XInput1_4.dll, "XInputSetState");
+	printf("setup functions end\n");
 }
 #pragma endregion
 
@@ -45,17 +50,34 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 	switch (ul_reason_for_call) {
 	case DLL_PROCESS_ATTACH:
 	{
+		wchar_t path[MAX_PATH];
 		DisableThreadLibraryCalls(hModule);
 
-		char path[MAX_PATH];
-	
-		GetCurrentDirectory(sizeof(path), path);
-		strcat_s(path, "\\CSRM.dll");
-		HMODULE csrm = LoadLibrary(path);
+		/*
+		AllocConsole();
+		freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+		freopen_s((FILE**)stdout, "CONOUT$", "w", stderr);
+		freopen_s((FILE**)stdout, "CONOUT$", "r", stdin);
+		*/
 
-		GetWindowsDirectory(path, sizeof(path));
-		strcat_s(path, "\\System32\\XInput1_4.dll");
-		XInput1_4.dll = LoadLibrary(path);
+		GetModuleFileNameW(hModule, path, sizeof(path));
+		PathRemoveFileSpecW(path);
+
+		std::wstring pluginsPath = path;
+		pluginsPath += L"\\plugins";
+
+		printf("path: %ls\n", pluginsPath.c_str());
+
+		for (auto& entry : std::filesystem::directory_iterator(pluginsPath))
+			if (strcmp(entry.path().extension().generic_string().c_str(), ".dll") == 0)
+			{
+				HMODULE result = LoadLibraryW(entry.path().c_str());
+				printf("loading: %ls\nresult %lx\n\n", entry.path().c_str(), result);
+			}
+
+		GetWindowsDirectoryW(path, sizeof(path));
+		wcscat_s(path, L"\\System32\\XInput1_4.dll");
+		XInput1_4.dll = LoadLibraryW(path);
 		setupFunctions();
 
 		break;
