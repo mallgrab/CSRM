@@ -42,7 +42,7 @@ LRESULT __stdcall D3D11Hook::WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 	if (GetImGuiWndProcHandlerToggle() && init) {
 		ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-		//return true;	// Uncommenting this should block input when the menu is open but I dunno it's unreliable
+		return CallWindowProc(oWndProc, hWnd, uMsg, wParam, lParam);
 	}
 
 	return CallWindowProc(oWndProc, hWnd, uMsg, wParam, lParam);

@@ -1,10 +1,13 @@
 #include "ControlUI.h"
+#include "../GameData/Control/ShapeEngine.h"
 
 void ControlUI::RenderGUI() {
 	if (!init) return;
 
 	gHue++;
 	gHue = gHue % 360;
+
+	RenderDrawCall();
 
 	if (!data->uiToggle) {
 		return;
@@ -21,6 +24,7 @@ void ControlUI::RenderGUI() {
 	if (ImGui::BeginTabBar("Tabs", tab_bar_flags))
 	{
 		DebugTab();
+		PracticeTab();
 		LootDropTab();
 		ConnectionTab();
 		CustomizationTab();
@@ -504,16 +508,19 @@ static void CSRM_DrawHUD(ControlGameData *gameData, ControlConfig *config, Contr
 }
 
 #define MAX_POSITION_SLOTS 10
-static Vector3 savedPositions[MAX_POSITION_SLOTS];
+struct SavedPosition_t {
+	Vector3 position;
+	Vector3 cameraRotation;
+};
+
+static SavedPosition_t savedPositions[MAX_POSITION_SLOTS];
+
 static void CSRM_SavePosition(int slot, ControlGameData *gameData, ControlUI *ui)
 {
 	char buf[128];
 	Vector3 curPos;
 
-	if (!gameData || !ui)
-		return;
-
-	if (!mapIsLoaded)
+	if (!gameData || !ui || !doWeExist || !mapIsLoaded)
 		return;
 
 	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
@@ -528,7 +535,11 @@ static void CSRM_SavePosition(int slot, ControlGameData *gameData, ControlUI *ui
 #endif
 	ui->CreateNotification(buf); //, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 1.0f, 0.0f));
 
-	savedPositions[slot] = curPos;
+	savedPositions[slot].position = curPos;
+
+	// copying camera state pitch yaw roll vector
+	float* cameraStateVectorPtr = (float*)((char*)GamePlayerCameraMovementPtr + 0xB8);
+	savedPositions[slot].cameraRotation = Vector3(cameraStateVectorPtr[0], cameraStateVectorPtr[1], cameraStateVectorPtr[2]);
 }
 
 static void CSRM_LoadPosition(int slot, ControlGameData *gameData, ControlUI *ui)
@@ -544,7 +555,7 @@ static void CSRM_LoadPosition(int slot, ControlGameData *gameData, ControlUI *ui
 	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
 		return;
 
-	if (!savedPositions[slot].x && !savedPositions[slot].y && !savedPositions[slot].z)
+	if (!savedPositions[slot].position.x && !savedPositions[slot].position.y && !savedPositions[slot].position.z)
 		return; //empty position slot i guess
 
 	//if (gameData->getPlayerPhysxSpeed() > 0) //for some reason, the new position doesn't stay if we set our position while moving
@@ -553,18 +564,24 @@ static void CSRM_LoadPosition(int slot, ControlGameData *gameData, ControlUI *ui
 	if (gameData->GetPlayerPos_Real() == nullptr)
 		return;
 
-	if (savedPositions[slot] == *gameData->GetPlayerPos_Real()) //don't set it if we're already there
+	if (savedPositions[slot].position == *gameData->GetPlayerPos_Real()) //don't set it if we're already there
 		return; //(this is just so the print message doesn't pop up)
 
 #ifndef _DEBUG
 	sprintf_s(buf, "Loading position from slot %i..\n", slot);
 #else
-	sprintf_s(buf, "Loading position %i (%f %f %f)..\n", slot, savedPositions[slot].x, savedPositions[slot].x, savedPositions[slot].z);
+	sprintf_s(buf, "Loading position %i (%f %f %f)..\n", slot, savedPositions[slot].position.x, savedPositions[slot].position.x, savedPositions[slot].position.z);
 	printf(buf);
 #endif
 	ui->CreateNotification(buf); //, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 1.0f, 0.0f));
 
-	gameData->SetPlayerPos(savedPositions[slot]);
+	isPlayerLoadingPosition = true;
+
+	gameData->SetPlayerPos(savedPositions[slot].position);
+
+	// setting camera state pitch yaw roll vector
+	float* cameraStateVectorPtr = (float*)((char*)GamePlayerCameraMovementPtr + 0xB8);
+	memcpy(cameraStateVectorPtr, &savedPositions[slot].cameraRotation, sizeof(float) * 3);
 }
 
 static int CSRM_SlotFromKey(WPARAM key)
@@ -630,6 +647,13 @@ void ControlUI::KeyPress(WPARAM key) {
 		}
 	}
 
+	if (key == 76)
+		cfg->triggerToDraw++;
+
+	if (key == 75)
+		if (cfg->triggerToDraw > 0)
+			cfg->triggerToDraw--;
+
 	BaseUI::KeyPress(key);
 }
 
@@ -652,6 +676,45 @@ void ControlUI::LootDropTab() {
 		
 		// TODO: try modifying the globalid table instead of the droptable and see if that changes things
 		// we can atleast restore changes from that table 
+
+		ImGui::EndTabItem();
+	}
+}
+
+void ControlUI::PracticeTab() {
+	if (ImGui::BeginTabItem("Triggers"))
+	{
+		ImGui::DragInt("Trigger", &cfg->triggerToDraw, 1.0f, 0, 4000);
+		ImGui::Text("%llx", cfg->triggerGlobalID);
+		ImGui::Checkbox("hide trigger if not entered", &cfg->hideTriggerIfNotEntered);
+		if (ImGui::Button("Copy To Clipboard"))
+		{
+			char buf[_MAX_U64TOSTR_BASE2_COUNT];
+			_i64toa_s(cfg->triggerGlobalID, buf, _countof(buf), 16);
+
+			//std::string output = std::to_string(cfg->triggerGlobalID);
+
+			HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, sizeof(buf));
+			memcpy(GlobalLock(hMem), buf, sizeof(buf));
+			GlobalUnlock(hMem);
+			OpenClipboard(0);
+			EmptyClipboard();
+			SetClipboardData(CF_TEXT, hMem);
+			CloseClipboard();
+		}
+
+		auto triggers = TriggerGetVector();
+		for (int i = 0; i < triggers.size(); i++)
+		{
+			if (triggers[i] == nullptr)
+				continue;
+
+			if (triggers[i]->ComponentBaseState()->onEnter != 0)
+				ImGui::Text("ID: %llx", triggers[i]->state->globalID);
+		}
+
+		if (currentSelectedTrigger.script.size() != 0)
+			ImGui::Text("%s", currentSelectedTrigger.script.c_str());
 
 		ImGui::EndTabItem();
 	}
@@ -699,6 +762,12 @@ void ControlUI::DebugTab() {
 		ImGui::Checkbox("Force Encounters", &cfg->forceEncounters);
 		ImGui::Text("Protection Timer: %f", cfg->encounterProtectionTimer);
 		ImGui::Text("Encounter Timer: %f", cfg->encounterTimer);
+
+		ImGui::TextUnformatted("\n");
+		ImGui::TextUnformatted("\nShapeEngine:");
+		ImGui::DragFloat("height", &cfg->height);
+		ImGui::DragFloat("width", &cfg->width);
+		ImGui::DragFloat("depth", &cfg->depth);
 
 		ImGui::TextUnformatted("\n");
 		ImGui::TextUnformatted("Game settings:");
@@ -908,6 +977,7 @@ void ControlUI::ConfigTab() {
 
 static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *config, ImDrawList *drawList, int screenWidth, int screenHeight)
 {
+/*
 	Matrix4* myViewMatrix = gameData->GetViewMatrix();
 	Vector3 worldPos;
 	ImVec2 nicknamePos;
@@ -1005,6 +1075,8 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *c
 		drawList->AddLine(imvec_minA, imvec_maxB_tmpC, triggerColor, 1.0f);
 		drawList->AddLine(imvec_minA_tmpA, imvec_maxB_tmpB, triggerColor, 1.0f);
 	}
+*/
+
 }
 
 void ControlUI::Init()

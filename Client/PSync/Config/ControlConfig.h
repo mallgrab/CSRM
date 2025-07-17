@@ -28,6 +28,14 @@ public:
 	float speedometerPos[2] = { -1.0f, -1.0f };
 	float speedometerSize = -1.0f;
 
+	// Testing shapeengine stuff
+	float height = 1.0f;
+	float width = 1.0f;
+	float depth = 1.0f;
+	int triggerToDraw = 0;
+	bool hideTriggerIfNotEntered = false;
+	uint64_t triggerGlobalID = 0;
+
 	// Tweakables..
 	bool motionBlur = true; //original game has this on
 	bool TemporalSSAA = false; //original game would have this enabled, but i hate it!!!

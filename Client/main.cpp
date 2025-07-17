@@ -15,12 +15,10 @@ FILE* stream;
 
 void ConsoleSetup() {
 #if defined(LOG_CONSOLE)
-/*
 	AllocConsole();
 	freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
 	freopen_s((FILE**)stdout, "CONOUT$", "w", stderr);
 	freopen_s((FILE**)stdout, "CONOUT$", "r", stdin);
-*/
 #elif defined(LOG_FILE)
 	freopen_s(&stream, "log.txt", "w", stdout);
 	freopen_s(&stream, "log.txt", "w", stderr);

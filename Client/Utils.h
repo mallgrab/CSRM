@@ -242,3 +242,24 @@ inline ImColor Float3AToImColor(float array[3], float alpha) {
 inline ImColor Float4ToImColor(float array[4]) {
     return ImColor(array[0], array[1], array[2], array[3]);
 }
+
+inline void* memmem(const void* haystack, size_t haystack_len, const void* needle, size_t needle_len)
+{
+    const unsigned char* s = (const unsigned char*)haystack;
+    const unsigned char* ends = s + haystack_len - needle_len;
+    const unsigned char* p = (const unsigned char*)needle;
+    const void* t;
+
+    if (needle_len == 0)
+        return (void*)haystack;
+
+    while (s <= ends && (t = memchr(s, *p, ends - s + 1)))
+    {
+        if (memcmp(t, p, needle_len) == 0)
+            return (void*)t;
+        else
+            s = (const unsigned char*)t + 1;
+    }
+
+    return 0;
+}

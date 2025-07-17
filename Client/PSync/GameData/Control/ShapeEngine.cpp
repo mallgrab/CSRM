@@ -1,4 +1,5 @@
 #include "ShapeEngine.h"
+#include "LootDrop.h" // TODO: including cause we want GetComponentByTypeId funcs, should refactor it into its own cpp file later
 
 #define shapeEngineInstance getInstance() //change to a class pointer that caches the instance pointer?
 namespace ShapeEngine
@@ -242,9 +243,9 @@ namespace ShapeEngine
 		setStrokeFunc(shapeEngineInstance, a1, a2, a3);
 	}
 
-	void setStroke(bool a1, float a2, uint64_t* a3)
+	void setStroke1(bool a1, float a2, Vector4* color)
 	{
-		setStroke1Func(shapeEngineInstance, a1, a2, a3);
+		setStroke1Func(shapeEngineInstance, a1, a2, color);
 	}
 
 	void InstallHooks(LPCWSTR dllName)
@@ -334,5 +335,911 @@ namespace ShapeEngine
 			if (MH_CreateHook(setFontFuncPtr, &SetFont, reinterpret_cast<LPVOID*>(&setFontFunc)) != MH_OK) throw;
 			if (MH_EnableHook(setFontFuncPtr) != MH_OK) throw;
 		}
+	}
+}
+
+#include <DirectXMath.h>
+#include "GameData.h"
+
+HMODULE coregameModule = nullptr;
+HMODULE rlModule = nullptr;
+HMODULE basemodule = nullptr;
+
+using getOwner_t = uint64_t * (__fastcall*)(void* component);
+getOwner_t getOwner;
+
+using getName_t = const char* (__fastcall*)(void* gameobjectstate);
+getName_t getName;
+
+triggerScriptCache currentSelectedTrigger;
+uint64_t globalIDCache = 0;
+Vector3 tmpPosition = Vector3(0,0,0);
+Vector3 tmpScale = Vector3(0,0,0);
+Vector3 tmpbbox_a = Vector3(0,0,0);
+Vector3 tmpbbox_b = Vector3(0,0,0);
+
+void DrawCube(Vector3 scale, Vector3 translate, Vector3 rotation)
+{
+	Vector4 red = Vector4(1.0f, 0.0f, 0.0f, cfg->triggerOpacity);
+	Vector4 orange = Vector4(1.0f, 0.5f, 0.0f, cfg->triggerOpacity);
+	Vector4 green = Vector4(0.3f, 1.0f, 0.3f, cfg->triggerOpacity);
+	Vector4 blue = Vector4(0.1f, 1.0f, 1.0f, cfg->triggerOpacity);
+	Vector4 purple = Vector4(0.7f, 0.3f, 0.7f, cfg->triggerOpacity);
+	Vector4 white = Vector4(1.0f, 1.0f, 1.0f, cfg->triggerOpacity);
+
+	Vector3 posCoords[36];
+	Vector3 texCoords[36];
+
+	posCoords[0] = Vector3(1.0f, 0.0f, 1.0f);
+	posCoords[1] = Vector3(1.0f, -1.0f, 0.0f);
+	posCoords[2] = Vector3(1.0f, 0.0f, 0.0f);
+
+	posCoords[3] = Vector3(1.0f, -1.0f, 1.0f);
+	posCoords[4] = Vector3(1.0f, -1.0f, 0.0f);
+	posCoords[5] = Vector3(1.0f, 0.0f, 1.0f);
+
+	posCoords[6] = Vector3(1.0f, 0.0f, 1.0f);
+	posCoords[7] = Vector3(1.0f, 0.0f, 0.0f);
+	posCoords[8] = Vector3(0.0f, 0.0f, 0.0f);
+
+	posCoords[9] = Vector3(1.0f, 0.0f, 1.0f);
+	posCoords[10] = Vector3(0.0f, 0.0f, 0.0f);
+	posCoords[11] = Vector3(0.0f, 0.0f, 1.0f);
+
+	posCoords[12] = Vector3(0.0f, -1.0f, 1.0f);
+	posCoords[13] = Vector3(1.0f, -1.0f, 1.0f);
+	posCoords[14] = Vector3(0.0f, 0.0f, 1.0f);
+
+	posCoords[15] = Vector3(0.0f, 0.0f, 1.0f);
+	posCoords[16] = Vector3(1.0f, -1.0f, 1.0f);
+	posCoords[17] = Vector3(1.0f, 0.0f, 1.0f);
+
+	posCoords[18] = Vector3(1.0f, 0.0f, 0.0f);
+	posCoords[19] = Vector3(1.0f, -1.0f, 0.0f);
+	posCoords[20] = Vector3(0.0f, 0.0f, 0.0f);
+
+	posCoords[21] = Vector3(0.0f, 0.0f, 0.0f);
+	posCoords[22] = Vector3(1.0f, -1.0f, 0.0f);
+	posCoords[23] = Vector3(0.0f, -1.0f, 0.0f);
+
+	posCoords[24] = Vector3(0.0f, 0.0f, 0.0f);
+	posCoords[25] = Vector3(0.0f, -1.0f, 0.0f);
+	posCoords[26] = Vector3(0.0f, 0.0f, 1.0f);
+
+	posCoords[27] = Vector3(0.0f, 0.0f, 1.0f);
+	posCoords[28] = Vector3(0.0f, -1.0f, 0.0f);
+	posCoords[29] = Vector3(0.0f, -1.0f, 1.0f);
+
+	posCoords[30] = Vector3(0.0f, -1.0f, 0.0f);
+	posCoords[31] = Vector3(1.0f, -1.0f, 0.0f);
+	posCoords[32] = Vector3(1.0f, -1.0f, 1.0f);
+
+	posCoords[33] = Vector3(0.0f, -1.0f, 1.0f);
+	posCoords[34] = Vector3(0.0f, -1.0f, 0.0f);
+	posCoords[35] = Vector3(1.0f, -1.0f, 1.0f);
+
+	DirectX::XMFLOAT4X3 modifiers = DirectX::XMFLOAT4X3();
+	DirectX::XMVECTOR xm_scale;
+	DirectX::XMVECTOR xm_translation;
+	DirectX::XMVECTOR xm_rotation;
+	DirectX::XMVECTOR xm_empty = DirectX::XMVECTOR();
+
+	xm_translation.m128_f32[0] = translate.x;
+	xm_translation.m128_f32[1] = translate.y;
+	xm_translation.m128_f32[2] = translate.z;
+
+	xm_scale.m128_f32[0] = scale.x;
+	xm_scale.m128_f32[1] = scale.y;
+	xm_scale.m128_f32[2] = scale.z;
+
+	xm_rotation.m128_f32[0] = rotation.x;
+	xm_rotation.m128_f32[1] = rotation.y;
+	xm_rotation.m128_f32[2] = rotation.z;
+
+	DirectX::XMStoreFloat4x3(&modifiers, DirectX::XMMatrixAffineTransformation(xm_scale, xm_empty, xm_rotation, xm_translation));
+
+	ShapeEngine::setColor(&blue);
+	ShapeEngine::drawTriangles(posCoords, texCoords, 36, &modifiers);
+}
+
+// TODO: port this so we draw triggers this way
+// TODO: also draw death triggers as just boxes, with depth/culling enabled
+void DrawTrigger(Vector3 a, Vector3 b)
+{
+	Vector3 modifiedScale;
+	Vector3 modifiedTranslate;
+
+	float width = 0.002f;
+
+	// top lines
+	modifiedScale.x = (float)abs(a.x - b.x) * width;
+	modifiedScale.y = (float)abs(a.y - b.y) * width;
+	modifiedScale.z = (float)abs(a.z - b.z);
+
+	DrawCube(modifiedScale, { a.x, b.y, a.z }, Vector3(0, 0, 0));
+
+	modifiedScale.x = (float)abs(a.x - b.x) * width;
+	modifiedScale.y = (float)abs(a.y - b.y) * width;
+	modifiedScale.z = (float)abs(a.z - b.z);
+
+	DrawCube(modifiedScale, { b.x, b.y, a.z }, Vector3(0, 0, 0));
+
+	modifiedScale.x = (float)abs(a.x - b.x);
+	modifiedScale.y = (float)abs(a.y - b.y) * width;
+	modifiedScale.z = (float)abs(a.z - b.z) * width;
+
+	DrawCube(modifiedScale, { a.x, b.y, a.z }, Vector3(0, 0, 0));
+
+	modifiedScale.x = (float)abs(a.x - b.x) * (1.0f + width);
+	modifiedScale.y = (float)abs(a.y - b.y) * width;
+	modifiedScale.z = (float)abs(a.z - b.z) * width;
+
+	DrawCube(modifiedScale, { a.x, b.y, b.z }, Vector3(0, 0, 0));
+
+
+	// vertical lines
+	modifiedScale.x = (float)abs(a.x - b.x) * width;
+	modifiedScale.y = (float)abs(a.y - b.y);
+	modifiedScale.z = (float)abs(a.z - b.z) * width;
+
+	DrawCube(modifiedScale, { a.x, b.y, b.z }, Vector3(0, 0, 0));
+
+	modifiedScale.x = (float)abs(a.x - b.x) * width;
+	modifiedScale.y = (float)abs(a.y - b.y);
+	modifiedScale.z = (float)abs(a.z - b.z) * width;
+
+	DrawCube(modifiedScale, { b.x, b.y, b.z }, Vector3(0, 0, 0));
+
+	modifiedScale.x = (float)abs(a.x - b.x) * width;
+	modifiedScale.y = (float)abs(a.y - b.y);
+	modifiedScale.z = (float)abs(a.z - b.z) * width;
+
+	DrawCube(modifiedScale, { b.x, b.y, a.z }, Vector3(0, 0, 0));
+
+	modifiedScale.x = (float)abs(a.x - b.x) * width;
+	modifiedScale.y = (float)abs(a.y - b.y);
+	modifiedScale.z = (float)abs(a.z - b.z) * width;
+
+	DrawCube(modifiedScale, { a.x, b.y, a.z }, Vector3(0, 0, 0));
+
+
+	// bottom lines
+	modifiedScale.x = (float)abs(a.x - b.x) * width;
+	modifiedScale.y = (float)abs(a.y - b.y) * width;
+	modifiedScale.z = (float)abs(a.z - b.z);
+
+	DrawCube(modifiedScale, { a.x, a.y, a.z }, Vector3(0, 0, 0));
+
+	modifiedScale.x = (float)abs(a.x - b.x) * width;
+	modifiedScale.y = (float)abs(a.y - b.y) * width;
+	modifiedScale.z = (float)abs(a.z - b.z);
+
+	DrawCube(modifiedScale, { b.x, a.y, a.z }, Vector3(0, 0, 0));
+
+	modifiedScale.x = (float)abs(a.x - b.x);
+	modifiedScale.y = (float)abs(a.y - b.y) * width;
+	modifiedScale.z = (float)abs(a.z - b.z) * width;
+
+	DrawCube(modifiedScale, { a.x, a.y, a.z }, Vector3(0, 0, 0));
+
+	modifiedScale.x = (float)abs(a.x - b.x) * (1.0f + width);
+	modifiedScale.y = (float)abs(a.y - b.y) * width;
+	modifiedScale.z = (float)abs(a.z - b.z) * width;
+
+	DrawCube(modifiedScale, { a.x, a.y, b.z }, Vector3(0, 0, 0));
+}
+
+// TODO: ccw culling makes the triggers look fucked in depth mode fix later
+void RenderDrawCall()
+{
+	Vector3 posCoords[3] = { {0,0,0},{0,0,0},{0,0,0} };
+	Vector3 posCoords2[3] = { {0,0,0},{0,0,0},{0,0,0} };
+
+	Vector4 red = Vector4(1.0f, 0.0f, 0.0f, cfg->triggerOpacity);
+	Vector4 orange = Vector4(1.0f, 0.5f, 0.0f, cfg->triggerOpacity);
+	Vector4 green = Vector4(0.3f, 1.0f, 0.3f, cfg->triggerOpacity);
+	Vector4 blue = Vector4(0.1f, 1.0f, 1.0f, cfg->triggerOpacity);
+	Vector4 purple = Vector4(0.7f, 0.3f, 0.7f, cfg->triggerOpacity);
+	Vector4 white = Vector4(1.0f, 1.0f, 1.0f, cfg->triggerOpacity);
+
+	static bool init = false;
+
+	if (!init)
+	{
+		coregameModule = GetModuleHandle(L"coregame_rmdwin7_f.dll");
+		rlModule = GetModuleHandle(L"rl_rmdwin7_f.dll");
+		basemodule = GetModuleHandle(nullptr);
+
+		getOwner = (getOwner_t)GetProcAddress(rlModule, "?getOwner@ComponentBase@r@@QEBAPEAVGameObject@2@XZ");
+		getName = (getName_t)GetProcAddress(rlModule, "?getName@GameObjectState@r@@UEBAPEBDXZ");
+
+		init = true;
+	}
+
+	struct posNscale {
+		Vector3 pos;
+		Vector3 scale;
+		int draw;
+		int blend;
+		int depth;
+		int filter;
+	};
+	posNscale posScale = {};
+	posScale.scale = Vector3(1.0f,1.0f,1.0f);
+	posScale.draw = 1;
+	posScale.depth = 1;
+	posScale.filter = 1; // max 3
+	posScale.blend = 3;
+
+	//below tested in GetViewMatrix
+	DirectX::XMFLOAT4X3 modifiers = DirectX::XMFLOAT4X3();
+	DirectX::XMMATRIX tmp = DirectX::XMMatrixIdentity();
+	DirectX::XMVECTOR empty = DirectX::XMVECTOR();
+
+	DirectX::XMVECTOR scale;
+	DirectX::XMVECTOR translation;
+	DirectX::XMVECTOR rotation;
+
+	DirectX::XMMatrixDecompose(&scale, &rotation, &translation, tmp);
+
+	if (!cfg->ui->data->GetPlayerPos())
+		return;
+
+	Vector3 texCoords[3] = { { 0.1f, 0.1f, 0.0f }, { 0.1f, 0.1f, 0.0f }, { 0.1f, 0.1f, 0.0f } };
+	
+	Matrix4* viewMatrix = cfg->ui->data->GetViewMatrix();
+
+	ShapeEngine::setTransform(ShapeEngine::getInstance(), *viewMatrix);
+
+	ShapeEngine::setDrawMode(ShapeEngine::getInstance(), posScale.draw);
+
+	if (posScale.blend > 5)
+		ShapeEngine::setBlendMode(ShapeEngine::getInstance(), 5);
+	else
+		ShapeEngine::setBlendMode(ShapeEngine::getInstance(), posScale.blend);
+
+	// setting to 1 lets it get clipped properly
+	// 0 is drawing it regardless
+	// draw mode has to be 0 tho for it to work
+	ShapeEngine::setDepthMode(ShapeEngine::getInstance(), posScale.depth);
+	ShapeEngine::setFilterMode(ShapeEngine::getInstance(), posScale.filter);
+	ShapeEngine::setTexture(ShapeEngine::getInstance(), nullptr);
+
+	DrawTrigger(tmpbbox_a, tmpbbox_b);
+
+	posScale.pos = Vector3(0.0f,0.0f,0.0f);
+	translation.m128_f32[0] = 0.0f;
+	translation.m128_f32[1] = 0.0f;
+	translation.m128_f32[2] = 0.0f;
+
+	scale.m128_f32[0] = 1.0f;
+	scale.m128_f32[1] = 1.0f;
+	scale.m128_f32[2] = 1.0f;
+	DirectX::XMStoreFloat4x3(&modifiers, DirectX::XMMatrixAffineTransformation(scale, empty, rotation, translation));
+
+	auto triggers = TriggerGetVector();
+	for (int i = 0; i < triggers.size(); i++)
+	{
+		if (triggers[i] == nullptr)
+			continue;
+
+		if (!cfg->drawTriggers)
+			return;
+	
+		
+	if (triggers[cfg->triggerToDraw] != nullptr)
+		cfg->triggerGlobalID = triggers[cfg->triggerToDraw]->state->globalID;
+
+	float width = 0.02f;
+	float rx = 0.0f, ry = 0.0f, rz = 0.0f, lx = 0.0f, ly = 0.0f, lz = 0.0f;
+	
+	if (i == cfg->triggerToDraw)
+	{
+		tmpbbox_a = triggers[i]->boundbox.a;
+		tmpbbox_b = triggers[i]->boundbox.b;
+
+		uint64_t* triggerEntity = getOwner(triggers[i]);
+		if (triggerEntity == nullptr)
+			continue;
+
+		uint64_t* triggerEntityState = *(uint64_t**)((char*)triggerEntity + 0x8);
+
+		char* ScriptComponentStateIDPtr = (char*)basemodule + 0x11ADBBC;
+		uint64_t ScriptComponentStateID = *(uint64_t*)ScriptComponentStateIDPtr;
+		char* ScriptComponentStateComponent = (char*)GameObjectState_GetComponentByTypeId((uint64_t)triggerEntityState, ScriptComponentStateID);
+
+		if (ScriptComponentStateComponent != nullptr)
+		{
+			char* ScriptContent = *(char**)(ScriptComponentStateComponent + 0x48);
+			char* ScriptPtr = *(char**)(ScriptContent + 0x88);
+			uint32_t ScriptStringSize = (uint32_t)*(char**)(ScriptContent + 0x90);
+			char* ScriptTypePtr = *(char**)(ScriptContent + 0x120);
+
+			if (currentSelectedTrigger.globalID != triggers[i]->state->globalID)
+			{
+				currentSelectedTrigger.globalID = triggers[i]->state->globalID;
+
+				char* scriptString = (char*)malloc(sizeof(char) * ScriptStringSize);
+				memcpy(scriptString, ScriptPtr, sizeof(char) * ScriptStringSize);
+				
+				for (int i = 0; i < ScriptStringSize; i++)
+					if (scriptString[i] == '\0')
+						scriptString[i] = '\n';
+
+				scriptString[ScriptStringSize-1] = '\0';
+				currentSelectedTrigger.script = scriptString;
+
+				free(scriptString);
+			}
+		}
+		else
+			currentSelectedTrigger.script = "";
+
+		ShapeEngine::setColor(&blue);
+	}
+	else
+	{
+		// we could call physics::Trigger::isPointInside instead of relying on the game to set the enter state
+		// since some triggers are progression triggers and they will only get enabled once
+
+		// also being able to disable all triggers and manually activate them would be another feature we should add
+		if (triggers[i]->state->onEnter)
+			ShapeEngine::setColor(&green);
+		else
+		{
+			if (cfg->hideTriggerIfNotEntered)
+				continue;
+		
+			ShapeEngine::setColor(&orange);
+
+			uint64_t* triggerEntity = getOwner(triggers[i]);
+			if (triggerEntity == nullptr)
+				continue;
+
+			uint64_t* triggerEntityState = *(uint64_t**)((char*)triggerEntity + 0x8);
+
+			char* ScriptComponentStateIDPtr = (char*)basemodule + 0x11ADBBC;
+			uint64_t ScriptComponentStateID = *(uint64_t*)ScriptComponentStateIDPtr;
+			char* ScriptComponentStateComponent = (char*)GameObjectState_GetComponentByTypeId((uint64_t)triggerEntityState, ScriptComponentStateID);
+
+			if (ScriptComponentStateComponent != nullptr)
+			{
+				char* ScriptContent = *(char**)(ScriptComponentStateComponent + 0x48);
+				char* ScriptPtr = *(char**)(ScriptContent + 0x88);
+				uint32_t ScriptStringSize = (uint32_t) * (char**)(ScriptContent + 0x90);
+				char* ScriptTypePtr = *(char**)(ScriptContent + 0x120);
+
+				char* result = (char*)memmem(ScriptPtr, ScriptStringSize * sizeof(char), "DealKillingDamage", sizeof("DealKillingDamage"));
+
+				if (result != nullptr)
+					ShapeEngine::setColor(&red);
+				else
+					ShapeEngine::setColor(&purple);
+			}
+		}
+	}
+
+
+
+
+
+	rx = triggers[i]->boundbox.a.x;
+	ry = triggers[i]->boundbox.a.y;
+	rz = triggers[i]->boundbox.a.z;
+						
+	lx = triggers[i]->boundbox.a.x;
+	ly = triggers[i]->boundbox.a.y;
+	lz = triggers[i]->boundbox.b.z;
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+				 
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+				 
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+
+	rx = triggers[i]->boundbox.a.x;
+	ry = triggers[i]->boundbox.a.y;
+	rz = triggers[i]->boundbox.b.z;
+					
+	lx = triggers[i]->boundbox.b.x;
+	ly = triggers[i]->boundbox.a.y;
+	lz = triggers[i]->boundbox.b.z;
+
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+	rx = triggers[i]->boundbox.b.x;
+	ry = triggers[i]->boundbox.a.y;
+	rz = triggers[i]->boundbox.a.z;
+					
+	lx = triggers[i]->boundbox.a.x;
+	ly = triggers[i]->boundbox.a.y;
+	lz = triggers[i]->boundbox.a.z;
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+	rx = triggers[i]->boundbox.b.x;
+	ry = triggers[i]->boundbox.a.y;
+	rz = triggers[i]->boundbox.b.z;
+
+	lx = triggers[i]->boundbox.b.x;
+	ly = triggers[i]->boundbox.a.y;
+	lz = triggers[i]->boundbox.a.z;
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+	rx = triggers[i]->boundbox.b.x;
+	ry = triggers[i]->boundbox.a.y;
+	rz = triggers[i]->boundbox.b.z;
+
+	lx = triggers[i]->boundbox.b.x;
+	ly = triggers[i]->boundbox.a.y;
+	lz = triggers[i]->boundbox.a.z;
+
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+
+
+
+
+
+	rx = triggers[i]->boundbox.a.x;
+	ry = triggers[i]->boundbox.b.y;
+	rz = triggers[i]->boundbox.a.z;
+
+	lx = triggers[i]->boundbox.a.x;
+	ly = triggers[i]->boundbox.b.y;
+	lz = triggers[i]->boundbox.b.z;
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+
+	rx = triggers[i]->boundbox.a.x;
+	ry = triggers[i]->boundbox.b.y;
+	rz = triggers[i]->boundbox.b.z;
+
+	lx = triggers[i]->boundbox.b.x;
+	ly = triggers[i]->boundbox.b.y;
+	lz = triggers[i]->boundbox.b.z;
+
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+	rx = triggers[i]->boundbox.b.x;
+	ry = triggers[i]->boundbox.b.y;
+	rz = triggers[i]->boundbox.a.z;
+
+	lx = triggers[i]->boundbox.a.x;
+	ly = triggers[i]->boundbox.b.y;
+	lz = triggers[i]->boundbox.a.z;
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+	rx = triggers[i]->boundbox.b.x;
+	ry = triggers[i]->boundbox.b.y;
+	rz = triggers[i]->boundbox.b.z;
+
+	lx = triggers[i]->boundbox.b.x;
+	ly = triggers[i]->boundbox.b.y;
+	lz = triggers[i]->boundbox.a.z;
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+	rx = triggers[i]->boundbox.b.x;
+	ry = triggers[i]->boundbox.b.y;
+	rz = triggers[i]->boundbox.b.z;
+
+	lx = triggers[i]->boundbox.b.x;
+	ly = triggers[i]->boundbox.b.y;
+	lz = triggers[i]->boundbox.a.z;
+
+
+	posCoords[0].x = rx;
+	posCoords[0].y = -width + ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = lx;
+	posCoords[1].y = -width + ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = lx;
+	posCoords[2].y = width + ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx;
+	posCoords2[0].y = -width + ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx;
+	posCoords2[1].y = width + ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx;
+	posCoords2[2].y = width + ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+
+
+
+
+
+
+	// up down lines
+
+	rx = triggers[i]->boundbox.b.x;
+	ry = triggers[i]->boundbox.b.y;
+	rz = triggers[i]->boundbox.a.z;
+
+	lx = triggers[i]->boundbox.b.x;
+	ly = triggers[i]->boundbox.a.y;
+	lz = triggers[i]->boundbox.a.z;
+
+	posCoords[0].x = -width + rx;
+	posCoords[0].y = ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = -width + lx;
+	posCoords[1].y = ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = width + lx;
+	posCoords[2].y = ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx - width;
+	posCoords2[0].y = ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx + width;
+	posCoords2[1].y = ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx + width;
+	posCoords2[2].y = ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+
+
+
+	rx = triggers[i]->boundbox.a.x;
+	ry = triggers[i]->boundbox.b.y;
+	rz = triggers[i]->boundbox.a.z;
+
+	lx = triggers[i]->boundbox.a.x;
+	ly = triggers[i]->boundbox.a.y;
+	lz = triggers[i]->boundbox.a.z;
+
+	posCoords[0].x = -width + rx;
+	posCoords[0].y = ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = -width + lx;
+	posCoords[1].y = ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = width + lx;
+	posCoords[2].y = ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx - width;
+	posCoords2[0].y = ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx + width;
+	posCoords2[1].y = ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx + width;
+	posCoords2[2].y = ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+
+
+
+
+	rx = triggers[i]->boundbox.b.x;
+	ry = triggers[i]->boundbox.b.y;
+	rz = triggers[i]->boundbox.b.z;
+
+	lx = triggers[i]->boundbox.b.x;
+	ly = triggers[i]->boundbox.a.y;
+	lz = triggers[i]->boundbox.b.z;
+
+	posCoords[0].x = -width + rx;
+	posCoords[0].y = ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = -width + lx;
+	posCoords[1].y = ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = width + lx;
+	posCoords[2].y = ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx - width;
+	posCoords2[0].y = ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx + width;
+	posCoords2[1].y = ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx + width;
+	posCoords2[2].y = ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
+
+
+
+
+	rx = triggers[i]->boundbox.a.x;
+	ry = triggers[i]->boundbox.a.y;
+	rz = triggers[i]->boundbox.b.z;
+
+	lx = triggers[i]->boundbox.a.x;
+	ly = triggers[i]->boundbox.b.y;
+	lz = triggers[i]->boundbox.b.z;
+
+	posCoords[0].x = -width + rx;
+	posCoords[0].y = ry;
+	posCoords[0].z = rz;
+
+	posCoords[1].x = -width + lx;
+	posCoords[1].y = ly;
+	posCoords[1].z = lz;
+
+	posCoords[2].x = width + lx;
+	posCoords[2].y = ly;
+	posCoords[2].z = lz;
+
+	posCoords2[0].x = rx - width;
+	posCoords2[0].y = ry;
+	posCoords2[0].z = rz;
+
+	posCoords2[1].x = rx + width;
+	posCoords2[1].y = ry;
+	posCoords2[1].z = rz;
+
+	posCoords2[2].x = lx + width;
+	posCoords2[2].y = ly;
+	posCoords2[2].z = lz;
+
+	ShapeEngine::drawTriangles(posCoords, texCoords, 3, &modifiers);
+	ShapeEngine::drawTriangles(posCoords2, texCoords, 3, &modifiers);
 	}
 }

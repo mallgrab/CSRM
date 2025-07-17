@@ -44,36 +44,28 @@ void setupFunctions() {
 }
 #pragma endregion
 
-
-
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
 	switch (ul_reason_for_call) {
 	case DLL_PROCESS_ATTACH:
 	{
-		wchar_t path[MAX_PATH];
+		wchar_t path[MAX_PATH], exePath[MAX_PATH];
 		DisableThreadLibraryCalls(hModule);
 
-		/*
-		AllocConsole();
-		freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
-		freopen_s((FILE**)stdout, "CONOUT$", "w", stderr);
-		freopen_s((FILE**)stdout, "CONOUT$", "r", stdin);
-		*/
+		GetModuleFileNameW(NULL, exePath, sizeof(exePath));
+		PathStripPathW(exePath);
 
-		GetModuleFileNameW(hModule, path, sizeof(path));
-		PathRemoveFileSpecW(path);
+		if (wcscmp(exePath, L"Control.exe") != 0)
+		{
+			GetModuleFileNameW(hModule, path, sizeof(path));
+			PathRemoveFileSpecW(path);
 
-		std::wstring pluginsPath = path;
-		pluginsPath += L"\\plugins";
+			std::wstring pluginsPath = path;
+			pluginsPath += L"\\plugins";
 
-		printf("path: %ls\n", pluginsPath.c_str());
-
-		for (auto& entry : std::filesystem::directory_iterator(pluginsPath))
-			if (strcmp(entry.path().extension().generic_string().c_str(), ".dll") == 0)
-			{
-				HMODULE result = LoadLibraryW(entry.path().c_str());
-				printf("loading: %ls\nresult %lx\n\n", entry.path().c_str(), result);
-			}
+			for (auto& entry : std::filesystem::directory_iterator(pluginsPath))
+				if (strcmp(entry.path().extension().generic_string().c_str(), ".dll") == 0)
+					LoadLibraryW(entry.path().c_str());
+		}
 
 		GetWindowsDirectoryW(path, sizeof(path));
 		wcscat_s(path, L"\\System32\\XInput1_4.dll");
@@ -83,7 +75,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 		break;
 	}
 	case DLL_PROCESS_DETACH:
-		//FreeLibraryAndExitThread(hModule, 0);
 		break;
 	}
 	return 1;

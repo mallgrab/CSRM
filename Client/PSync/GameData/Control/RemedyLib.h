@@ -94,7 +94,9 @@ namespace r
 	class GameUpdateObjectState;
 
 	struct BoundBox {
-		float points[6];
+		//float points[6];
+		Vector3 a;
+		Vector3 b;
 	};
 
 	typedef int32_t ThreadID;

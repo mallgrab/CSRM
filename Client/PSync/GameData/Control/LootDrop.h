@@ -107,6 +107,24 @@ struct ModDescription {
 
 void initLootDropHooks(uint64_t processStartAddr, HMODULE rlModule, uint64_t coregameDllAddr);
 
+using GlobalIDMap_GetPointer_t = uint64_t * (__fastcall*)(uint64_t* a1, uint64_t* a2);
+extern GlobalIDMap_GetPointer_t GlobalIDMap_GetPointer;
+
+using RelativeValueModComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
+extern RelativeValueModComponentState_GetTypeIDStatic_t RelativeValueModComponentState_GetTypeIDStatic;
+
+using ItemDescriptionComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
+extern ItemDescriptionComponentState_GetTypeIDStatic_t ItemDescriptionComponentState_GetTypeIDStatic;
+
+using ItemStackComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
+extern ItemStackComponentState_GetTypeIDStatic_t ItemStackComponentState_GetTypeIDStatic;
+
+using ModDescriptionComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
+extern ModDescriptionComponentState_GetTypeIDStatic_t ModDescriptionComponentState_GetTypeIDStatic;
+
+using GameObjectState_GetComponentByTypeId_t = uint64_t(__fastcall*)(uint64_t Component, uint32_t TypeIDStatic);
+extern GameObjectState_GetComponentByTypeId_t GameObjectState_GetComponentByTypeId;
+
 /*
 	common = 1 (grey)
 	uncommon = II (green)

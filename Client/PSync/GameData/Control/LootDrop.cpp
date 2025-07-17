@@ -1,26 +1,15 @@
 #include "LootDrop.h"
 
-using GlobalIDMap_GetPointer_t = uint64_t * (__fastcall*)(uint64_t* a1, uint64_t* a2);
 GlobalIDMap_GetPointer_t GlobalIDMap_GetPointer;
-
-using RelativeValueModComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
 RelativeValueModComponentState_GetTypeIDStatic_t RelativeValueModComponentState_GetTypeIDStatic;
-
-using ItemDescriptionComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
 ItemDescriptionComponentState_GetTypeIDStatic_t ItemDescriptionComponentState_GetTypeIDStatic;
-
-using ItemStackComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
 ItemStackComponentState_GetTypeIDStatic_t ItemStackComponentState_GetTypeIDStatic;
-
-using ModDescriptionComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
 ModDescriptionComponentState_GetTypeIDStatic_t ModDescriptionComponentState_GetTypeIDStatic;
-
-using GameObjectState_GetComponentByTypeId_t = uint64_t(__fastcall*)(uint64_t Component, uint32_t TypeIDStatic);
 GameObjectState_GetComponentByTypeId_t GameObjectState_GetComponentByTypeId;
 
 uint64_t* sm_pInstance = nullptr;
 bool lootdropSingletonExists = false;
-bool modifyLootDropsCheat = true; // temp, set to false once we are done
+bool modifyLootDropsCheat = false;
 
 uint64_t currentObjectiveHash = 0x0;
 // uint64_t currentMissionHash = 0x0; // not in use

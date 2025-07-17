@@ -28,6 +28,7 @@ public:
 	void InitGameData() override;
 	Vector3* GetPlayerPos() override;
 	Matrix4* GetViewMatrix() override;
+	void SetPitchYawRoll(Vector3 rotation);
 	float* getPlayerCapsuleSpeed();
 	float getPlayerPhysxSpeed();
 	float getPlayerPosSpeed();
@@ -39,5 +40,7 @@ public:
 	void UpdateStartupStringValues(ControlConfig *cfg);
 };
 
+extern bool isPlayerLoadingPosition;
 extern bool mapIsLoaded;
 extern bool doWeExist;
+extern uint64_t* GamePlayerCameraMovementPtr;

@@ -288,10 +288,20 @@ namespace ShapeEngine
 	using setStroke_t = void(__fastcall*)(void* ShapeEngineInstance, bool a1, float a2, Vector4* a3);
 	void setStroke(bool a1, float a2, Vector4* a3);
 
-	using setStroke1_t = void(__fastcall*)(void* ShapeEngineInstance, bool a1, float a2, uint64_t* a3);
-	void setStroke(bool a1, float a2, uint64_t* a3);
+	using setStroke1_t = void(__fastcall*)(void* ShapeEngineInstance, bool a1, float a2, Vector4* a3);
+	void setStroke1(bool a1, float a2, Vector4* a3);
 
 	void SetFont(void* instance, void* rendFont);
 
 	void InstallHooks(LPCWSTR dllName);
 }
+
+void RenderDrawCall();
+
+struct triggerScriptCache
+{
+	uint64_t globalID;
+	std::string script;
+};
+
+extern triggerScriptCache currentSelectedTrigger;

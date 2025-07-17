@@ -21,13 +21,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>ClangCL</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>ClangCL</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -69,6 +69,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)glm_include\;$(ProjectDir)enet\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BufferSecurityCheck>true</BufferSecurityCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -76,7 +77,7 @@
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;winmm.lib;$(ProjectDir)enet\enet64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -95,6 +96,8 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -104,12 +107,11 @@
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;winmm.lib;$(ProjectDir)enet\enet64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="DebugPanel.h" />
     <ClInclude Include="ocular\DLLProxy.h" />
     <ClInclude Include="ocular\hooks\D3D11Hook.h" />
     <ClInclude Include="ocular\hooks\D3D9Hook.h" />
@@ -143,6 +145,7 @@
     <ClInclude Include="PSync\Config\NieRAutomataConfig.h" />
     <ClInclude Include="PSync\GameData\BaseGameData.h" />
     <ClInclude Include="PSync\GameData\Control\BaseTweakable.h" />
+    <ClInclude Include="PSync\GameData\Control\DebugPanel.h" />
     <ClInclude Include="PSync\GameData\Control\GameData.h" />
     <ClInclude Include="PSync\GameData\Control\LootDrop.h" />
     <ClInclude Include="PSync\GameData\Control\RemedyLib.h" />
@@ -160,7 +163,6 @@
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DebugPanel.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ocular\hooks\D3D11Hook.cpp" />
     <ClCompile Include="ocular\hooks\D3D9Hook.cpp" />
@@ -185,6 +187,7 @@
     <ClCompile Include="PSync\Config\ControlConfig.cpp" />
     <ClCompile Include="PSync\Fonts\RodinProM.cpp" />
     <ClCompile Include="PSync\GameData\Control\BaseTweakable.cpp" />
+    <ClCompile Include="PSync\GameData\Control\DebugPanel.cpp" />
     <ClCompile Include="PSync\GameData\Control\GameData.cpp" />
     <ClCompile Include="PSync\GameData\Control\LootDrop.cpp" />
     <ClCompile Include="PSync\GameData\Control\ShapeEngine.cpp" />
