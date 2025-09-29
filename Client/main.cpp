@@ -6,12 +6,16 @@
 
 FILE* stream;
 
-// dumb bug if we alloc console too early and run through the launcher we get a second console
+// TODO: remove later, we want printing
+#define LOG_CONSOLE
+
+/*
 #ifdef _DEBUG
 	#define LOG_CONSOLE
 #else
 	#define LOG_FILE
 #endif
+*/
 
 void ConsoleSetup() {
 #if defined(LOG_CONSOLE)
@@ -125,6 +129,13 @@ void StartupString(startupString* a1)
 	a1->skipStartupLogos = true;
 	a1->startAutoJoinMultiplayerGame = false;
 }
+
+struct LootDropSeed
+{
+	uint32_t seedNumber;
+	uint64_t tmp2;
+	uint64_t tmp3;
+};
 
 void earlyHooks()
 {

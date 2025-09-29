@@ -45,7 +45,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>I:\Control\Plugins</OutDir>
+    <OutDir>E:\games\Control\Plugins\</OutDir>
     <IncludePath>$(ProjectDir)enet\include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(DXSDK_DIR)Lib\x64</LibraryPath>
     <TargetName>CSRM</TargetName>
@@ -54,7 +54,7 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)enet\include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(DXSDK_DIR)Lib\x64</LibraryPath>
-    <OutDir>I:\Control\Plugins</OutDir>
+    <OutDir>E:\games\Control\PluginsD\</OutDir>
     <TargetName>CSRM</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

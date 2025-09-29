@@ -68,7 +68,7 @@ void startLoadingLevel(uint64_t x, uint64_t y, uint64_t z, int64_t a, char b, ui
 }
 
 void notifyClientLevelLoadingComplete(uint64_t* x, const int64_t* y) {
-	printf("we are done loading the level\n");
+	PrintLootDropInformationFromPools();
 
 	mapIsLoaded = true;
 	notifyClientLevelLoadingCompleteOriginal(x, y);
@@ -624,6 +624,8 @@ void CursorHooks()
 	if (MH_EnableHook(inputX86UpdateAddr) != MH_OK) throw;
 }
 
+GlobalIDMap_GetPointer_t GlobalIDMap_GetPointer = nullptr;
+
 void ControlGameData::InitGameData()
 {
 	HMODULE coregameModule = GetModuleHandle(L"coregame_rmdwin7_f.dll");
@@ -651,6 +653,7 @@ void ControlGameData::InitGameData()
 	ptr* characterControllerMoveCapsuleAddr = reinterpret_cast<ptr*>(physicsDllAddr + 0x7540);
 	ptr* physxCapsuleVelocityUpdateAddr = reinterpret_cast<ptr*>(physxModuleAddr + 0x15C20);
 
+	GlobalIDMap_GetPointer = reinterpret_cast<GlobalIDMap_GetPointer_t>(processStartAddr + 0x85f80);
 
 #if 0 //not early enough
 	//patch out single instance check

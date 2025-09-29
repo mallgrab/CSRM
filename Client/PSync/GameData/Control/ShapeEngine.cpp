@@ -532,6 +532,9 @@ void DrawTrigger(Vector3 a, Vector3 b)
 // TODO: ccw culling makes the triggers look fucked in depth mode fix later
 void RenderDrawCall()
 {
+	if (!cfg->drawTriggers)
+			return;
+
 	Vector3 posCoords[3] = { {0,0,0},{0,0,0},{0,0,0} };
 	Vector3 posCoords2[3] = { {0,0,0},{0,0,0},{0,0,0} };
 

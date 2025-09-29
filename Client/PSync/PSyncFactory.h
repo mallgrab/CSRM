@@ -209,10 +209,10 @@ public:
             client.ui = &ui;
             client.config = &config;
 
-            data.InitGameData();
             config.ReadConfig();
-
             cfg = &config;
+         
+            data.InitGameData();
 
             oHook.SetImGuiWndProcHandlerToggle(&data.uiToggle);
 

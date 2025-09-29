@@ -37,8 +37,8 @@ struct currentDropTable
 	uint32_t* lootDropArray;
 	uint32_t lootDropArrayCounter;
 	uint32_t lootDropArrayMaxCounter;
-	uint32_t namelistID;	// sometimes lootdroparray is a nullptr and this is set
-	uint32_t namelistID_2;
+	uint32_t seedNumber;
+	uint32_t unused;
 	uint64_t* possibleLootDropGlobalIDs;
 	uint32_t possibleLootDropCounter;
 	uint32_t possibleLootDropMaxCounter;
@@ -105,10 +105,250 @@ struct ModDescription {
 	ModDescriptionComponent* component;
 };
 
-void initLootDropHooks(uint64_t processStartAddr, HMODULE rlModule, uint64_t coregameDllAddr);
+struct LootDropContent
+{
+  uint64_t tmp1; // TODO: prob add this in ida too
+  uint32_t seedNumber;
+  uint32_t number1;
+  uint32_t *indexArray;
+  uint32_t number2;
+  uint32_t number3;
+  uint64_t *lootDropArray;
+  uint32_t lootDropArrayAmount;
+  uint32_t lootDropArrayMaxAmount;
+  uint64_t namelistID;
+  uint64_t namelistID2;
+  uint64_t *lootDropGlobalIDs;
+  uint32_t lootdropGlobalIDAmount;
+  uint32_t lootdropGlobalIDMaxAmount;
+  uint64_t number9;
+  char tmp[16];
+};
 
-using GlobalIDMap_GetPointer_t = uint64_t * (__fastcall*)(uint64_t* a1, uint64_t* a2);
-extern GlobalIDMap_GetPointer_t GlobalIDMap_GetPointer;
+struct LootDropMod
+{
+  uint64_t globalID;
+  uint64_t *ptr;
+  uint64_t num1;
+  uint64_t num2;
+};
+
+struct EntityComponentState
+{
+  uint64_t *vftable;
+  uint32_t flags;
+  uint32_t tmp1;
+  uint64_t num1;
+  uint64_t globalID;
+  uint64_t tmp2;
+  uint64_t *owner;
+  uint64_t tmp3;
+  uint64_t *component;
+};
+
+struct LootDropNumToPick
+{
+  uint32_t num1;
+  uint32_t num2;
+  uint64_t globalID;
+  uint64_t *ptr;
+  uint32_t num3;
+  uint32_t num4;
+  uint32_t lootdropTableToPick;
+  uint32_t num5;
+};
+
+struct LootDropGlobalIDDataPoolEntry
+{
+  uint64_t globalID;
+  uint64_t num1;
+  uint32_t num2;
+  uint32_t num3;
+  uint64_t globalID2;
+  uint64_t num4;
+  uint32_t num5;
+  uint32_t num6;
+  uint64_t *ptr;
+  uint32_t amount;
+  uint32_t maxAmount;
+  uint64_t num7;
+};
+
+struct GlobalIDDataPool
+{
+  char tmp[1380];
+  uint32_t num;
+  struct LootDropGlobalIDDataPoolEntry *lootdropPool;
+  char tmp2[1024];
+};
+
+struct LootDropStartLinkedList
+{
+  struct LootDropLinkedList *left;
+  struct LootDropLinkedList *parent;
+  struct LootDropLinkedList *right;
+  char color;
+  bool addNodeLeft;
+  char tmp[6];
+  uint64_t globalID;
+};
+
+struct LootdropSingletonLinkedEntry
+{
+  struct LootDropStartLinkedList list;
+  struct LootDropEntry **entry;
+  struct LootDropContent content;
+};
+
+struct LootDropStateLinkedList
+{
+  struct LootdropSingletonLinkedEntry *linkedList;
+  uint32_t amount;
+  uint32_t maxAmount;
+};
+
+struct LootDropState
+{
+  struct LootDropStateLinkedList lootdrop;
+  struct LootDropStateLinkedList linkedList2;
+  uint64_t *globalIDs;
+  uint32_t globalIDCounter;
+  uint32_t globalIDMaxCounter;
+  uint64_t num3;
+  uint32_t num4;
+  uint32_t num5;
+  char tmp4;
+  char spinLock;
+  char tmp5[0x2];
+  uint32_t num6;
+  uint32_t num7;
+  uint32_t num8;
+  uint64_t globalID;
+  uint64_t *ptr;
+  uint32_t num9;
+  uint32_t num10;
+  uint64_t globalID_2;
+  uint64_t globalID_3;
+  uint64_t num11;
+  uint64_t num12;
+  uint32_t num13;
+  uint32_t num14;
+  uint64_t globalID_4;
+  uint64_t num15;
+  uint64_t num16;
+  uint64_t globalID_5;
+  uint32_t num17;
+  uint32_t num18;
+  uint64_t *string;
+};
+
+struct LootDropComponentSingletonState
+{
+  struct EntityComponentState componentState;
+  struct LootDropState lootdropState;
+};
+
+struct LootDropEntry
+{
+  uint64_t globalID;
+  struct LootDropSmallEntry *ptr;
+  uint64_t number1;
+  uint32_t killCounter;
+  uint32_t number4;
+  uint64_t globalID2;
+  uint32_t amountTable;
+  uint32_t maxAmountTable;
+  uint64_t *ptr2;
+  uint32_t amount;
+  uint32_t maxAmount;
+  uint64_t number3;
+  uint64_t singletonGlobalID;
+  uint64_t num2;
+  uint64_t num3;
+};
+
+struct LootdropTopEntry
+{
+  uint64_t poolGlobalID;
+  uint64_t *ptr1;
+  uint64_t tmp1;
+  uint64_t singletonGlobalID;
+  uint64_t *ptr2;
+  uint64_t tmp2;
+  struct LootDropEntry *lootdropEntry;
+  uint32_t amount;
+  uint32_t maxAmount;
+};
+
+struct LootDropGlobalIDPoolEntry
+{
+  struct LootdropTopEntry *ptrTopEntry;
+  uint64_t *globalIDArray;
+  uint32_t amount;
+  uint32_t maxAmount;
+};
+
+struct LootDropLinkedEntry
+{
+  uint64_t globalID;
+  struct LootDropEntry **lootdropEntry;
+  uint32_t amount;
+  uint32_t maxAmount;
+};
+
+struct LootDropLinkedList
+{
+  struct LootDropStartLinkedList list;
+  struct LootDropEntry **entry;
+  uint32_t amount;
+  uint32_t amountMax;
+  char type;
+  char tmp2[7];
+};
+
+struct LootDropSmallEntry
+{
+  LootDropMod *mod;
+  uint32_t amount;
+  uint32_t amountMax;
+  uint32_t num1;
+  uint32_t num2;
+};
+
+struct LootDropTop
+{
+  uint64_t globalID;
+  uint64_t *ptr1;
+  uint32_t num1;
+  uint32_t num2;
+  uint64_t globalID2;
+  uint64_t *globalIDsMaybe;
+  uint32_t num3;
+  uint32_t num4;
+  struct LootDropEntry *entry;
+  uint32_t amount;
+  uint32_t maxAmount;
+  uint32_t num5;
+  uint32_t num6;
+  uint64_t globalID3;
+  uint64_t *ptr4;
+  uint32_t num7;
+  uint32_t num8;
+  uint64_t globalID4;
+};
+
+struct LootDropTableEntryList
+{
+  struct LootDropStartLinkedList list;
+  struct LootDropEntry **entries;
+  uint32_t amountLootDropEntrys;
+  uint32_t amountLootDropEntrysMax;
+  uint32_t num1;
+  uint32_t num2;
+};
+
+void initLootDropHooks(uint64_t processStartAddr, HMODULE rlModule, uint64_t coregameDllAddr);
+void PrintLootDropInformationFromPools();
 
 using RelativeValueModComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
 extern RelativeValueModComponentState_GetTypeIDStatic_t RelativeValueModComponentState_GetTypeIDStatic;
@@ -189,7 +429,7 @@ void printInventoryAddressLocation()
 
 	// not recent but its just the drop we get when we open up a box atm
 	uint64_t recentItemDrop = inventory+0x460;
-	uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)recentItemDrop);
+	uint64_t* ptr = GlobalIDMap_GetPointer((uint64_t*)recentItemDrop);
 
 	printf("inventory %llx\n", ptr);
 }
@@ -201,7 +441,7 @@ for (int i = 0; i < a2->possibleLootDropMaxCounter; i++)
 {
 	char* globalIDFromDropTable = (char*)a2->possibleLootDropGlobalIDs + (i * LOOT_TABLE_GAP);
 
-	uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)globalIDFromDropTable);
+	uint64_t* ptr = GlobalIDMap_GetPointer((uint64_t*)globalIDFromDropTable);
 	ptr++; // the second ptr contains the string
 
 	//printf("droptable: %s\n", *(char**)ptr);
@@ -220,7 +460,7 @@ if (a2->lootDropArrayCounter != 0)
 			continue;
 
 		char* globalIDFromDropTable = (char*)a2->possibleLootDropGlobalIDs + (lootdropCurrentCounter * 0x18);
-		uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)globalIDFromDropTable);
+		uint64_t* ptr = GlobalIDMap_GetPointer((uint64_t*)globalIDFromDropTable);
 		ptr++; // the second ptr contains the string
 
 		if (a2->lootDropArrayCounter == (i + 1))
@@ -235,7 +475,7 @@ if (a2->lootDropArrayCounter != 0)
 // modify the current drop that we are suppose to get with our own selection
 /*
 char* globalIDFromDropTable = (char*)a2->globalIDPtr + (result * LOOT_TABLE_GAP);
-uint64_t* ptr = GlobalIDMap_GetPointer(*(uint64_t**)sm_pInstance, (uint64_t*)globalIDFromDropTable);
+uint64_t* ptr = GlobalIDMap_GetPointer((uint64_t*)globalIDFromDropTable);
 ptr++;
 
 if (strstr(*(char**)ptr, "_Nothing") != nullptr)

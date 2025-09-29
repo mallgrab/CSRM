@@ -44,3 +44,6 @@ extern bool isPlayerLoadingPosition;
 extern bool mapIsLoaded;
 extern bool doWeExist;
 extern uint64_t* GamePlayerCameraMovementPtr;
+
+using GlobalIDMap_GetPointer_t = void*(__fastcall*)(uint64_t* GlobalID);
+extern GlobalIDMap_GetPointer_t GlobalIDMap_GetPointer;
