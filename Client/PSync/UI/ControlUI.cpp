@@ -15,6 +15,7 @@ void ControlUI::RenderGUI() {
 
 	ImGuiIO& io = ImGui::GetIO();
 
+
 	ImGui::SetNextWindowSizeConstraints(ImVec2(520.0f, 150.0f), io.DisplaySize);
 	if (!ImGui::Begin("CSRM", &data->uiToggle, 0)) { ImGui::End(); return; }
 	//Show build date, would've liked this in the title bar but doing so would bloat the imgui.ini file with every compile.
@@ -32,6 +33,7 @@ void ControlUI::RenderGUI() {
 		CreditsTab();
 		ImGui::EndTabBar();
 	}
+
 
 	ImGui::End();
 }
@@ -507,6 +509,43 @@ static void CSRM_DrawHUD(ControlGameData *gameData, ControlConfig *config, Contr
 	}
 }
 
+static void CSRM_TeleportToCamera(ControlGameData* gameData, ControlUI* ui)
+{
+	char buf[128];
+	Vector3 cameraPos;
+	Matrix4 viewMatrix;
+
+	if (!gameData || !ui || !mapIsLoaded || !doWeExist || !mapIsLoaded)
+		return;
+
+	//if (gameData->getPlayerPhysxSpeed() > 0) //for some reason, the new position doesn't stay if we set our position while moving
+	//	return;
+
+	if (gameData->GetPlayerPos_Real() == nullptr)
+		return;
+
+	if (!freeCam) //if (!gameData->GetFreeCam())
+		return;
+
+	viewMatrix = *gameData->GetViewMatrix();
+
+	float* cameraStateVectorPtr = (float*)((char*)GamePlayerCameraMovementPtr + 0xB8);
+	cameraPos = Vector3(cameraStateVectorPtr[3], cameraStateVectorPtr[4], cameraStateVectorPtr[5]);
+
+
+#ifdef _DEBUG
+	printf("Teleporting player to camera location..\n");
+#endif
+	ui->CreateNotification("Teleporting player to camera location..\n"); //, ImColor(0.2f, 0.2f, 0.2f), ImColor(1.0f, 1.0f, 0.0f));
+
+	isPlayerLoadingPosition = true;
+
+	// coregame::TransformComponentState::teleport
+	// get transformcomponent from player then teleport it using the transformcomponent from the camerastate transformcomponent
+	gameData->SetPlayerPos(cameraPos);
+}
+
+
 #define MAX_POSITION_SLOTS 10
 struct SavedPosition_t {
 	Vector3 position;
@@ -520,10 +559,10 @@ static void CSRM_SavePosition(int slot, ControlGameData *gameData, ControlUI *ui
 	char buf[128];
 	Vector3 curPos;
 
-	if (!gameData || !ui || !doWeExist || !mapIsLoaded)
+	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
 		return;
 
-	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
+	if (!gameData || !ui || !doWeExist || !mapIsLoaded)
 		return;
 
 	curPos = *gameData->GetPlayerPos_Real();
@@ -546,13 +585,10 @@ static void CSRM_LoadPosition(int slot, ControlGameData *gameData, ControlUI *ui
 {
 	char buf[128];
 
-	if (!gameData || !ui)
-		return;
-
-	if (!mapIsLoaded)
-		return;
-
 	if (slot < 0 || slot >= MAX_POSITION_SLOTS)
+		return;
+
+	if (!gameData || !ui || !doWeExist || !mapIsLoaded)
 		return;
 
 	if (!savedPositions[slot].position.x && !savedPositions[slot].position.y && !savedPositions[slot].position.z)
@@ -822,7 +858,11 @@ void ControlUI::DebugTab() {
 		}
 		//ImGui::Text("\n");
 		ImGui::TextUnformatted("Developer features:");
+		ImGui::Checkbox("Toggle input focus", &cfg->dontUnlockCursor);
 		if (ImGui::Button("Toggle Freecam")) controlData->ToggleFreeCam();
+		ImGui::SameLine();
+		if (ImGui::Button("Teleport to camera")) 
+			CSRM_TeleportToCamera(controlData, this);
 		ImGui::SameLine();
 		if (ImGui::Button("Toggle developer menus")) controlData->ToggleDeveloperMenus();
 
@@ -1081,6 +1121,7 @@ static inline void CSRM_DrawTriggers(ControlGameData *gameData, ControlConfig *c
 
 void ControlUI::Init()
 {
+
 	// despite being called "Init" this function is deceivingly called every frame
 	// and returned out of early with the init check, so we'll check for resolution changes and such here
 	ImGuiIO &io = ImGui::GetIO();
@@ -1115,6 +1156,7 @@ void ControlUI::Init()
 
 	MotionBlurTweakable.SetTweakableStrValue(cfg->motionBlur ? "0.4f" : "0.0f");
 	SSAATweakable.SetTweakableStrValue(cfg->TemporalSSAA ? "1.0f" : "0.0f");
+
 
 	ControlGameData *controlData = (ControlGameData *)data;
 	controlData->UpdateStartupStringValues(cfg);

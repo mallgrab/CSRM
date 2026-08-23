@@ -57,6 +57,7 @@ void startUnloadingLevel(uint64_t* ptr) {
 	printf("start unloading level\n");
 
 	mapIsLoaded = false;
+	freeCam = false;
 	startUnloadingLevelOriginal(ptr);
 }
 
@@ -64,11 +65,12 @@ void startLoadingLevel(uint64_t x, uint64_t y, uint64_t z, int64_t a, char b, ui
 	printf("start loading level\n");
 
 	mapIsLoaded = false;
+	freeCam = false;
 	startLoadingLevelOriginal(x, y, z, a, b, c);
 }
 
 void notifyClientLevelLoadingComplete(uint64_t* x, const int64_t* y) {
-	PrintLootDropInformationFromPools();
+	PrintLootDropInformationFromPools(0x36ada6a3ab26c052, 0x3681700878ea8053);
 
 	mapIsLoaded = true;
 	notifyClientLevelLoadingCompleteOriginal(x, y);
@@ -122,6 +124,9 @@ static uint64_t loadingPositionCounter = 0;
 float speedOfPlayer[4];
 void characterControllerMoveCapsule(uint64_t* x, float* y, float z, float w)
 {
+	// WIP
+
+	/*
 	if (isPlayerLoadingPosition)
 	{
 		using MovementModelTypeID_t = uint32_t(__fastcall*)();
@@ -141,6 +146,7 @@ void characterControllerMoveCapsule(uint64_t* x, float* y, float z, float w)
 
 	if (loadingPositionCounter > 0)
 	{
+		return;
 		loadingPositionCounter--;
 
 		if (loadingPositionCounter == 0)
@@ -157,6 +163,7 @@ void characterControllerMoveCapsule(uint64_t* x, float* y, float z, float w)
 		y[1] = 0.0f;
 		y[2] = 0.0f;
 	}
+	*/
 
 	speedOfPlayer[0] = *y;			// x
 	speedOfPlayer[1] = *(y + 1);	// y
@@ -258,7 +265,8 @@ bool ControlGameData::playerIsOnGround()
 using readDigital_t = bool(__fastcall*)(ptr** inputManagerInstance, int64_t num);
 readDigital_t readDigitalFunc;
 
-bool toggleFreeCam = false;
+bool toggleFreeCam = false; //toggle freeCam this frame
+bool freeCam = false; //freeCam state
 
 bool readDigitalHook(ptr** inputManagerInstance, int64_t num)
 {
@@ -286,6 +294,13 @@ bool readDigitalHook(ptr** inputManagerInstance, int64_t num)
 void ControlGameData::ToggleFreeCam()
 {
 	toggleFreeCam = true;
+	freeCam = !freeCam;
+}
+
+bool ControlGameData::GetFreeCam()
+{ //DOESN'T WORK BTW LOL
+	if (!inputManagerInstance) return false;
+	return isFreeCameraOn(inputManagerInstance);
 }
 
 extern startupString* tmpString;
@@ -543,6 +558,12 @@ void InputX86Update(void* inputx86)
 		return;
 	}
 
+	if (cfg->dontUnlockCursor)
+	{
+		InputX86UpdateOrig(inputx86);
+		return;
+	}
+
 	if (cfg->ui->data->uiToggle)
 	{
 		char* mouseMoveHorizontalPtr = (char*)inputx86+0x624;
@@ -579,7 +600,7 @@ using CursorHide_t = void(__fastcall*)(__int64 a1, unsigned __int8 a2);
 CursorHide_t CursorHideInGameOrig;
 void CursorHideInGame(__int64 a1, unsigned __int8 a2)
 {
-	if (cfg == nullptr)
+	if (cfg == nullptr || cfg->dontUnlockCursor)
 	{
 		CursorHideInGameOrig(a1, a2);
 		return;
@@ -596,7 +617,10 @@ using CursorLockCenter_t = BOOL(__fastcall*)(__int64 a1, float* a2);
 CursorLockCenter_t CursorLockCenterOrig;
 BOOL CursorLockCenter(__int64 a1, float* a2)
 {
-	if (cfg == nullptr)
+	if (cfg == nullptr || cfg->dontUnlockCursor)
+		return CursorLockCenterOrig(a1, a2);
+
+	if (cfg->dontUnlockCursor)
 		return CursorLockCenterOrig(a1, a2);
 
 	if (cfg->ui->data->uiToggle)

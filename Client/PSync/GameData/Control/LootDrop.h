@@ -348,7 +348,7 @@ struct LootDropTableEntryList
 };
 
 void initLootDropHooks(uint64_t processStartAddr, HMODULE rlModule, uint64_t coregameDllAddr);
-void PrintLootDropInformationFromPools();
+void PrintLootDropInformationFromPools(uint64_t poolID, uint64_t singletonLootDropID);
 
 using RelativeValueModComponentState_GetTypeIDStatic_t = uint32_t(__fastcall*)();
 extern RelativeValueModComponentState_GetTypeIDStatic_t RelativeValueModComponentState_GetTypeIDStatic;

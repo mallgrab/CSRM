@@ -192,7 +192,7 @@ void checkPlayerInventory()
 	for (int i = 0; i < gameInventoryComponent->currentAmount; i++)
 	{
 		uint64_t inventoryAddressLocation = gameInventoryComponent->inventory[i * 2];
-		uint64_t* ptr = (uint64_t*)GlobalIDMap_GetPointer(&inventoryAddressLocation);
+		uint64_t* ptr = (uint64_t*)GlobalIDMap_GetPointer_Instance(*(uint64_t**)sm_pInstance, &inventoryAddressLocation);
 
 		uint32_t itemDescriptionTypeID = ItemDescriptionComponentState_GetTypeIDStatic();
 		ItemDescription* itemDescription = (ItemDescription*)GameObjectState_GetComponentByTypeId((uint64_t)ptr, itemDescriptionTypeID);
@@ -577,7 +577,7 @@ LootDropNewIndexArray_t LootDropNewIndexArray;
 uint32_t indexArray[60] = { 0 };
 
 // TODO: change the variable to use function arg to let us pass any poolID
-void PrintLootDropInformationFromPools()
+void PrintLootDropInformationFromPools(uint64_t poolID, uint64_t singletonLootDropID)
 {
 	uint64_t counter = 0;
 	uint64_t lootTableDataPoolTotalOffset = 0;
@@ -590,8 +590,8 @@ void PrintLootDropInformationFromPools()
 	LootDropGlobalIDDataPoolEntry* poolEntrySomeGlobalIDWillGet = nullptr;
 
 	//uint64_t poolID = 0x2CF4D554CF4F4052; // from vendor, we get 5 pointers from it
-	uint64_t poolID = 0x36ada6a3ab26c052; // starting enemies on new game
-	uint64_t singletonLootDropID = 0x3681700878ea8053;
+	//uint64_t poolID = 0x36ada6a3ab26c052; // starting enemies on new game
+	//uint64_t singletonLootDropID = 0x3681700878ea8053;
 
 	do
 	{
@@ -756,7 +756,20 @@ void PrintLootDropInformationFromPools()
 		printf("start of indexarray %llx\n", &indexArray[0]);
 	}
 
-	printf("done lootdrop table gathering testing");
+
+	uint64_t tmp = 0x19289F3DE4DF4054;
+	uint64_t* ptr = (uint64_t*)GlobalIDMap_GetPointer_Instance(*(uint64_t**)sm_pInstance, &tmp);
+	printf("ptrrrrrrr1 %llx\n", ptr);
+
+	tmp = 0x2EDD383284F8054;
+	ptr = (uint64_t*)GlobalIDMap_GetPointer_Instance(*(uint64_t**)sm_pInstance, &tmp);
+	printf("ptrrrrrrr2 %llx\n", ptr);
+
+	tmp = 0x1FEDD13AE2D94054;
+	ptr = (uint64_t*)GlobalIDMap_GetPointer_Instance(*(uint64_t**)sm_pInstance, &tmp);
+	printf("ptrrrrrrr3 %llx\n", ptr);
+
+	printf("done lootdrop table gathering testing\n");
 }
 
 using PlayerProperties_t = uint64_t(__fastcall*)(uint64_t a1);
@@ -803,11 +816,13 @@ void initLootDropHooks(uint64_t processStartAddr, HMODULE rlModule, uint64_t cor
 	if (MH_EnableHook(dataPoolCtorAddr) != MH_OK) throw;
 
 	// TODO: remove the comment we just stub it out for now cause of ida
-	/*
-	char* decrementDropTableCounter_ReturnOffsetCounterAddr = (char*)processStartAddr + 0x29B610;
-	if (MH_CreateHook(decrementDropTableCounter_ReturnOffsetCounterAddr, &decrementDropTableCounter_ReturnOffsetCounter, reinterpret_cast<LPVOID*>(&decrementDropTableCounter_ReturnOffsetCounterOrig)) != MH_OK) throw;
-	if (MH_EnableHook(decrementDropTableCounter_ReturnOffsetCounterAddr) != MH_OK) throw;
-	*/
+	#ifdef _DEBUG
+		void* tmpVariable;
+	#else
+		char* decrementDropTableCounter_ReturnOffsetCounterAddr = (char*)processStartAddr + 0x29B610;
+		if (MH_CreateHook(decrementDropTableCounter_ReturnOffsetCounterAddr, &decrementDropTableCounter_ReturnOffsetCounter, reinterpret_cast<LPVOID*>(&decrementDropTableCounter_ReturnOffsetCounterOrig)) != MH_OK) throw;
+		if (MH_EnableHook(decrementDropTableCounter_ReturnOffsetCounterAddr) != MH_OK) throw;
+	#endif
 
 	char* completeObjectiveAddr = (char*)processStartAddr + 0x3F1AF0;
 	if (MH_CreateHook(completeObjectiveAddr, &completeObjective, reinterpret_cast<LPVOID*>(&completeObjectiveOrig)) != MH_OK) throw;

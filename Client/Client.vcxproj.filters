@@ -194,6 +194,7 @@
     <ClInclude Include="PSync\GameData\Control\DebugPanel.h">
       <Filter>PSync\GameData\Control</Filter>
     </ClInclude>
+    <ClInclude Include="main.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

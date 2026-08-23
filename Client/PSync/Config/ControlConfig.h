@@ -53,6 +53,7 @@ public:
 	std::vector<uint64_t> lootTableItemGlobalIDs;
 
 	bool pauseOnFocusLost = true;
+	bool dontUnlockCursor = false;
 
 protected:
 	inline void ReadExtraConfig(std::fstream& file) {

@@ -36,12 +36,14 @@ public:
 	Vector3* GetPlayerPos_Real();
 	bool playerIsOnGround();
 	void ToggleFreeCam();
+	bool GetFreeCam();
 	void ToggleDeveloperMenus();
 	void UpdateStartupStringValues(ControlConfig *cfg);
 };
 
 extern bool isPlayerLoadingPosition;
 extern bool mapIsLoaded;
+extern bool freeCam;
 extern bool doWeExist;
 extern uint64_t* GamePlayerCameraMovementPtr;
 

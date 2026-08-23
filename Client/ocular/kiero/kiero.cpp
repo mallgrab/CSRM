@@ -40,6 +40,8 @@
 # define KIERO_TEXT(text) text
 #endif
 
+#include "../../main.h"
+
 #define KIERO_ARRAY_SIZE(arr) ((size_t)(sizeof(arr)/sizeof(arr[0])))
 
 static kiero::RenderType::Enum g_renderType = kiero::RenderType::None;
@@ -311,6 +313,7 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
 				ID3D11DeviceContext* context;
 
 
+				/*
 				if (((long(__stdcall*)(
 					IDXGIAdapter*,
 					D3D_DRIVER_TYPE,
@@ -324,6 +327,14 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
 					ID3D11Device**,
 					D3D_FEATURE_LEVEL*,
 					ID3D11DeviceContext**))(D3D11CreateDeviceAndSwapChain))(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, featureLevels, 2, D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, &featureLevel, &context) < 0)
+				{
+					::DestroyWindow(window);
+					::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+					return Status::UnknownError;
+				}
+				*/
+
+				if (imp_D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, featureLevels, 2, D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, &featureLevel, &context) < 0)
 				{
 					::DestroyWindow(window);
 					::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);

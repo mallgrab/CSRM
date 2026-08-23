@@ -1,21 +1,17 @@
 #include "ocular/ocular.h"
 #include "ocular/DLLProxy.h"
 #include "PSync/PSyncFactory.h"
+#include "main.h"
 
 #include "PSync/GameData/Control/StartupString.h"
 
 FILE* stream;
 
-// TODO: remove later, we want printing
-#define LOG_CONSOLE
-
-/*
 #ifdef _DEBUG
 	#define LOG_CONSOLE
 #else
-	#define LOG_FILE
+	#define LOG_NOTHING
 #endif
-*/
 
 void ConsoleSetup() {
 #if defined(LOG_CONSOLE)
@@ -42,25 +38,33 @@ void ConsoleSetup() {
 //only doing this on Control as it's causing issues in Nier: Automata
 bool setDX11IndependentFlipModel = false;
 
-typedef HRESULT(*D3D11CreateDeviceAndSwapChain_t)(
-	_In_opt_        IDXGIAdapter* pAdapter,
-	D3D_DRIVER_TYPE      DriverType,
-	HMODULE              Software,
-	UINT                 Flags,
-	_In_opt_  const D3D_FEATURE_LEVEL* pFeatureLevels,
-	UINT                 FeatureLevels,
-	UINT                 SDKVersion,
-	_In_opt_  const DXGI_SWAP_CHAIN_DESC* pSwapChainDesc,
-	_Out_opt_       IDXGISwapChain** ppSwapChain,
-	_Out_opt_       ID3D11Device** ppDevice,
-	_Out_opt_       D3D_FEATURE_LEVEL* pFeatureLevel,
-	_Out_opt_       ID3D11DeviceContext** ppImmediateContext
-	);
 D3D11CreateDeviceAndSwapChain_t imp_D3D11CreateDeviceAndSwapChain = NULL;
-// D3D11CreateDeviceAndSwapChain
 
+volatile bool initDevice = true;
 HRESULT WINAPI hkD3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software, UINT Flags, const D3D_FEATURE_LEVEL* pFeatureLevels, UINT FeatureLevels, UINT SDKVersion, DXGI_SWAP_CHAIN_DESC* pSwapChainDesc, IDXGISwapChain** ppSwapChain, ID3D11Device** ppDevice, D3D_FEATURE_LEVEL* pFeatureLevel, ID3D11DeviceContext** ppImmediateContext)
 {
+	// TODO: This is a temporary hack so we dont get owned by race condition when trying to get the pDevice for dx stuff
+	// if we wait too long for some reason we cant draw stuff anymore
+	// fix is to remove all the ocular and kiero stuff and do it on our own by directly hooking the game (which we are kinda doing right now but not rlly)
+	if (initDevice && (FeatureLevels == 2))
+	{
+		printf("start of mainthread\n");
+		wchar_t path[FILENAME_MAX], filename[FILENAME_MAX];
+
+		GetModuleFileName(NULL, path, MAX_PATH);
+		_wsplitpath_s(path, NULL, NULL, NULL, NULL, filename, FILENAME_MAX, NULL, NULL);
+
+		//OcularDLLProxy::Init();
+		printf("start of ocular init\n");
+		OcularHook oHook = Ocular::Init();
+	
+		printf("start of psync\n");
+		PSyncFactory psync;
+		psync.PSyncMod(oHook, path, filename);
+
+		initDevice = false;
+	}
+
 	if (setDX11IndependentFlipModel && pSwapChainDesc && pSwapChainDesc->BufferCount >= 2) //if (*ppSwapChain == nullptr)
 	{
 		pSwapChainDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
@@ -151,30 +155,13 @@ void earlyHooks()
 #if defined(LOG_CONSOLE) && !defined(_DEBUG)
 	ShowWindow(GetConsoleWindow(), SW_MINIMIZE); //minimize console window on startup
 #endif
-}
 
-DWORD WINAPI MainThread(LPVOID lpReserved) {
-	printf("start of mainthread\n");
-	wchar_t path[FILENAME_MAX], filename[FILENAME_MAX];
+			wchar_t path[FILENAME_MAX], filename[FILENAME_MAX];
 
-#if HOOK_PRINTF
-	ptr* stdio_common_vsnprintf_s_Ptr = (ptr*)GetProcAddress(GetModuleHandle(L"api-ms-win-crt-stdio-l1-1-0.dll"), "__stdio_common_vsnprintf_s");
-	if (MH_CreateHook(stdio_common_vsnprintf_s_Ptr, &stdio_common_vsnprintf_s, reinterpret_cast<LPVOID*>(&stdio_common_vsnprintf_s_Func)) != MH_OK) throw;
-	if (MH_EnableHook(stdio_common_vsnprintf_s_Ptr) != MH_OK) throw;
+		GetModuleFileName(NULL, path, MAX_PATH);
+		_wsplitpath_s(path, NULL, NULL, NULL, NULL, filename, FILENAME_MAX, NULL, NULL);
 
-	ptr* stdio_common_vsprintf_Ptr = (ptr*)GetProcAddress(GetModuleHandle(L"api-ms-win-crt-stdio-l1-1-0.dll"), "__stdio_common_vsprintf");
-	if (MH_CreateHook(stdio_common_vsprintf_Ptr, &stdio_common_vsprintf, reinterpret_cast<LPVOID*>(&stdio_common_vsprintf_Func)) != MH_OK) throw;
-	if (MH_EnableHook(stdio_common_vsprintf_Ptr) != MH_OK) throw;
-
-	ptr* stdio_common_vsprintf_s_Ptr = (ptr*)GetProcAddress(GetModuleHandle(L"api-ms-win-crt-stdio-l1-1-0.dll"), "__stdio_common_vsprintf_s");
-	if (MH_CreateHook(stdio_common_vsprintf_s_Ptr, &stdio_common_vsprintf_s, reinterpret_cast<LPVOID*>(&stdio_common_vsprintf_s_Func)) != MH_OK) throw;
-	if (MH_EnableHook(stdio_common_vsprintf_s_Ptr) != MH_OK) throw;
-#endif
-
-	GetModuleFileName(NULL, path, MAX_PATH);
-	_wsplitpath_s(path, NULL, NULL, NULL, NULL, filename, FILENAME_MAX, NULL, NULL);
-
-#if HOOK_DXGI_FLIP_DISCARD
+	#if HOOK_DXGI_FLIP_DISCARD
 	if (!wcscmp(filename, L"Control_DX11")) {
 		setDX11IndependentFlipModel = true;
 		HMODULE D3D11Handle = GetModuleHandle(L"D3D11.dll");
@@ -187,14 +174,10 @@ DWORD WINAPI MainThread(LPVOID lpReserved) {
 		}
 	}
 #endif
+}
 
-	//OcularDLLProxy::Init();
-	printf("start of ocular init\n");
-	OcularHook oHook = Ocular::Init();
-	
-	printf("start of psync\n");
-	PSyncFactory psync;
-	psync.PSyncMod(oHook, path, filename);
+DWORD WINAPI MainThread(LPVOID lpReserved) {
+
 
 	return TRUE;
 }

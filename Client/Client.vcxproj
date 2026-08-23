@@ -54,7 +54,7 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)enet\include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(DXSDK_DIR)Lib\x64</LibraryPath>
-    <OutDir>E:\games\Control\PluginsD\</OutDir>
+    <OutDir>E:\games\Control\Plugins</OutDir>
     <TargetName>CSRM</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -112,6 +112,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="main.h" />
     <ClInclude Include="ocular\DLLProxy.h" />
     <ClInclude Include="ocular\hooks\D3D11Hook.h" />
     <ClInclude Include="ocular\hooks\D3D9Hook.h" />

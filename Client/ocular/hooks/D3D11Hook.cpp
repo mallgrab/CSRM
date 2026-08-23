@@ -25,6 +25,7 @@ ID3D11Texture2D* prevBackBuffer;
 static bool init = false;
 
 void InitImGui() {
+	printf("InitImGui called");
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;

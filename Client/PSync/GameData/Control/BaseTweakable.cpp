@@ -42,4 +42,7 @@ void BaseTweakableInitialize()
 
 	//Disables levitate ability, toggled thru menu.
 	AbilityLevitateTweakable = BaseTweakable("Ability Levitate: Disable");
+
+	//Fix free cam rotation speed
+    BaseTweakable("Free Camera:CameraRotation Speed").SetTweakableStrValue("5.0f"); //defaults to 180.000, wayy too high for mouse
 }
